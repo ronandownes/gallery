@@ -1,0 +1,824 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <title>lca2 - Viewer</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html { height: 100vh; height: 100dvh; overflow: hidden; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #1a1a1a; color: #e0e0e0;
+            display: flex; height: 100vh; height: 100dvh; overflow: hidden;
+            touch-action: pan-x pan-y;
+        }
+
+        /* ── TOC sidebar ── */
+        .toc-toggle-fixed {
+            position: fixed; top: 50px; left: 0; z-index: 2000;
+            background: #0066cc; color: white; border: none;
+            border-radius: 0 4px 4px 0; padding: 8px 6px;
+            cursor: pointer; font-size: 14px;
+            box-shadow: 2px 2px 8px rgba(0,0,0,0.3);
+        }
+        .toc-toggle-fixed:hover { background: #0080ff; padding-left: 10px; }
+        .toc-sidebar {
+            width: 300px; background: #222; border-right: 1px solid #333;
+            display: flex; flex-direction: column;
+            transition: margin-left 0.3s; z-index: 1500; flex-shrink: 0;
+        }
+        .toc-hidden .toc-sidebar { margin-left: -300px; }
+        .toc-header {
+            padding: 8px 10px; border-bottom: 1px solid #333;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .toc-header h2 { font-size: 13px; color: #fff; }
+        .toc-close { background: none; border: none; color: #ccc; font-size: 16px; cursor: pointer; padding: 2px 6px; }
+        .toc-close:hover { background: #333; }
+        .toc-content { flex: 1; overflow-y: auto; padding: 4px; }
+        .toc-chapter { margin-bottom: 2px; border-radius: 2px; overflow: hidden; }
+        .toc-chapter-header {
+            display: flex; align-items: center; gap: 4px;
+            padding: 5px 6px; background: #2a2a2a; cursor: pointer; user-select: none;
+        }
+        .toc-chapter-header:hover { background: #333; }
+        .chapter-expand { color: #66b3ff; font-size: 9px; width: 12px; transition: transform 0.2s; }
+        .chapter-expand.expanded { transform: rotate(90deg); }
+        .chapter-number { color: #66b3ff; font-weight: bold; font-size: 10px; min-width: 24px; }
+        .toc-chapter-title { font-weight: 500; font-size: 10px; flex: 1; line-height: 1.3; }
+        .toc-sections { max-height: 0; overflow: hidden; transition: max-height 0.3s; background: #222; }
+        .toc-chapter.expanded .toc-sections { max-height: 1000px; }
+        .toc-section {
+            padding: 4px 6px 4px 32px; font-size: 9px; cursor: pointer;
+            display: flex; gap: 4px; line-height: 1.3;
+        }
+        .toc-section:hover { background: #2a2a2a; }
+        .toc-section.active { background: #333; color: #fff; }
+        .section-number { color: #666; font-size: 8px; min-width: 24px; }
+        .no-toc { text-align: center; padding: 20px; color: #666; font-style: italic; font-size: 11px; }
+
+        /* ── Viewer ── */
+        .viewer {
+            flex: 1; display: flex; flex-direction: column;
+            min-width: 0; position: relative;
+        }
+
+        /* ══════════════════════════════════════════
+           THE RULER
+           Static, always visible, cannot be hidden
+           ══════════════════════════════════════════ */
+        .controls {
+            background: #222 !important;
+            padding: 4px 8px;
+            border-bottom: 2px solid #444;
+            display: flex !important;
+            align-items: center;
+            gap: 6px;
+            z-index: 500;
+            height: 38px;
+            min-height: 38px;
+            max-height: 38px;
+            flex-shrink: 0;
+            user-select: none;
+        }
+        .controls-left { display: flex; align-items: center; gap: 6px; }
+        .controls-right { display: flex; align-items: center; gap: 6px; margin-left: auto; }
+
+        button {
+            background: #333; border: 1px solid #444; color: #ccc;
+            padding: 4px 8px; border-radius: 4px; cursor: pointer;
+            font-size: 13px; min-width: 32px; height: 28px;
+            display: flex; align-items: center; justify-content: center;
+        }
+        button:hover { background: #444; }
+        button.active { background: #0066cc; border-color: #0080ff; color: #fff; }
+        button.copied { background: #2e7d32 !important; }
+
+        .page-info { display: flex; align-items: baseline; font-size: 12px; gap: 2px; }
+        #current-page { cursor: pointer; padding: 3px 5px; border-radius: 3px; min-width: 18px; text-align: center; }
+        #current-page:hover { background: #444; }
+        .page-slash { color: #555; font-size: 10px; }
+        #total-pages { color: #666; font-size: 10px; }
+        .page-input-inline {
+            width: 36px; padding: 3px; font-size: 12px; text-align: center;
+            background: #1a1a1a; border: 1px solid #0066cc; border-radius: 3px;
+            color: #e0e0e0; outline: none; -moz-appearance: textfield;
+        }
+        .page-input-inline::-webkit-outer-spin-button,
+        .page-input-inline::-webkit-inner-spin-button { -webkit-appearance: none; }
+        .sep { width: 1px; height: 18px; background: #444; margin: 0 2px; }
+        .copy-link-btn { position: relative; }
+        .copy-link-tooltip {
+            position: absolute; top: -30px; left: 50%; transform: translateX(-50%);
+            background: #2e7d32; color: white; padding: 4px 8px;
+            border-radius: 3px; font-size: 10px; opacity: 0; pointer-events: none; z-index: 1000;
+        }
+        .copy-link-tooltip.show { opacity: 1; }
+
+        /* ── Image container ── */
+        .image-container {
+            flex: 1; display: flex; justify-content: center; align-items: flex-start;
+            overflow: auto; background: #1a1a1a; position: relative;
+            touch-action: none; min-height: 0; -webkit-overflow-scrolling: touch;
+        }
+        .image-container.fit-height { align-items: center; }
+        .image-container.fit-height img { height: 100% !important; width: auto !important; max-width: 100%; object-fit: contain; }
+        .image-container.fit-width img { width: 100% !important; height: auto !important; object-fit: contain; }
+        #page-image { display: block; box-shadow: 0 4px 16px rgba(0,0,0,0.5); transition: transform 0.1s; }
+        .image-container.panning { cursor: grab; }
+        .image-container.panning:active { cursor: grabbing; }
+        .zoom-indicator {
+            position: absolute; bottom: 12px; right: 12px;
+            background: rgba(0,0,0,0.7); color: white; padding: 4px 8px;
+            border-radius: 3px; font-size: 11px; display: none; z-index: 100;
+        }
+        .image-container::-webkit-scrollbar { width: 5px; height: 5px; }
+        .image-container::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 3px; }
+        .image-container { scrollbar-width: thin; scrollbar-color: rgba(255,255,255,0.2) transparent; }
+
+        /* ── Ruler (realistic wooden with tick marks) ── */
+        .reading-ruler {
+            position: absolute; left: 0; width: 100%; pointer-events: none;
+            z-index: 80; display: none;
+        }
+        .reading-ruler.active { display: block; }
+        .ruler-bar {
+            width: 100%; height: 52px; position: relative; overflow: hidden;
+            background:
+                repeating-linear-gradient(90deg,
+                    transparent 0px, transparent 3px,
+                    rgba(160,120,50,0.04) 3px, rgba(160,120,50,0.04) 6px
+                ),
+                linear-gradient(180deg,
+                    #d4a85c 0%, #c89b4e 8%, #ddb668 15%, #c49545 30%,
+                    #b8893c 50%, #c49545 70%, #ddb668 85%, #c89b4e 92%, #d4a85c 100%
+                );
+            border-top: 1.5px solid #8b6914;
+            border-bottom: 2px solid #7a5c10;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,220,140,0.3);
+        }
+        .ruler-edge {
+            position: absolute; bottom: 0; left: 0; width: 100%; height: 6px;
+            background: linear-gradient(180deg, #a07828, #8b6914);
+            border-top: 1px solid #c4a050;
+        }
+        .ruler-ticks { position: absolute; bottom: 6px; left: 0; width: 100%; height: 20px; }
+        .ruler-tick { position: absolute; bottom: 0; width: 1px; background: #6b4c0a; }
+        .ruler-tick.cm { height: 16px; width: 1.5px; background: #5a3e08; }
+        .ruler-tick.half { height: 10px; }
+        .ruler-tick.mm { height: 6px; opacity: 0.6; }
+        .ruler-tick-label {
+            position: absolute; bottom: 22px; font-size: 7px; color: #5a3e08;
+            font-weight: 600; transform: translateX(-50%); font-family: serif;
+        }
+        .ruler-unit-label {
+            position: absolute; top: 4px; font-size: 7px; color: #7a5c10;
+            font-family: serif; font-style: italic; opacity: 0.7;
+        }
+        .ruler-cm-label { left: 8px; }
+        .ruler-in-label { right: 8px; }
+        .ruler-ticks-in { position: absolute; top: 14px; left: 0; width: 100%; height: 18px; }
+        .ruler-tick-in { position: absolute; top: 0; width: 1px; background: #6b4c0a; }
+        .ruler-tick-in.inch { height: 16px; width: 1.5px; background: #5a3e08; }
+        .ruler-tick-in.half { height: 11px; }
+        .ruler-tick-in.quarter { height: 7px; opacity: 0.7; }
+        .ruler-tick-in.eighth { height: 4px; opacity: 0.5; }
+        .ruler-tick-in-label {
+            position: absolute; top: -12px; font-size: 7px; color: #5a3e08;
+            font-weight: 600; transform: translateX(-50%); font-family: serif;
+        }
+
+        /* ── Light Box (resizable bright rectangle, rest dimmed) ── */
+        .lightbox {
+            position: absolute; z-index: 82; display: none;
+            border: 2px solid rgba(255,220,100,0.5);
+            border-radius: 4px;
+            box-shadow: 0 0 0 4000px rgba(0,0,0,0.65);
+            cursor: move;
+        }
+        .lightbox.active { display: block; }
+        .lb-handle {
+            position: absolute; width: 18px; height: 18px;
+            background: rgba(255,220,100,0.7);
+            border: 1.5px solid rgba(180,150,60,0.8);
+            border-radius: 3px; z-index: 83;
+        }
+        .lb-handle:hover, .lb-handle.dragging { background: rgba(255,220,100,1); }
+        .lb-handle.tl { top: -9px; left: -9px; cursor: nw-resize; }
+        .lb-handle.tr { top: -9px; right: -9px; cursor: ne-resize; }
+        .lb-handle.bl { bottom: -9px; left: -9px; cursor: sw-resize; }
+        .lb-handle.br { bottom: -9px; right: -9px; cursor: se-resize; }
+
+        .image-container.tool-dragging { cursor: grabbing; }
+
+        /* ── Side nav ‹ › ── */
+        .side-nav {
+            position: fixed; top: 50%; transform: translateY(-50%); z-index: 2100;
+            background: rgba(255,255,255,.85); color: #262626; border: none;
+            width: 40px; height: 40px; border-radius: 50%; cursor: pointer;
+            opacity: .7; transition: all .15s; font-size: 20px; font-weight: 300;
+            display: flex; align-items: center; justify-content: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,.15);
+        }
+        .side-nav:hover { opacity: 1; background: #fff; }
+        .side-nav.prev { left: 10px; transition: all .3s; }
+        .side-nav.next { right: 10px; }
+        body:not(.toc-hidden) .side-nav.prev { left: 310px; }
+
+        /* ── Scroll ↑↓ auto-hide ── */
+        .scroll-btns {
+            position: fixed; bottom: 18px; left: 50%; transform: translateX(-50%);
+            display: flex; gap: 6px; z-index: 1100;
+            opacity: 0; transition: opacity 0.4s; pointer-events: none;
+        }
+        .scroll-btns.visible { opacity: 1; pointer-events: auto; }
+        .scroll-btn {
+            background: rgba(255,255,255,.85); color: #262626; border: none;
+            width: 36px; height: 36px; border-radius: 50%; cursor: pointer;
+            opacity: .7; transition: all .15s; font-size: 16px; font-weight: 600;
+            display: flex; align-items: center; justify-content: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,.15);
+        }
+        .scroll-btn:hover { opacity: 1; background: #fff; }
+
+        @media (max-width: 600px) {
+            .toc-sidebar { width: 260px; }
+            .toc-hidden .toc-sidebar { margin-left: -260px; }
+            .controls { padding: 3px 6px; gap: 3px; }
+            button { padding: 3px 5px; min-width: 26px; height: 24px; font-size: 11px; }
+            .side-nav { width: 34px; height: 34px; font-size: 16px; opacity: .5; }
+            .side-nav.prev { left: 6px; } .side-nav.next { right: 6px; }
+            body:not(.toc-hidden) .side-nav.prev { left: 270px; }
+            .scroll-btn { width: 30px; height: 30px; font-size: 14px; }
+        }
+
+        /* ── FULLSCREEN — only hide in actual fullscreen/clean modes ── */
+        :fullscreen .controls { opacity: 0; pointer-events: none; transition: opacity .3s; }
+        :fullscreen .toc-toggle-fixed, :fullscreen .toc-sidebar,
+        :fullscreen .scroll-btns, :fullscreen .zoom-indicator,
+
+        :fullscreen .side-nav { opacity: .25; transition: opacity .3s; }
+        :fullscreen .side-nav:hover { opacity: .9; }
+        :fullscreen.show-ui .controls { opacity: 1; pointer-events: auto; }
+        :fullscreen.show-ui .toc-toggle-fixed { opacity: 1; pointer-events: auto; }
+        :fullscreen.show-ui .scroll-btns.visible { opacity: 1; pointer-events: auto; }
+        :fullscreen.show-ui .side-nav { opacity: .7; }
+
+        :-webkit-full-screen .controls { opacity: 0; pointer-events: none; transition: opacity .3s; }
+        :-webkit-full-screen .toc-toggle-fixed, :-webkit-full-screen .toc-sidebar,
+        :-webkit-full-screen .scroll-btns, :-webkit-full-screen .zoom-indicator,
+
+        :-webkit-full-screen .side-nav { opacity: .25; }
+        :-webkit-full-screen .side-nav:hover { opacity: .9; }
+        :-webkit-full-screen.show-ui .controls { opacity: 1; pointer-events: auto; }
+        :-webkit-full-screen.show-ui .toc-toggle-fixed { opacity: 1; pointer-events: auto; }
+        :-webkit-full-screen.show-ui .scroll-btns.visible { opacity: 1; pointer-events: auto; }
+        :-webkit-full-screen.show-ui .side-nav { opacity: .7; }
+
+        .clean-mode .controls { opacity: 0; pointer-events: none; transition: opacity .3s; }
+        .clean-mode .toc-toggle-fixed, .clean-mode .toc-sidebar,
+        .clean-mode .scroll-btns, .clean-mode .zoom-indicator,
+
+        .clean-mode .side-nav { opacity: .25; }
+        .clean-mode .side-nav:hover { opacity: .9; }
+        .clean-mode.show-ui .controls { opacity: 1; pointer-events: auto; }
+        .clean-mode.show-ui .toc-toggle-fixed { opacity: 1; pointer-events: auto; }
+        .clean-mode.show-ui .scroll-btns.visible { opacity: 1; pointer-events: auto; }
+        .clean-mode.show-ui .side-nav { opacity: .7; }
+    </style>
+</head>
+<body class="toc-hidden">
+    <button class="toc-toggle-fixed" id="toc-toggle-fixed" title="Contents (T)">📖</button>
+    <div class="toc-sidebar">
+        <div class="toc-header"><h2>Contents</h2><button class="toc-close" id="toc-close">×</button></div>
+        <div class="toc-content" id="toc-content"></div>
+    </div>
+
+    <div class="viewer">
+        <!-- ═══ THE RULER ═══ -->
+        <div class="controls" id="controls">
+            <div class="controls-left">
+                <button id="toc-btn" title="Contents (T)">☰</button>
+                <span class="sep"></span>
+                <button id="fit-height" title="Fit Height (H)" class="active">↕</button>
+                <button id="fit-width" title="Fit Width (W)">↔</button>
+                <span class="sep"></span>
+                <button id="zoom-out" title="Zoom Out">−</button>
+                <button id="zoom-in" title="Zoom In">+</button>
+                <span class="sep"></span>
+                <span class="page-info">
+                    <span id="current-page" title="Go to page">1</span>
+                    <span class="page-slash">/</span>
+                    <span id="total-pages">0</span>
+                </span>
+            </div>
+            <div class="controls-right">
+                <button id="tool-ruler" title="Ruler (R)">📏</button>
+                <button id="tool-lightbox" title="Light Box (L)">🔦</button>
+                <span class="sep"></span>
+                <button id="copy-link" class="copy-link-btn" title="Copy Link">📎<span class="copy-link-tooltip">Copied!</span></button>
+                <button id="fullscreen" title="Fullscreen (F)">⛶</button>
+            </div>
+        </div>
+        <!-- ═══ END RULER ═══ -->
+
+        <div class="image-container fit-height" id="image-container">
+            <img id="page-image" src="" alt="Page">
+            <div class="zoom-indicator" id="zoom-indicator"></div>
+            <!-- Reading tools -->
+            <div class="reading-ruler" id="reading-ruler">
+                <div class="ruler-bar">
+                    <span class="ruler-unit-label ruler-cm-label">cm</span>
+                    <span class="ruler-unit-label ruler-in-label">in</span>
+                    <div class="ruler-ticks-in" id="ruler-ticks-in"></div>
+                    <div class="ruler-ticks" id="ruler-ticks"></div>
+                    <div class="ruler-edge"></div>
+                </div>
+            </div>
+            <div class="lightbox" id="lightbox">
+                <div class="lb-handle tl" data-corner="tl"></div>
+                <div class="lb-handle tr" data-corner="tr"></div>
+                <div class="lb-handle bl" data-corner="bl"></div>
+                <div class="lb-handle br" data-corner="br"></div>
+            </div>
+        </div>
+    </div>
+
+    <button class="side-nav prev" id="sidePrev">‹</button>
+    <button class="side-nav next" id="sideNext">›</button>
+    <div class="scroll-btns" id="scroll-btns">
+        <button class="scroll-btn" id="scrollUp">↑</button>
+        <button class="scroll-btn" id="scrollDown">↓</button>
+    </div>
+
+    <script>
+    /* Config — wrapped so JS errors don't break anything */
+    var config;
+    try {
+        config = {
+            pages: ["001.webp", "002.webp", "003.webp", "004.webp", "005.webp", "006.webp", "007.webp", "008.webp", "009.webp", "010.webp", "011.webp", "012.webp", "013.webp", "014.webp", "015.webp", "016.webp", "017.webp", "018.webp", "019.webp", "020.webp", "021.webp", "022.webp", "023.webp", "024.webp", "025.webp", "026.webp", "027.webp", "028.webp", "029.webp", "030.webp", "031.webp", "032.webp", "033.webp", "034.webp", "035.webp", "036.webp", "037.webp", "038.webp", "039.webp", "040.webp", "041.webp", "042.webp", "043.webp", "044.webp", "045.webp", "046.webp", "047.webp", "048.webp", "049.webp", "050.webp", "051.webp", "052.webp", "053.webp", "054.webp", "055.webp", "056.webp", "057.webp", "058.webp", "059.webp", "060.webp", "061.webp", "062.webp", "063.webp", "064.webp", "065.webp", "066.webp", "067.webp", "068.webp", "069.webp", "070.webp", "071.webp", "072.webp", "073.webp", "074.webp", "075.webp", "076.webp", "077.webp", "078.webp", "079.webp", "080.webp", "081.webp", "082.webp", "083.webp", "084.webp", "085.webp", "086.webp", "087.webp", "088.webp", "089.webp", "090.webp", "091.webp", "092.webp", "093.webp", "094.webp", "095.webp", "096.webp", "097.webp", "098.webp", "099.webp", "100.webp", "101.webp", "102.webp", "103.webp", "104.webp", "105.webp", "106.webp", "107.webp", "108.webp", "109.webp", "110.webp", "111.webp", "112.webp", "113.webp", "114.webp", "115.webp", "116.webp", "117.webp", "118.webp", "119.webp", "120.webp", "121.webp", "122.webp", "123.webp", "124.webp", "125.webp", "126.webp", "127.webp", "128.webp", "129.webp", "130.webp", "131.webp", "132.webp", "133.webp", "134.webp", "135.webp", "136.webp", "137.webp", "138.webp", "139.webp", "140.webp"], imgBase: "webp", toc: {"chapters": [{"code": "COVER", "title": "Cover & Front Matter", "start": 1, "end": 3, "sections": []}, {"code": "01", "title": "Current Affairs", "start": 4, "end": 69, "sections": [{"code": "1.1", "title": "To investigate the Marriage Equality Act - Ireland 2015", "start": 4, "end": 8}, {"code": "1.2", "title": "To examine greenhouse gas emissions", "start": 9, "end": 13}, {"code": "1.3", "title": "To examine mobile phone app usage", "start": 14, "end": 18}, {"code": "1.4", "title": "To find out how often you check your phone each day", "start": 19, "end": 22}, {"code": "1.5", "title": "To investigate the reproductive rate of an infectious disease", "start": 23, "end": 27}, {"code": "1.6", "title": "To investigate trends in fuel prices", "start": 28, "end": 32}, {"code": "1.7", "title": "To compare data on protein bars", "start": 33, "end": 37}, {"code": "1.8", "title": "To understand how data is used to report on homelessness", "start": 38, "end": 41}, {"code": "1.9", "title": "To look at household expenditure", "start": 42, "end": 46}, {"code": "1.10", "title": "To examine household waste management", "start": 47, "end": 51}, {"code": "1.11", "title": "To consider day time/night time populations", "start": 52, "end": 56}, {"code": "1.12", "title": "To investigate the population of Ireland", "start": 57, "end": 60}, {"code": "1.13", "title": "To focus on positive mental health and wellbeing", "start": 61, "end": 65}, {"code": "1.14", "title": "To examine the nature of statistical data", "start": 66, "end": 69}]}, {"code": "02", "title": "Travel and Recreation", "start": 71, "end": 139, "sections": [{"code": "2.1", "title": "To understand timing when planning a trip", "start": 71, "end": 75}, {"code": "2.2", "title": "To work out how to pay for a holiday", "start": 76, "end": 80}, {"code": "2.3", "title": "To investigate weather data", "start": 81, "end": 84}, {"code": "2.4", "title": "To explore the idea of currency", "start": 85, "end": 89}, {"code": "2.5", "title": "To investigate interrailing in Europe", "start": 90, "end": 94}, {"code": "2.6", "title": "To examine alternative routes to Paris from Ireland", "start": 95, "end": 99}, {"code": "2.7", "title": "To plan a party", "start": 100, "end": 104}, {"code": "2.8", "title": "To plan the school Christmas show", "start": 105, "end": 109}, {"code": "2.9", "title": "To organise a 1st year sports tournament", "start": 110, "end": 114}, {"code": "2.10", "title": "To compare two booking options for a holiday abroad", "start": 115, "end": 119}, {"code": "2.11", "title": "To investigate accommodation options for a holiday in Ireland", "start": 120, "end": 124}, {"code": "2.12", "title": "To investigate travel insurance", "start": 125, "end": 129}, {"code": "2.13", "title": "To investigate Earth to Earth travel through space", "start": 130, "end": 134}, {"code": "2.14", "title": "Student-designed case study", "start": 135, "end": 139}]}, {"code": "03", "title": "Module 2 Key Assignment", "start": 140, "end": 140, "sections": [{"code": "3.1", "title": "Sign-off sheet", "start": 140, "end": 140}]}]}, pageOffset: 0,
+            currentPage: 0, zoom: 1.0, isPanning: false, spaceHeld: false,
+            startX: 0, startY: 0, panStartX: 0, panStartY: 0, translateX: 0, translateY: 0,
+            currentFitMode: localStorage.getItem('fitMode') || 'height',
+            expandedChapters: JSON.parse(localStorage.getItem('expandedChapters') || '{}')
+        };
+    } catch(e) {
+        /* Template not yet processed by build.py — use empty defaults */
+        config = {
+            pages: [], imgBase: '', toc: {chapters:[]}, pageOffset: 0,
+            currentPage: 0, zoom: 1.0, isPanning: false, spaceHeld: false,
+            startX: 0, startY: 0, panStartX: 0, panStartY: 0, translateX: 0, translateY: 0,
+            currentFitMode: 'height', expandedChapters: {}
+        };
+    }
+
+    var $ = function(id){ return document.getElementById(id); };
+    var pageImage = $('page-image'), imageContainer = $('image-container'), zoomIndicator = $('zoom-indicator');
+
+    /* ── Scroll arrows auto-hide ── */
+    var sTimer;
+    function showSB(){ $('scroll-btns').classList.add('visible'); clearTimeout(sTimer); sTimer=setTimeout(function(){ $('scroll-btns').classList.remove('visible'); },3000); }
+    ['mousemove','mousedown','touchstart','wheel','keydown'].forEach(function(e){ document.addEventListener(e,showSB,{passive:true}); });
+
+    /* ══════════════════════════════════════
+       READING TOOLKIT — Ruler + Light Box
+       ══════════════════════════════════════ */
+    var activeTool = null; // 'ruler' | 'lightbox' | null
+    var toolDragging = false;
+    var rulerEl = $('reading-ruler');
+    var lbEl = $('lightbox');
+    var toolPosY = 200;
+
+    // Light box state (in container scroll coords)
+    var lb = { x: 50, y: 80, w: 400, h: 350 };
+    var lbDrag = null; // null | 'move' | 'tl' | 'tr' | 'bl' | 'br'
+    var lbStart = {};
+
+    /* Build ruler ticks */
+    (function buildRulerTicks(){
+        var cmEl = $('ruler-ticks'), inEl = $('ruler-ticks-in');
+        var h = '', maxW = 2400;
+        for(var mm = 0; mm * 3.78 <= maxW; mm++){
+            var x = (mm * 3.78).toFixed(1);
+            if(mm % 10 === 0){
+                h += '<div class="ruler-tick cm" style="left:'+x+'px"></div>';
+                h += '<div class="ruler-tick-label" style="left:'+x+'px">'+(mm/10)+'</div>';
+            } else if(mm % 5 === 0){
+                h += '<div class="ruler-tick half" style="left:'+x+'px"></div>';
+            } else {
+                h += '<div class="ruler-tick mm" style="left:'+x+'px"></div>';
+            }
+        }
+        cmEl.innerHTML = h;
+        h = '';
+        for(var e8 = 0; e8 * 12 <= maxW; e8++){
+            var xi = (e8 * 12).toFixed(1);
+            if(e8 % 8 === 0){
+                h += '<div class="ruler-tick-in inch" style="left:'+xi+'px"></div>';
+                h += '<div class="ruler-tick-in-label" style="left:'+xi+'px">'+(e8/8)+'</div>';
+            } else if(e8 % 4 === 0){
+                h += '<div class="ruler-tick-in half" style="left:'+xi+'px"></div>';
+            } else if(e8 % 2 === 0){
+                h += '<div class="ruler-tick-in quarter" style="left:'+xi+'px"></div>';
+            } else {
+                h += '<div class="ruler-tick-in eighth" style="left:'+xi+'px"></div>';
+            }
+        }
+        inEl.innerHTML = h;
+    })();
+
+    function setTool(tool){
+        if(tool === activeTool) tool = null;
+        activeTool = tool;
+        rulerEl.classList.toggle('active', activeTool === 'ruler');
+        lbEl.classList.toggle('active', activeTool === 'lightbox');
+        $('tool-ruler').classList.toggle('active', activeTool === 'ruler');
+        $('tool-lightbox').classList.toggle('active', activeTool === 'lightbox');
+        if(activeTool === 'ruler') posRuler(toolPosY);
+        if(activeTool === 'lightbox') posLB();
+    }
+
+    function toolY(clientY){
+        var rect = imageContainer.getBoundingClientRect();
+        return clientY - rect.top + imageContainer.scrollTop;
+    }
+    function toolX(clientX){
+        var rect = imageContainer.getBoundingClientRect();
+        return clientX - rect.left + imageContainer.scrollLeft;
+    }
+
+    /* ── Ruler ── */
+    function posRuler(y){ toolPosY = y; rulerEl.style.top = (y - 26) + 'px'; }
+
+    /* ── Light Box ── */
+    function posLB(){
+        lbEl.style.left = lb.x + 'px';
+        lbEl.style.top = lb.y + 'px';
+        lbEl.style.width = lb.w + 'px';
+        lbEl.style.height = lb.h + 'px';
+    }
+    function initLBSize(){
+        var cw = imageContainer.clientWidth, ch = imageContainer.clientHeight;
+        lb.w = Math.round(cw * 0.7);
+        lb.h = Math.round(ch * 0.4);
+        lb.x = Math.round((cw - lb.w) / 2);
+        lb.y = Math.round(imageContainer.scrollTop + ch * 0.2);
+    }
+
+    /* Arrow keys: ruler moves Y, lightbox moves position */
+    function moveToolByKey(dy, dx){
+        if(activeTool === 'ruler'){
+            toolPosY = Math.max(0, Math.min(imageContainer.scrollHeight, toolPosY + dy));
+            posRuler(toolPosY); return true;
+        }
+        if(activeTool === 'lightbox'){
+            lb.x += (dx||0); lb.y += dy;
+            posLB(); return true;
+        }
+        return false;
+    }
+
+    /* ── Mouse / touch for ruler drag ── */
+    imageContainer.addEventListener('mousedown', function(e){
+        if(activeTool !== 'ruler' || config.spaceHeld) return;
+        if(e.target.closest('.side-nav, .scroll-btns, .zoom-indicator, .lightbox')) return;
+        e.preventDefault(); toolDragging = true;
+        imageContainer.classList.add('tool-dragging');
+        toolPosY = toolY(e.clientY); posRuler(toolPosY);
+    });
+    window.addEventListener('mousemove', function(e){
+        if(!toolDragging || activeTool !== 'ruler') return;
+        toolPosY = toolY(e.clientY); posRuler(toolPosY);
+    });
+    window.addEventListener('mouseup', function(){
+        if(toolDragging){ toolDragging = false; imageContainer.classList.remove('tool-dragging'); }
+    });
+
+    /* Touch ruler drag */
+    var rulerTouchStart = null;
+    imageContainer.addEventListener('touchstart', function(e){
+        if(activeTool !== 'ruler' || e.touches.length !== 1) return;
+        if(e.target.closest('.side-nav, .scroll-btns, .zoom-indicator, .lightbox')) return;
+        rulerTouchStart = {x: e.touches[0].clientX, y: e.touches[0].clientY};
+    }, {passive: true});
+    imageContainer.addEventListener('touchmove', function(e){
+        if(activeTool !== 'ruler' || !rulerTouchStart || e.touches.length !== 1) return;
+        var dx = Math.abs(e.touches[0].clientX - rulerTouchStart.x);
+        var dy = Math.abs(e.touches[0].clientY - rulerTouchStart.y);
+        if(!toolDragging && (dx > 8 || dy > 8)){
+            toolDragging = true; imageContainer.classList.add('tool-dragging');
+        }
+        if(toolDragging){
+            e.preventDefault();
+            toolPosY = toolY(e.touches[0].clientY); posRuler(toolPosY);
+        }
+    }, {passive: false});
+    imageContainer.addEventListener('touchend', function(){
+        toolDragging = false; rulerTouchStart = null;
+        imageContainer.classList.remove('tool-dragging');
+    });
+
+    /* ── Light box drag: move body or resize corners ── */
+    lbEl.addEventListener('mousedown', function(e){
+        e.preventDefault(); e.stopPropagation();
+        var handle = e.target.closest('.lb-handle');
+        lbDrag = handle ? handle.dataset.corner : 'move';
+        lbStart = {mx: e.clientX, my: e.clientY, x: lb.x, y: lb.y, w: lb.w, h: lb.h};
+        if(handle) handle.classList.add('dragging');
+    });
+    window.addEventListener('mousemove', function(e){
+        if(!lbDrag) return;
+        var dx = e.clientX - lbStart.mx, dy = e.clientY - lbStart.my;
+        applyLBDrag(dx, dy);
+    });
+    window.addEventListener('mouseup', function(){
+        if(lbDrag){ lbDrag = null; lbEl.querySelectorAll('.lb-handle').forEach(function(h){h.classList.remove('dragging');}); }
+    });
+
+    /* Touch lightbox */
+    lbEl.addEventListener('touchstart', function(e){
+        if(e.touches.length !== 1) return;
+        e.stopPropagation();
+        var handle = e.target.closest('.lb-handle');
+        lbDrag = handle ? handle.dataset.corner : 'move';
+        lbStart = {mx: e.touches[0].clientX, my: e.touches[0].clientY, x: lb.x, y: lb.y, w: lb.w, h: lb.h};
+    }, {passive: true});
+    window.addEventListener('touchmove', function(e){
+        if(!lbDrag || e.touches.length !== 1) return;
+        var dx = e.touches[0].clientX - lbStart.mx, dy = e.touches[0].clientY - lbStart.my;
+        applyLBDrag(dx, dy);
+    }, {passive: true});
+    window.addEventListener('touchend', function(){ lbDrag = null; });
+
+    function applyLBDrag(dx, dy){
+        var MIN = 60;
+        if(lbDrag === 'move'){
+            lb.x = lbStart.x + dx; lb.y = lbStart.y + dy;
+        } else if(lbDrag === 'tl'){
+            lb.x = lbStart.x + dx; lb.y = lbStart.y + dy;
+            lb.w = Math.max(MIN, lbStart.w - dx); lb.h = Math.max(MIN, lbStart.h - dy);
+            if(lb.w === MIN) lb.x = lbStart.x + lbStart.w - MIN;
+            if(lb.h === MIN) lb.y = lbStart.y + lbStart.h - MIN;
+        } else if(lbDrag === 'tr'){
+            lb.y = lbStart.y + dy;
+            lb.w = Math.max(MIN, lbStart.w + dx); lb.h = Math.max(MIN, lbStart.h - dy);
+            if(lb.h === MIN) lb.y = lbStart.y + lbStart.h - MIN;
+        } else if(lbDrag === 'bl'){
+            lb.x = lbStart.x + dx;
+            lb.w = Math.max(MIN, lbStart.w - dx); lb.h = Math.max(MIN, lbStart.h + dy);
+            if(lb.w === MIN) lb.x = lbStart.x + lbStart.w - MIN;
+        } else if(lbDrag === 'br'){
+            lb.w = Math.max(MIN, lbStart.w + dx); lb.h = Math.max(MIN, lbStart.h + dy);
+        }
+        posLB();
+    }
+
+    /* ══════════════════════════════════════
+       CORE VIEWER
+       ══════════════════════════════════════ */
+    function init(){
+        $('total-pages').textContent = config.pages.length - config.pageOffset;
+        if(config.pages.length) loadPage(config.currentPage);
+        renderTOC(); setupEvents();
+        var s = localStorage.getItem('currentPage');
+        if(s){ var n=parseInt(s); if(n>=0 && n<config.pages.length) loadPage(n); }
+        setFitMode(config.currentFitMode);
+        if(localStorage.getItem('tocVisible')==='true') toggleTOC(true);
+        if(config.toc.chapters && config.toc.chapters.length) setTimeout(function(){ toggleTOC(true); }, 100);
+    }
+
+    function toggleTOC(show){
+        if(show===undefined) show = document.body.classList.contains('toc-hidden');
+        document.body.classList.toggle('toc-hidden', !show);
+        localStorage.setItem('tocVisible', show);
+    }
+
+    function setFitMode(mode){
+        config.currentFitMode = mode;
+        imageContainer.classList.remove('fit-height','fit-width');
+        imageContainer.classList.add('fit-'+mode);
+        $('fit-height').classList.toggle('active', mode==='height');
+        $('fit-width').classList.toggle('active', mode==='width');
+        config.zoom=1; config.translateX=config.translateY=0; updateTransform();
+        localStorage.setItem('fitMode', mode);
+    }
+
+    function loadPage(idx){
+        if(idx<0 || idx>=config.pages.length) return;
+        config.currentPage = idx;
+        pageImage.src = config.imgBase ? config.imgBase+'/'+config.pages[idx] : config.pages[idx];
+        $('current-page').textContent = (idx+1) - config.pageOffset;
+        config.zoom=1; config.translateX=config.translateY=0; updateTransform();
+        imageContainer.scrollTop = imageContainer.scrollLeft = 0;
+        updateActiveTOC(); localStorage.setItem('currentPage', idx);
+    }
+
+    function renderTOC(){
+        var c = $('toc-content');
+        if(!config.toc.chapters || !config.toc.chapters.length){ c.innerHTML='<div class="no-toc">No contents</div>'; return; }
+        var h = '';
+        config.toc.chapters.forEach(function(ch,i){
+            var exp = config.expandedChapters[i]===true;
+            h += '<div class="toc-chapter '+(exp?'expanded':'')+'" data-index="'+i+'">';
+            h += '<div class="toc-chapter-header">';
+            h += '<span class="chapter-expand '+(exp?'expanded':'')+'">▶</span>';
+            h += '<div class="chapter-number">'+(ch.code||'')+'</div>';
+            h += '<div class="toc-chapter-title" data-start="'+(ch.start-1)+'">'+(ch.title)+'</div>';
+            h += '</div><div class="toc-sections">';
+            (ch.sections||[]).forEach(function(s){
+                h += '<div class="toc-section" data-start="'+(s.start-1)+'"><div class="section-number">'+(s.code||'')+'</div><div>'+s.title+'</div></div>';
+            });
+            h += '</div></div>';
+        });
+        c.innerHTML = h;
+        c.querySelectorAll('.toc-chapter-header').forEach(function(el){
+            el.onclick = function(e){
+                var ch=el.parentElement, idx=+ch.dataset.index;
+                if(e.target.classList.contains('chapter-expand')||e.target.classList.contains('chapter-number')){
+                    ch.classList.toggle('expanded'); el.querySelector('.chapter-expand').classList.toggle('expanded');
+                    config.expandedChapters[idx]=ch.classList.contains('expanded');
+                    localStorage.setItem('expandedChapters', JSON.stringify(config.expandedChapters));
+                } else {
+                    var st=+el.querySelector('.toc-chapter-title').dataset.start;
+                    if(!isNaN(st)){ loadPage(st); toggleTOC(false); }
+                }
+            };
+        });
+        c.querySelectorAll('.toc-section').forEach(function(el){
+            el.onclick = function(){ var st=+el.dataset.start; if(!isNaN(st)){ loadPage(st); toggleTOC(false); } };
+        });
+    }
+
+    function updateActiveTOC(){
+        document.querySelectorAll('.toc-section').forEach(function(el){el.classList.remove('active');});
+        var act=null, mn=Infinity;
+        document.querySelectorAll('.toc-section').forEach(function(el){
+            var st=+el.dataset.start;
+            if(!isNaN(st) && config.currentPage>=st && config.currentPage-st<mn){ mn=config.currentPage-st; act=el; }
+        });
+        if(act){ act.classList.add('active'); setTimeout(function(){act.scrollIntoView({block:'center',behavior:'smooth'});},100); }
+    }
+
+    function updateTransform(){
+        pageImage.style.transform = 'translate('+config.translateX+'px,'+config.translateY+'px) scale('+config.zoom+')';
+        if(config.zoom!==1){
+            zoomIndicator.textContent = Math.round(config.zoom*100)+'%';
+            zoomIndicator.style.display = 'block';
+            setTimeout(function(){zoomIndicator.style.display='none';}, 800);
+        }
+    }
+
+    function scrollPage(dir){ imageContainer.scrollBy({top: dir*imageContainer.clientHeight*0.33, behavior:'smooth'}); }
+
+    function showPageInput(){
+        var inp = document.createElement('input');
+        inp.type='text'; inp.inputMode='numeric'; inp.className='page-input-inline';
+        inp.value = (config.currentPage+1) - config.pageOffset;
+        inp.onkeydown = function(e){ if(e.key==='Enter') subP(inp); else if(e.key==='Escape') hideP(inp); };
+        inp.onblur = function(){ subP(inp); };
+        var span = $('current-page');
+        span.style.display='none'; span.parentNode.insertBefore(inp,span); inp.focus(); inp.select();
+    }
+    function hideP(inp){ $('current-page').style.display=''; if(inp) inp.remove(); }
+    function subP(inp){ var d=parseInt(inp.value), idx=d+config.pageOffset-1; if(idx>=0&&idx<config.pages.length) loadPage(idx); hideP(inp); }
+
+    function copyLink(){
+        var d=(config.currentPage+1)-config.pageOffset, url=new URL(location.href); url.hash='#page='+d;
+        navigator.clipboard.writeText(url.toString()).then(function(){
+            $('copy-link').classList.add('copied'); document.querySelector('.copy-link-tooltip').classList.add('show');
+            setTimeout(function(){ $('copy-link').classList.remove('copied'); document.querySelector('.copy-link-tooltip').classList.remove('show'); },1200);
+        });
+    }
+
+    /* ── Fullscreen ── */
+    var uiT;
+    function isFS(){ return !!(document.fullscreenElement||document.webkitFullscreenElement); }
+    function isCM(){ return document.body.classList.contains('clean-mode'); }
+    function isIM(){ return isFS()||isCM(); }
+    function toggleFS(){
+        if(isFS()){ (document.exitFullscreen||document.webkitExitFullscreen).call(document); }
+        else if(isCM()){ document.body.classList.remove('clean-mode','show-ui'); }
+        else {
+            var el=document.documentElement, req=el.requestFullscreen||el.webkitRequestFullscreen;
+            if(req){ req.call(el).catch(function(){ document.body.classList.add('clean-mode'); }); }
+            else { document.body.classList.add('clean-mode'); }
+        }
+    }
+    function showUI(){
+        clearTimeout(uiT);
+        document.documentElement.classList.add('show-ui'); document.body.classList.add('show-ui');
+        uiT = setTimeout(function(){ document.documentElement.classList.remove('show-ui'); document.body.classList.remove('show-ui'); },3000);
+    }
+    document.addEventListener('fullscreenchange',function(){ if(!isFS()){ document.documentElement.classList.remove('show-ui'); document.body.classList.remove('show-ui'); }});
+    document.addEventListener('webkitfullscreenchange',function(){ if(!isFS()){ document.documentElement.classList.remove('show-ui'); document.body.classList.remove('show-ui'); }});
+    imageContainer.addEventListener('click', function(e){
+        if(isIM() && (e.target===pageImage||e.target===imageContainer)){ showUI(); e.stopPropagation(); }
+    });
+
+    /* ── All events ── */
+    function setupEvents(){
+        $('toc-toggle-fixed').onclick = function(){ toggleTOC(); };
+        $('toc-btn').onclick = function(){ toggleTOC(); };
+        $('toc-close').onclick = function(){ toggleTOC(false); };
+        $('fit-height').onclick = function(){ setFitMode('height'); };
+        $('fit-width').onclick = function(){ setFitMode('width'); };
+        $('zoom-in').onclick = function(){ config.zoom=Math.min(4,config.zoom+.15); updateTransform(); };
+        $('zoom-out').onclick = function(){ config.zoom=Math.max(.2,config.zoom-.15); updateTransform(); };
+        $('copy-link').onclick = copyLink;
+        $('fullscreen').onclick = toggleFS;
+        $('tool-ruler').onclick = function(){ setTool('ruler'); };
+        $('tool-lightbox').onclick = function(){ if(activeTool!=='lightbox') initLBSize(); setTool('lightbox'); };
+        $('current-page').onclick = showPageInput;
+        $('sidePrev').onclick = function(){ loadPage(config.currentPage-1); };
+        $('sideNext').onclick = function(){ loadPage(config.currentPage+1); };
+        $('scrollUp').onclick = function(){ scrollPage(-1); };
+        $('scrollDown').onclick = function(){ scrollPage(1); };
+
+        // Keyboard
+        window.addEventListener('keydown', function(e){
+            if(e.target.tagName==='INPUT') return;
+            if(e.code==='Space' && !config.spaceHeld){ config.spaceHeld=true; imageContainer.classList.add('panning'); e.preventDefault(); return; }
+            // Arrow keys: move tool if active, otherwise normal nav
+            if(e.key==='ArrowUp'){ e.preventDefault(); if(!moveToolByKey(-20, 0)) scrollPage(-1); }
+            else if(e.key==='ArrowDown'){ e.preventDefault(); if(!moveToolByKey(20, 0)) scrollPage(1); }
+            else if(e.key==='ArrowLeft'){
+                e.preventDefault();
+                if(activeTool==='lightbox') moveToolByKey(0, -20);
+                else loadPage(config.currentPage-1);
+            }
+            else if(e.key==='ArrowRight'){
+                e.preventDefault();
+                if(activeTool==='lightbox') moveToolByKey(0, 20);
+                else loadPage(config.currentPage+1);
+            }
+            else if(e.key==='Home') loadPage(0);
+            else if(e.key==='End') loadPage(config.pages.length-1);
+            else if(e.key==='h'||e.key==='H') setFitMode('height');
+            else if(e.key==='w'||e.key==='W') setFitMode('width');
+            else if(e.key==='t'||e.key==='T') toggleTOC();
+            else if(e.key==='r'||e.key==='R') setTool('ruler');
+            else if(e.key==='l'||e.key==='L'){ if(activeTool!=='lightbox') initLBSize(); setTool('lightbox'); }
+            else if(e.key==='f'||e.key==='F') toggleFS();
+            else if(e.key==='Escape'){
+                if(activeTool) setTool(null);
+                else if(isCM()) document.body.classList.remove('clean-mode','show-ui');
+            }
+        });
+        window.addEventListener('keyup', function(e){ if(e.code==='Space'){ config.spaceHeld=false; config.isPanning=false; imageContainer.classList.remove('panning'); } });
+
+        // Space+drag pan
+        imageContainer.addEventListener('mousedown', function(e){
+            if(config.spaceHeld){ config.isPanning=true; config.startX=e.clientX; config.startY=e.clientY; config.panStartX=config.translateX; config.panStartY=config.translateY; e.preventDefault(); }
+        });
+        window.addEventListener('mousemove', function(e){ if(!config.isPanning)return; config.translateX=config.panStartX+e.clientX-config.startX; config.translateY=config.panStartY+e.clientY-config.startY; updateTransform(); });
+        window.addEventListener('mouseup', function(){ config.isPanning=false; });
+
+        // Ctrl+wheel zoom
+        document.addEventListener('wheel', function(e){
+            if(e.ctrlKey||e.metaKey){ e.preventDefault(); config.zoom=Math.max(.2,Math.min(4,config.zoom+(e.deltaY>0?-.1:.1))); updateTransform(); }
+        }, {passive:false});
+
+        document.addEventListener('touchmove', function(e){ if(e.touches.length>1) e.preventDefault(); }, {passive:false});
+        ['gesturestart','gesturechange','gestureend'].forEach(function(ev){ document.addEventListener(ev, function(e){e.preventDefault();}); });
+
+        // Touch swipe
+        var touchS = null;
+        imageContainer.addEventListener('touchstart', function(e){
+            if(e.touches.length===1 && config.zoom<=1) touchS={x:e.touches[0].clientX, y:e.touches[0].clientY, t:Date.now()};
+        }, {passive:true});
+        imageContainer.addEventListener('touchend', function(e){
+            if(!touchS || config.zoom>1){ touchS=null; return; }
+            var dx=e.changedTouches[0].clientX-touchS.x, dy=e.changedTouches[0].clientY-touchS.y, dt=Date.now()-touchS.t;
+            if(Math.abs(dx)>50 && Math.abs(dx)>Math.abs(dy)*1.5 && dt<500) loadPage(config.currentPage+(dx>0?-1:1));
+            touchS=null;
+        });
+
+        // Pinch zoom
+        var ts={}, pan=false;
+        pageImage.ontouchstart = function(e){
+            if(e.touches.length===1 && config.zoom>1){ pan=true; ts={x:e.touches[0].clientX, y:e.touches[0].clientY, tx:config.translateX, ty:config.translateY}; }
+            else if(e.touches.length===2){ pan=false; e.preventDefault(); config.touchDist=Math.hypot(e.touches[1].clientX-e.touches[0].clientX, e.touches[1].clientY-e.touches[0].clientY); config.touchZoom=config.zoom; }
+        };
+        pageImage.ontouchmove = function(e){
+            if(e.touches.length===1 && pan && config.zoom>1){ e.preventDefault(); config.translateX=ts.tx+e.touches[0].clientX-ts.x; config.translateY=ts.ty+e.touches[0].clientY-ts.y; updateTransform(); }
+            else if(e.touches.length===2){ e.preventDefault(); var d=Math.hypot(e.touches[1].clientX-e.touches[0].clientX, e.touches[1].clientY-e.touches[0].clientY); config.zoom=Math.max(.2,Math.min(4,config.touchZoom*(d/config.touchDist))); updateTransform(); }
+        };
+        pageImage.ontouchend = function(){ pan=false; };
+        pageImage.ondblclick = function(){ config.zoom=1; config.translateX=config.translateY=0; updateTransform(); };
+
+    }
+
+    window.onload = init;
+    window.onhashchange = function(){
+        var m=location.hash.match(/^#page=(-?\d+)$/);
+        if(m){ var idx=parseInt(m[1])+config.pageOffset-1; if(idx>=0&&idx<config.pages.length) loadPage(idx); }
+    };
+    if(location.hash.indexOf('#page=')===0){
+        var d=parseInt(location.hash.slice(6));
+        if(!isNaN(d)){ var idx=d+config.pageOffset-1; if(idx>=0) config.currentPage=idx; }
+    }
+    </script>
+</body>
+</html>

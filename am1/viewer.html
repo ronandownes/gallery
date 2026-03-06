@@ -1,0 +1,824 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <title>am1 - Viewer</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html { height: 100vh; height: 100dvh; overflow: hidden; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #1a1a1a; color: #e0e0e0;
+            display: flex; height: 100vh; height: 100dvh; overflow: hidden;
+            touch-action: pan-x pan-y;
+        }
+
+        /* ── TOC sidebar ── */
+        .toc-toggle-fixed {
+            position: fixed; top: 50px; left: 0; z-index: 2000;
+            background: #0066cc; color: white; border: none;
+            border-radius: 0 4px 4px 0; padding: 8px 6px;
+            cursor: pointer; font-size: 14px;
+            box-shadow: 2px 2px 8px rgba(0,0,0,0.3);
+        }
+        .toc-toggle-fixed:hover { background: #0080ff; padding-left: 10px; }
+        .toc-sidebar {
+            width: 300px; background: #222; border-right: 1px solid #333;
+            display: flex; flex-direction: column;
+            transition: margin-left 0.3s; z-index: 1500; flex-shrink: 0;
+        }
+        .toc-hidden .toc-sidebar { margin-left: -300px; }
+        .toc-header {
+            padding: 8px 10px; border-bottom: 1px solid #333;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .toc-header h2 { font-size: 13px; color: #fff; }
+        .toc-close { background: none; border: none; color: #ccc; font-size: 16px; cursor: pointer; padding: 2px 6px; }
+        .toc-close:hover { background: #333; }
+        .toc-content { flex: 1; overflow-y: auto; padding: 4px; }
+        .toc-chapter { margin-bottom: 2px; border-radius: 2px; overflow: hidden; }
+        .toc-chapter-header {
+            display: flex; align-items: center; gap: 4px;
+            padding: 5px 6px; background: #2a2a2a; cursor: pointer; user-select: none;
+        }
+        .toc-chapter-header:hover { background: #333; }
+        .chapter-expand { color: #66b3ff; font-size: 9px; width: 12px; transition: transform 0.2s; }
+        .chapter-expand.expanded { transform: rotate(90deg); }
+        .chapter-number { color: #66b3ff; font-weight: bold; font-size: 10px; min-width: 24px; }
+        .toc-chapter-title { font-weight: 500; font-size: 10px; flex: 1; line-height: 1.3; }
+        .toc-sections { max-height: 0; overflow: hidden; transition: max-height 0.3s; background: #222; }
+        .toc-chapter.expanded .toc-sections { max-height: 1000px; }
+        .toc-section {
+            padding: 4px 6px 4px 32px; font-size: 9px; cursor: pointer;
+            display: flex; gap: 4px; line-height: 1.3;
+        }
+        .toc-section:hover { background: #2a2a2a; }
+        .toc-section.active { background: #333; color: #fff; }
+        .section-number { color: #666; font-size: 8px; min-width: 24px; }
+        .no-toc { text-align: center; padding: 20px; color: #666; font-style: italic; font-size: 11px; }
+
+        /* ── Viewer ── */
+        .viewer {
+            flex: 1; display: flex; flex-direction: column;
+            min-width: 0; position: relative;
+        }
+
+        /* ══════════════════════════════════════════
+           THE RULER
+           Static, always visible, cannot be hidden
+           ══════════════════════════════════════════ */
+        .controls {
+            background: #222 !important;
+            padding: 4px 8px;
+            border-bottom: 2px solid #444;
+            display: flex !important;
+            align-items: center;
+            gap: 6px;
+            z-index: 500;
+            height: 38px;
+            min-height: 38px;
+            max-height: 38px;
+            flex-shrink: 0;
+            user-select: none;
+        }
+        .controls-left { display: flex; align-items: center; gap: 6px; }
+        .controls-right { display: flex; align-items: center; gap: 6px; margin-left: auto; }
+
+        button {
+            background: #333; border: 1px solid #444; color: #ccc;
+            padding: 4px 8px; border-radius: 4px; cursor: pointer;
+            font-size: 13px; min-width: 32px; height: 28px;
+            display: flex; align-items: center; justify-content: center;
+        }
+        button:hover { background: #444; }
+        button.active { background: #0066cc; border-color: #0080ff; color: #fff; }
+        button.copied { background: #2e7d32 !important; }
+
+        .page-info { display: flex; align-items: baseline; font-size: 12px; gap: 2px; }
+        #current-page { cursor: pointer; padding: 3px 5px; border-radius: 3px; min-width: 18px; text-align: center; }
+        #current-page:hover { background: #444; }
+        .page-slash { color: #555; font-size: 10px; }
+        #total-pages { color: #666; font-size: 10px; }
+        .page-input-inline {
+            width: 36px; padding: 3px; font-size: 12px; text-align: center;
+            background: #1a1a1a; border: 1px solid #0066cc; border-radius: 3px;
+            color: #e0e0e0; outline: none; -moz-appearance: textfield;
+        }
+        .page-input-inline::-webkit-outer-spin-button,
+        .page-input-inline::-webkit-inner-spin-button { -webkit-appearance: none; }
+        .sep { width: 1px; height: 18px; background: #444; margin: 0 2px; }
+        .copy-link-btn { position: relative; }
+        .copy-link-tooltip {
+            position: absolute; top: -30px; left: 50%; transform: translateX(-50%);
+            background: #2e7d32; color: white; padding: 4px 8px;
+            border-radius: 3px; font-size: 10px; opacity: 0; pointer-events: none; z-index: 1000;
+        }
+        .copy-link-tooltip.show { opacity: 1; }
+
+        /* ── Image container ── */
+        .image-container {
+            flex: 1; display: flex; justify-content: center; align-items: flex-start;
+            overflow: auto; background: #1a1a1a; position: relative;
+            touch-action: none; min-height: 0; -webkit-overflow-scrolling: touch;
+        }
+        .image-container.fit-height { align-items: center; }
+        .image-container.fit-height img { height: 100% !important; width: auto !important; max-width: 100%; object-fit: contain; }
+        .image-container.fit-width img { width: 100% !important; height: auto !important; object-fit: contain; }
+        #page-image { display: block; box-shadow: 0 4px 16px rgba(0,0,0,0.5); transition: transform 0.1s; }
+        .image-container.panning { cursor: grab; }
+        .image-container.panning:active { cursor: grabbing; }
+        .zoom-indicator {
+            position: absolute; bottom: 12px; right: 12px;
+            background: rgba(0,0,0,0.7); color: white; padding: 4px 8px;
+            border-radius: 3px; font-size: 11px; display: none; z-index: 100;
+        }
+        .image-container::-webkit-scrollbar { width: 5px; height: 5px; }
+        .image-container::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 3px; }
+        .image-container { scrollbar-width: thin; scrollbar-color: rgba(255,255,255,0.2) transparent; }
+
+        /* ── Ruler (realistic wooden with tick marks) ── */
+        .reading-ruler {
+            position: absolute; left: 0; width: 100%; pointer-events: none;
+            z-index: 80; display: none;
+        }
+        .reading-ruler.active { display: block; }
+        .ruler-bar {
+            width: 100%; height: 52px; position: relative; overflow: hidden;
+            background:
+                repeating-linear-gradient(90deg,
+                    transparent 0px, transparent 3px,
+                    rgba(160,120,50,0.04) 3px, rgba(160,120,50,0.04) 6px
+                ),
+                linear-gradient(180deg,
+                    #d4a85c 0%, #c89b4e 8%, #ddb668 15%, #c49545 30%,
+                    #b8893c 50%, #c49545 70%, #ddb668 85%, #c89b4e 92%, #d4a85c 100%
+                );
+            border-top: 1.5px solid #8b6914;
+            border-bottom: 2px solid #7a5c10;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,220,140,0.3);
+        }
+        .ruler-edge {
+            position: absolute; bottom: 0; left: 0; width: 100%; height: 6px;
+            background: linear-gradient(180deg, #a07828, #8b6914);
+            border-top: 1px solid #c4a050;
+        }
+        .ruler-ticks { position: absolute; bottom: 6px; left: 0; width: 100%; height: 20px; }
+        .ruler-tick { position: absolute; bottom: 0; width: 1px; background: #6b4c0a; }
+        .ruler-tick.cm { height: 16px; width: 1.5px; background: #5a3e08; }
+        .ruler-tick.half { height: 10px; }
+        .ruler-tick.mm { height: 6px; opacity: 0.6; }
+        .ruler-tick-label {
+            position: absolute; bottom: 22px; font-size: 7px; color: #5a3e08;
+            font-weight: 600; transform: translateX(-50%); font-family: serif;
+        }
+        .ruler-unit-label {
+            position: absolute; top: 4px; font-size: 7px; color: #7a5c10;
+            font-family: serif; font-style: italic; opacity: 0.7;
+        }
+        .ruler-cm-label { left: 8px; }
+        .ruler-in-label { right: 8px; }
+        .ruler-ticks-in { position: absolute; top: 14px; left: 0; width: 100%; height: 18px; }
+        .ruler-tick-in { position: absolute; top: 0; width: 1px; background: #6b4c0a; }
+        .ruler-tick-in.inch { height: 16px; width: 1.5px; background: #5a3e08; }
+        .ruler-tick-in.half { height: 11px; }
+        .ruler-tick-in.quarter { height: 7px; opacity: 0.7; }
+        .ruler-tick-in.eighth { height: 4px; opacity: 0.5; }
+        .ruler-tick-in-label {
+            position: absolute; top: -12px; font-size: 7px; color: #5a3e08;
+            font-weight: 600; transform: translateX(-50%); font-family: serif;
+        }
+
+        /* ── Light Box (resizable bright rectangle, rest dimmed) ── */
+        .lightbox {
+            position: absolute; z-index: 82; display: none;
+            border: 2px solid rgba(255,220,100,0.5);
+            border-radius: 4px;
+            box-shadow: 0 0 0 4000px rgba(0,0,0,0.65);
+            cursor: move;
+        }
+        .lightbox.active { display: block; }
+        .lb-handle {
+            position: absolute; width: 18px; height: 18px;
+            background: rgba(255,220,100,0.7);
+            border: 1.5px solid rgba(180,150,60,0.8);
+            border-radius: 3px; z-index: 83;
+        }
+        .lb-handle:hover, .lb-handle.dragging { background: rgba(255,220,100,1); }
+        .lb-handle.tl { top: -9px; left: -9px; cursor: nw-resize; }
+        .lb-handle.tr { top: -9px; right: -9px; cursor: ne-resize; }
+        .lb-handle.bl { bottom: -9px; left: -9px; cursor: sw-resize; }
+        .lb-handle.br { bottom: -9px; right: -9px; cursor: se-resize; }
+
+        .image-container.tool-dragging { cursor: grabbing; }
+
+        /* ── Side nav ‹ › ── */
+        .side-nav {
+            position: fixed; top: 50%; transform: translateY(-50%); z-index: 2100;
+            background: rgba(255,255,255,.85); color: #262626; border: none;
+            width: 40px; height: 40px; border-radius: 50%; cursor: pointer;
+            opacity: .7; transition: all .15s; font-size: 20px; font-weight: 300;
+            display: flex; align-items: center; justify-content: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,.15);
+        }
+        .side-nav:hover { opacity: 1; background: #fff; }
+        .side-nav.prev { left: 10px; transition: all .3s; }
+        .side-nav.next { right: 10px; }
+        body:not(.toc-hidden) .side-nav.prev { left: 310px; }
+
+        /* ── Scroll ↑↓ auto-hide ── */
+        .scroll-btns {
+            position: fixed; bottom: 18px; left: 50%; transform: translateX(-50%);
+            display: flex; gap: 6px; z-index: 1100;
+            opacity: 0; transition: opacity 0.4s; pointer-events: none;
+        }
+        .scroll-btns.visible { opacity: 1; pointer-events: auto; }
+        .scroll-btn {
+            background: rgba(255,255,255,.85); color: #262626; border: none;
+            width: 36px; height: 36px; border-radius: 50%; cursor: pointer;
+            opacity: .7; transition: all .15s; font-size: 16px; font-weight: 600;
+            display: flex; align-items: center; justify-content: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,.15);
+        }
+        .scroll-btn:hover { opacity: 1; background: #fff; }
+
+        @media (max-width: 600px) {
+            .toc-sidebar { width: 260px; }
+            .toc-hidden .toc-sidebar { margin-left: -260px; }
+            .controls { padding: 3px 6px; gap: 3px; }
+            button { padding: 3px 5px; min-width: 26px; height: 24px; font-size: 11px; }
+            .side-nav { width: 34px; height: 34px; font-size: 16px; opacity: .5; }
+            .side-nav.prev { left: 6px; } .side-nav.next { right: 6px; }
+            body:not(.toc-hidden) .side-nav.prev { left: 270px; }
+            .scroll-btn { width: 30px; height: 30px; font-size: 14px; }
+        }
+
+        /* ── FULLSCREEN — only hide in actual fullscreen/clean modes ── */
+        :fullscreen .controls { opacity: 0; pointer-events: none; transition: opacity .3s; }
+        :fullscreen .toc-toggle-fixed, :fullscreen .toc-sidebar,
+        :fullscreen .scroll-btns, :fullscreen .zoom-indicator,
+
+        :fullscreen .side-nav { opacity: .25; transition: opacity .3s; }
+        :fullscreen .side-nav:hover { opacity: .9; }
+        :fullscreen.show-ui .controls { opacity: 1; pointer-events: auto; }
+        :fullscreen.show-ui .toc-toggle-fixed { opacity: 1; pointer-events: auto; }
+        :fullscreen.show-ui .scroll-btns.visible { opacity: 1; pointer-events: auto; }
+        :fullscreen.show-ui .side-nav { opacity: .7; }
+
+        :-webkit-full-screen .controls { opacity: 0; pointer-events: none; transition: opacity .3s; }
+        :-webkit-full-screen .toc-toggle-fixed, :-webkit-full-screen .toc-sidebar,
+        :-webkit-full-screen .scroll-btns, :-webkit-full-screen .zoom-indicator,
+
+        :-webkit-full-screen .side-nav { opacity: .25; }
+        :-webkit-full-screen .side-nav:hover { opacity: .9; }
+        :-webkit-full-screen.show-ui .controls { opacity: 1; pointer-events: auto; }
+        :-webkit-full-screen.show-ui .toc-toggle-fixed { opacity: 1; pointer-events: auto; }
+        :-webkit-full-screen.show-ui .scroll-btns.visible { opacity: 1; pointer-events: auto; }
+        :-webkit-full-screen.show-ui .side-nav { opacity: .7; }
+
+        .clean-mode .controls { opacity: 0; pointer-events: none; transition: opacity .3s; }
+        .clean-mode .toc-toggle-fixed, .clean-mode .toc-sidebar,
+        .clean-mode .scroll-btns, .clean-mode .zoom-indicator,
+
+        .clean-mode .side-nav { opacity: .25; }
+        .clean-mode .side-nav:hover { opacity: .9; }
+        .clean-mode.show-ui .controls { opacity: 1; pointer-events: auto; }
+        .clean-mode.show-ui .toc-toggle-fixed { opacity: 1; pointer-events: auto; }
+        .clean-mode.show-ui .scroll-btns.visible { opacity: 1; pointer-events: auto; }
+        .clean-mode.show-ui .side-nav { opacity: .7; }
+    </style>
+</head>
+<body class="toc-hidden">
+    <button class="toc-toggle-fixed" id="toc-toggle-fixed" title="Contents (T)">📖</button>
+    <div class="toc-sidebar">
+        <div class="toc-header"><h2>Contents</h2><button class="toc-close" id="toc-close">×</button></div>
+        <div class="toc-content" id="toc-content"></div>
+    </div>
+
+    <div class="viewer">
+        <!-- ═══ THE RULER ═══ -->
+        <div class="controls" id="controls">
+            <div class="controls-left">
+                <button id="toc-btn" title="Contents (T)">☰</button>
+                <span class="sep"></span>
+                <button id="fit-height" title="Fit Height (H)" class="active">↕</button>
+                <button id="fit-width" title="Fit Width (W)">↔</button>
+                <span class="sep"></span>
+                <button id="zoom-out" title="Zoom Out">−</button>
+                <button id="zoom-in" title="Zoom In">+</button>
+                <span class="sep"></span>
+                <span class="page-info">
+                    <span id="current-page" title="Go to page">1</span>
+                    <span class="page-slash">/</span>
+                    <span id="total-pages">0</span>
+                </span>
+            </div>
+            <div class="controls-right">
+                <button id="tool-ruler" title="Ruler (R)">📏</button>
+                <button id="tool-lightbox" title="Light Box (L)">🔦</button>
+                <span class="sep"></span>
+                <button id="copy-link" class="copy-link-btn" title="Copy Link">📎<span class="copy-link-tooltip">Copied!</span></button>
+                <button id="fullscreen" title="Fullscreen (F)">⛶</button>
+            </div>
+        </div>
+        <!-- ═══ END RULER ═══ -->
+
+        <div class="image-container fit-height" id="image-container">
+            <img id="page-image" src="" alt="Page">
+            <div class="zoom-indicator" id="zoom-indicator"></div>
+            <!-- Reading tools -->
+            <div class="reading-ruler" id="reading-ruler">
+                <div class="ruler-bar">
+                    <span class="ruler-unit-label ruler-cm-label">cm</span>
+                    <span class="ruler-unit-label ruler-in-label">in</span>
+                    <div class="ruler-ticks-in" id="ruler-ticks-in"></div>
+                    <div class="ruler-ticks" id="ruler-ticks"></div>
+                    <div class="ruler-edge"></div>
+                </div>
+            </div>
+            <div class="lightbox" id="lightbox">
+                <div class="lb-handle tl" data-corner="tl"></div>
+                <div class="lb-handle tr" data-corner="tr"></div>
+                <div class="lb-handle bl" data-corner="bl"></div>
+                <div class="lb-handle br" data-corner="br"></div>
+            </div>
+        </div>
+    </div>
+
+    <button class="side-nav prev" id="sidePrev">‹</button>
+    <button class="side-nav next" id="sideNext">›</button>
+    <div class="scroll-btns" id="scroll-btns">
+        <button class="scroll-btn" id="scrollUp">↑</button>
+        <button class="scroll-btn" id="scrollDown">↓</button>
+    </div>
+
+    <script>
+    /* Config — wrapped so JS errors don't break anything */
+    var config;
+    try {
+        config = {
+            pages: ["001.webp", "002.webp", "003.webp", "004.webp", "005.webp", "006.webp", "007.webp", "008.webp", "009.webp", "010.webp", "011.webp", "012.webp", "013.webp", "014.webp", "015.webp", "016.webp", "017.webp", "018.webp", "019.webp", "020.webp", "021.webp", "022.webp", "023.webp", "024.webp", "025.webp", "026.webp", "027.webp", "028.webp", "029.webp", "030.webp", "031.webp", "032.webp", "033.webp", "034.webp", "035.webp", "036.webp", "037.webp", "038.webp", "039.webp", "040.webp", "041.webp", "042.webp", "043.webp", "044.webp", "045.webp", "046.webp", "047.webp", "048.webp", "049.webp", "050.webp", "051.webp", "052.webp", "053.webp", "054.webp", "055.webp", "056.webp", "057.webp", "058.webp", "059.webp", "060.webp", "061.webp", "062.webp", "063.webp", "064.webp", "065.webp", "066.webp", "067.webp", "068.webp", "069.webp", "070.webp", "071.webp", "072.webp", "073.webp", "074.webp", "075.webp", "076.webp", "077.webp", "078.webp", "079.webp", "080.webp", "081.webp", "082.webp", "083.webp", "084.webp", "085.webp", "086.webp", "087.webp", "088.webp", "089.webp", "090.webp", "091.webp", "092.webp", "093.webp", "094.webp", "095.webp", "096.webp", "097.webp", "098.webp", "099.webp", "100.webp", "101.webp", "102.webp", "103.webp", "104.webp", "105.webp", "106.webp", "107.webp", "108.webp", "109.webp", "110.webp", "111.webp", "112.webp", "113.webp", "114.webp", "115.webp", "116.webp", "117.webp", "118.webp", "119.webp", "120.webp", "121.webp", "122.webp", "123.webp", "124.webp", "125.webp", "126.webp", "127.webp", "128.webp", "129.webp", "130.webp", "131.webp", "132.webp", "133.webp", "134.webp", "135.webp", "136.webp", "137.webp", "138.webp", "139.webp", "140.webp", "141.webp", "142.webp", "143.webp", "144.webp", "145.webp", "146.webp", "147.webp", "148.webp", "149.webp", "150.webp", "151.webp", "152.webp", "153.webp", "154.webp", "155.webp", "156.webp", "157.webp", "158.webp", "159.webp", "160.webp", "161.webp", "162.webp", "163.webp", "164.webp", "165.webp", "166.webp", "167.webp", "168.webp", "169.webp", "170.webp", "171.webp", "172.webp", "173.webp", "174.webp", "175.webp", "176.webp", "177.webp", "178.webp", "179.webp", "180.webp", "181.webp", "182.webp", "183.webp", "184.webp", "185.webp", "186.webp", "187.webp", "188.webp", "189.webp", "190.webp", "191.webp", "192.webp", "193.webp", "194.webp", "195.webp", "196.webp", "197.webp", "198.webp", "199.webp", "200.webp", "201.webp", "202.webp", "203.webp", "204.webp", "205.webp", "206.webp", "207.webp", "208.webp", "209.webp", "210.webp", "211.webp", "212.webp", "213.webp", "214.webp", "215.webp", "216.webp", "217.webp", "218.webp", "219.webp", "220.webp", "221.webp", "222.webp", "223.webp", "224.webp", "225.webp", "226.webp", "227.webp", "228.webp", "229.webp", "230.webp", "231.webp", "232.webp", "233.webp", "234.webp", "235.webp", "236.webp", "237.webp", "238.webp", "239.webp", "240.webp", "241.webp", "242.webp", "243.webp", "244.webp", "245.webp", "246.webp", "247.webp", "248.webp", "249.webp", "250.webp", "251.webp", "252.webp", "253.webp", "254.webp", "255.webp", "256.webp", "257.webp", "258.webp", "259.webp", "260.webp", "261.webp", "262.webp", "263.webp", "264.webp", "265.webp", "266.webp", "267.webp", "268.webp", "269.webp", "270.webp", "271.webp", "272.webp", "273.webp", "274.webp", "275.webp", "276.webp", "277.webp", "278.webp", "279.webp", "280.webp", "281.webp", "282.webp", "283.webp", "284.webp", "285.webp", "286.webp", "287.webp", "288.webp", "289.webp", "290.webp", "291.webp", "292.webp", "293.webp", "294.webp", "295.webp", "296.webp", "297.webp", "298.webp", "299.webp", "300.webp", "301.webp", "302.webp", "303.webp", "304.webp", "305.webp", "306.webp", "307.webp", "308.webp", "309.webp", "310.webp", "311.webp", "312.webp", "313.webp", "314.webp", "315.webp", "316.webp", "317.webp", "318.webp", "319.webp", "320.webp", "321.webp", "322.webp", "323.webp", "324.webp", "325.webp", "326.webp", "327.webp", "328.webp", "329.webp", "330.webp", "331.webp", "332.webp", "333.webp", "334.webp", "335.webp", "336.webp", "337.webp", "338.webp", "339.webp", "340.webp", "341.webp", "342.webp", "343.webp", "344.webp", "345.webp", "346.webp", "347.webp", "348.webp", "349.webp", "350.webp", "351.webp", "352.webp", "353.webp", "354.webp", "355.webp", "356.webp", "357.webp", "358.webp", "359.webp", "360.webp", "361.webp", "362.webp", "363.webp", "364.webp", "365.webp", "366.webp", "367.webp", "368.webp", "369.webp", "370.webp", "371.webp", "372.webp", "373.webp", "374.webp", "375.webp", "376.webp", "377.webp", "378.webp", "379.webp", "380.webp", "381.webp", "382.webp", "383.webp", "384.webp", "385.webp", "386.webp", "387.webp", "388.webp", "389.webp", "390.webp", "391.webp", "392.webp", "393.webp", "394.webp", "395.webp", "396.webp", "397.webp", "398.webp", "399.webp", "400.webp", "401.webp", "402.webp", "403.webp", "404.webp", "405.webp", "406.webp", "407.webp", "408.webp", "409.webp", "410.webp", "411.webp", "412.webp", "413.webp", "414.webp", "415.webp", "416.webp", "417.webp", "418.webp", "419.webp", "420.webp", "421.webp", "422.webp", "423.webp", "424.webp", "425.webp", "426.webp", "427.webp", "428.webp", "429.webp", "430.webp", "431.webp", "432.webp", "433.webp", "434.webp", "435.webp", "436.webp", "437.webp", "438.webp", "439.webp", "440.webp", "441.webp", "442.webp", "443.webp", "444.webp", "445.webp", "446.webp", "447.webp", "448.webp", "449.webp", "450.webp", "451.webp", "452.webp", "453.webp", "454.webp", "455.webp", "456.webp", "457.webp", "458.webp", "459.webp", "460.webp", "461.webp", "462.webp", "463.webp", "464.webp", "465.webp", "466.webp", "467.webp", "468.webp", "469.webp", "470.webp", "471.webp", "472.webp", "473.webp", "474.webp", "475.webp", "476.webp", "477.webp", "478.webp", "479.webp", "480.webp", "481.webp", "482.webp", "483.webp", "484.webp", "485.webp", "486.webp", "487.webp", "488.webp", "489.webp", "490.webp", "491.webp", "492.webp", "493.webp", "494.webp", "495.webp", "496.webp", "497.webp", "498.webp", "499.webp", "500.webp", "501.webp", "502.webp", "503.webp", "504.webp", "505.webp", "506.webp", "507.webp", "508.webp", "509.webp", "510.webp", "511.webp", "512.webp", "513.webp", "514.webp", "515.webp", "516.webp", "517.webp", "518.webp", "519.webp", "520.webp", "521.webp", "522.webp", "523.webp", "524.webp", "525.webp", "526.webp", "527.webp", "528.webp", "529.webp", "530.webp", "531.webp", "532.webp", "533.webp", "534.webp", "535.webp", "536.webp", "537.webp", "538.webp", "539.webp", "540.webp", "541.webp", "542.webp", "543.webp", "544.webp", "545.webp", "546.webp", "547.webp", "548.webp", "549.webp", "550.webp", "551.webp", "552.webp", "553.webp", "554.webp", "555.webp", "556.webp", "557.webp", "558.webp", "559.webp", "560.webp", "561.webp", "562.webp", "563.webp", "564.webp", "565.webp", "566.webp", "567.webp", "568.webp", "569.webp", "570.webp", "571.webp", "572.webp", "573.webp", "574.webp", "575.webp", "576.webp", "577.webp", "578.webp", "579.webp", "580.webp", "581.webp", "582.webp", "583.webp", "584.webp", "585.webp", "586.webp", "587.webp", "588.webp", "589.webp", "590.webp", "591.webp", "592.webp", "593.webp", "594.webp", "595.webp", "596.webp", "597.webp", "598.webp", "599.webp", "600.webp", "601.webp", "602.webp", "603.webp", "604.webp", "605.webp", "606.webp", "607.webp", "608.webp", "609.webp", "610.webp", "611.webp", "612.webp", "613.webp", "614.webp", "615.webp", "616.webp", "617.webp", "618.webp", "619.webp", "620.webp", "621.webp", "622.webp", "623.webp", "624.webp", "625.webp", "626.webp", "627.webp"], imgBase: "webp", toc: {"chapters": [{"code": "COVER", "title": "Cover & Title Pages", "start": 1, "end": 4, "sections": []}, {"code": "TOC", "title": "Table of Contents", "start": 5, "end": 8, "sections": []}, {"code": "INTRO", "title": "Introduction", "start": 9, "end": 10, "sections": []}, {"code": "01", "title": "Sets", "start": 11, "end": 27, "sections": [{"code": "1.1", "title": "Introduction", "start": 12, "end": 12}, {"code": "1.2", "title": "Set Notation", "start": 12, "end": 13}, {"code": "1.3", "title": "Describing a Set", "start": 14, "end": 14}, {"code": "1.4", "title": "Subsets", "start": 15, "end": 15}, {"code": "1.5", "title": "Venn Diagrams, Intersection and Union", "start": 16, "end": 18}, {"code": "1.6", "title": "Universal Set and Complement", "start": 19, "end": 20}, {"code": "1.7", "title": "Set Difference", "start": 21, "end": 22}, {"code": "1.8", "title": "Problem-Solving Using Sets", "start": 23, "end": 27}]}, {"code": "02", "title": "Natural Numbers", "start": 28, "end": 42, "sections": [{"code": "2.1", "title": "Introduction", "start": 29, "end": 29}, {"code": "2.2", "title": "Addition and Subtraction", "start": 29, "end": 31}, {"code": "2.3", "title": "Factors and Prime Numbers", "start": 32, "end": 34}, {"code": "2.4", "title": "Multiples", "start": 35, "end": 36}, {"code": "2.5", "title": "Multiplication and Division", "start": 37, "end": 38}, {"code": "2.6", "title": "Indices and Square Roots", "start": 39, "end": 39}, {"code": "2.7", "title": "Order of Operations", "start": 40, "end": 42}]}, {"code": "03", "title": "Integers", "start": 43, "end": 56, "sections": [{"code": "3.1", "title": "Integers", "start": 44, "end": 46}, {"code": "3.2", "title": "Addition and Subtraction of Integers", "start": 47, "end": 49}, {"code": "3.3", "title": "Multiplication and Division of Integers", "start": 50, "end": 52}, {"code": "3.4", "title": "Properties of Integers", "start": 53, "end": 54}, {"code": "3.5", "title": "Order of Operations", "start": 55, "end": 56}]}, {"code": "04", "title": "Rational Numbers", "start": 57, "end": 72, "sections": [{"code": "4.1", "title": "Rational Numbers or Fractions", "start": 58, "end": 61}, {"code": "4.2", "title": "Adding and Subtracting Fractions", "start": 62, "end": 65}, {"code": "4.3", "title": "Multiplying Fractions", "start": 66, "end": 67}, {"code": "4.4", "title": "Properties of Rational Numbers", "start": 68, "end": 69}, {"code": "4.5", "title": "Working with the Calculator", "start": 70, "end": 72}]}, {"code": "05", "title": "Geometry I", "start": 73, "end": 82, "sections": [{"code": "5.1", "title": "Geometry: Introduction", "start": 74, "end": 74}, {"code": "5.2", "title": "Basic Concepts", "start": 74, "end": 76}, {"code": "5.3", "title": "Angles", "start": 77, "end": 82}]}, {"code": "06", "title": "Constructions I", "start": 83, "end": 96, "sections": [{"code": "6.1", "title": "Construction Equipment", "start": 84, "end": 84}, {"code": "6.2", "title": "Construction 1", "start": 85, "end": 86}, {"code": "6.3", "title": "Construction 2", "start": 87, "end": 87}, {"code": "6.4", "title": "Construction 4", "start": 88, "end": 89}, {"code": "6.5", "title": "Construction 5", "start": 90, "end": 91}, {"code": "6.6", "title": "Construction 6", "start": 92, "end": 93}, {"code": "6.7", "title": "Construction 8", "start": 94, "end": 94}, {"code": "6.8", "title": "Construction 9", "start": 95, "end": 96}]}, {"code": "07", "title": "Rational Numbers II", "start": 97, "end": 103, "sections": [{"code": "7.1", "title": "Dividing Fractions", "start": 97, "end": 99}, {"code": "7.2", "title": "Ratio and Proportion", "start": 100, "end": 103}]}, {"code": "08", "title": "Decimals and Percentages", "start": 104, "end": 117, "sections": [{"code": "8.1", "title": "Decimals", "start": 105, "end": 105}, {"code": "8.2", "title": "Fractions and Decimals", "start": 105, "end": 108}, {"code": "8.3", "title": "Rounding I", "start": 109, "end": 111}, {"code": "8.4", "title": "Rounding II", "start": 112, "end": 113}, {"code": "8.5", "title": "Percentages", "start": 114, "end": 117}]}, {"code": "09", "title": "Fundamental Principle of Counting and Probability", "start": 118, "end": 145, "sections": [{"code": "9.1", "title": "Listing Outcomes", "start": 119, "end": 123}, {"code": "9.2", "title": "Fundamental Principle of Counting", "start": 124, "end": 125}, {"code": "9.3", "title": "Introducing Probability", "start": 126, "end": 128}, {"code": "9.4", "title": "Relative Frequency", "start": 129, "end": 131}, {"code": "9.5", "title": "Relative Frequency and Fairness", "start": 132, "end": 132}, {"code": "9.6", "title": "Theoretical Probability", "start": 133, "end": 137}, {"code": "9.7", "title": "Expected Frequency", "start": 138, "end": 138}, {"code": "9.8", "title": "Sample Spaces for Successive Events", "start": 139, "end": 145}]}, {"code": "10", "title": "Co-ordinate Geometry I", "start": 146, "end": 153, "sections": [{"code": "10.1", "title": "The Cartesian Plane", "start": 146, "end": 153}]}, {"code": "11", "title": "Transformation Geometry", "start": 154, "end": 166, "sections": [{"code": "11.1", "title": "Axis of Symmetry", "start": 154, "end": 157}, {"code": "11.2", "title": "Transformations", "start": 158, "end": 166}]}, {"code": "12", "title": "Number Patterns I", "start": 167, "end": 186, "sections": [{"code": "12.1", "title": "Patterns", "start": 168, "end": 169}, {"code": "12.2", "title": "Linear Patterns", "start": 170, "end": 172}, {"code": "12.3", "title": "Non-Linear Sequences", "start": 173, "end": 175}, {"code": "12.4", "title": "Real-World Phenomena", "start": 176, "end": 186}]}, {"code": "13", "title": "Indices and Scientific Notation", "start": 187, "end": 200, "sections": [{"code": "13.1", "title": "Indices and Square Roots", "start": 188, "end": 189}, {"code": "13.2", "title": "First Law of Indices", "start": 190, "end": 192}, {"code": "13.3", "title": "Second Law of Indices", "start": 193, "end": 194}, {"code": "13.4", "title": "Third Law of Indices", "start": 195, "end": 195}, {"code": "13.5", "title": "Scientific Notation", "start": 196, "end": 200}]}, {"code": "14", "title": "Algebra I: An Introduction", "start": 201, "end": 213, "sections": [{"code": "14.1", "title": "Introduction", "start": 202, "end": 202}, {"code": "14.2", "title": "Notation in Algebra", "start": 202, "end": 202}, {"code": "14.3", "title": "Evaluating Expressions", "start": 202, "end": 204}, {"code": "14.4", "title": "Adding and Subtracting Terms", "start": 205, "end": 206}, {"code": "14.5", "title": "Multiplying Terms", "start": 207, "end": 207}, {"code": "14.6", "title": "Multiplying Terms with Brackets 1", "start": 208, "end": 209}, {"code": "14.7", "title": "Multiplying Terms with Brackets 2", "start": 210, "end": 210}, {"code": "14.8", "title": "Multiplying Two Expressions", "start": 211, "end": 213}]}, {"code": "15", "title": "Algebra II: Solving Linear Equations", "start": 214, "end": 221, "sections": [{"code": "15.1", "title": "Simple Linear Equations", "start": 214, "end": 216}, {"code": "15.2", "title": "Linear Equations with Constants", "start": 217, "end": 217}, {"code": "15.3", "title": "Linear Equations with Variables", "start": 218, "end": 218}, {"code": "15.4", "title": "Linear Equations with Variables and Constants", "start": 218, "end": 219}, {"code": "15.5", "title": "Linear Equations with Brackets", "start": 220, "end": 221}]}, {"code": "16", "title": "Applied Arithmetic I", "start": 222, "end": 238, "sections": [{"code": "16.1", "title": "Calculating with Percentages", "start": 223, "end": 224}, {"code": "16.2", "title": "Percentage Increase and Decrease", "start": 225, "end": 228}, {"code": "16.3", "title": "VAT: Value Added Tax", "start": 226, "end": 228}, {"code": "16.4", "title": "Household Bills", "start": 229, "end": 231}, {"code": "16.5", "title": "Ratio and Proportion", "start": 232, "end": 234}, {"code": "16.6", "title": "Currency Exchange", "start": 235, "end": 238}]}, {"code": "17", "title": "Functions I", "start": 239, "end": 250, "sections": [{"code": "17.1", "title": "Functions", "start": 239, "end": 242}, {"code": "17.2", "title": "Important Terms", "start": 243, "end": 244}, {"code": "17.3", "title": "Function Notation", "start": 245, "end": 250}]}, {"code": "18", "title": "Statistics I: Collecting Data", "start": 251, "end": 259, "sections": [{"code": "18.1", "title": "Statistical Investigations", "start": 251, "end": 252}, {"code": "18.2", "title": "Collecting Data", "start": 253, "end": 255}, {"code": "18.3", "title": "Frequency Tables", "start": 256, "end": 259}]}, {"code": "19", "title": "Statistics II: Representing Data Graphically", "start": 260, "end": 285, "sections": [{"code": "19.1", "title": "Line Plots", "start": 260, "end": 261}, {"code": "19.2", "title": "Bar Charts", "start": 262, "end": 265}, {"code": "19.3", "title": "Pie Charts", "start": 266, "end": 270}, {"code": "19.4", "title": "Stem-and-Leaf Plots", "start": 271, "end": 274}, {"code": "19.5", "title": "Histograms", "start": 275, "end": 277}, {"code": "19.6", "title": "Trend Graphs", "start": 278, "end": 279}, {"code": "19.7", "title": "Choosing a Suitable Chart", "start": 280, "end": 285}]}, {"code": "20", "title": "Applied Measure I", "start": 286, "end": 303, "sections": [{"code": "20.1", "title": "Units of Measurements", "start": 287, "end": 287}, {"code": "20.2", "title": "Area and Perimeter of Rectangles", "start": 288, "end": 292}, {"code": "20.3", "title": "Nets of Rectangular Solids", "start": 293, "end": 296}, {"code": "20.4", "title": "Surface Area of Rectangular Solids", "start": 297, "end": 303}]}, {"code": "21", "title": "Geometry II: Theorems", "start": 304, "end": 318, "sections": [{"code": "21.1", "title": "Axioms", "start": 305, "end": 306}, {"code": "21.2", "title": "Vertically Opposite Angles", "start": 307, "end": 308}, {"code": "21.3", "title": "Alternate and Corresponding Angles", "start": 309, "end": 312}, {"code": "21.4", "title": "Triangles", "start": 313, "end": 318}]}, {"code": "22", "title": "Algebra III: Problem-Solving", "start": 319, "end": 331, "sections": [{"code": "22.1", "title": "Writing Expressions", "start": 319, "end": 321}, {"code": "22.2", "title": "Solving Word Problems", "start": 322, "end": 331}]}, {"code": "23", "title": "Geometry III: Further Theorems", "start": 332, "end": 357, "sections": [{"code": "23.1", "title": "Quadrilaterals", "start": 333, "end": 337}, {"code": "23.2", "title": "Similar Triangles", "start": 338, "end": 342}, {"code": "23.3", "title": "Theorem of Pythagoras", "start": 342, "end": 345}, {"code": "23.4", "title": "Circles", "start": 346, "end": 348}, {"code": "23.5", "title": "Congruent Triangles", "start": 349, "end": 352}, {"code": "23.6", "title": "Theorem Terms", "start": 353, "end": 357}]}, {"code": "24", "title": "Co-ordinate Geometry II", "start": 358, "end": 370, "sections": [{"code": "24.1", "title": "Midpoint of a Line Segment", "start": 358, "end": 361}, {"code": "24.2", "title": "Slope of a Line", "start": 362, "end": 364}, {"code": "24.3", "title": "Distance Between Two Points", "start": 365, "end": 370}]}, {"code": "25", "title": "Constructions II", "start": 371, "end": 385, "sections": [{"code": "25.1", "title": "Construction 10", "start": 372, "end": 372}, {"code": "25.2", "title": "Construction 11", "start": 373, "end": 374}, {"code": "25.3", "title": "Construction 12", "start": 375, "end": 376}, {"code": "25.4", "title": "Construction 13", "start": 377, "end": 378}, {"code": "25.5", "title": "Construction 14", "start": 379, "end": 382}, {"code": "25.6", "title": "Construction 15", "start": 383, "end": 385}]}, {"code": "26", "title": "Statistics III", "start": 386, "end": 402, "sections": [{"code": "26.1", "title": "Measures of Centre: Mode and Median", "start": 386, "end": 390}, {"code": "26.2", "title": "Measures of Centre: Mean", "start": 391, "end": 393}, {"code": "26.3", "title": "Deciding Which Average", "start": 394, "end": 395}, {"code": "26.4", "title": "Measure of Spread", "start": 396, "end": 398}, {"code": "26.5", "title": "Misuses of Statistics", "start": 399, "end": 402}]}, {"code": "27", "title": "Co-ordinate Geometry III", "start": 403, "end": 415, "sections": [{"code": "27.1", "title": "Equation of a Line", "start": 403, "end": 404}, {"code": "27.2", "title": "", "start": 405, "end": 407}, {"code": "27.3", "title": "Equation with Slope m", "start": 408, "end": 409}, {"code": "27.4", "title": "Graphing Lines", "start": 410, "end": 415}]}, {"code": "28", "title": "Algebra IV: Linear Inequalities", "start": 416, "end": 424, "sections": [{"code": "28.1", "title": "Inequalities", "start": 416, "end": 416}, {"code": "28.2", "title": "Graphing Inequalities", "start": 417, "end": 420}, {"code": "28.3", "title": "Solving Linear Inequalities", "start": 421, "end": 424}]}, {"code": "29", "title": "Algebra V: Simultaneous Equations", "start": 427, "end": 434, "sections": [{"code": "29.1", "title": "Verifying Solutions", "start": 428, "end": 428}, {"code": "29.2", "title": "Solving Using Algebra", "start": 429, "end": 430}, {"code": "29.3", "title": "Solving Word Problems", "start": 431, "end": 434}]}, {"code": "30", "title": "Applied Measure II", "start": 435, "end": 457, "sections": [{"code": "30.1", "title": "Perimeter and Area of Triangles", "start": 435, "end": 437}, {"code": "30.2", "title": "Perimeter and Area of Discs", "start": 438, "end": 440}, {"code": "30.3", "title": "Combinations of Shapes", "start": 442, "end": 443}, {"code": "30.4", "title": "Volume of Rectangular Solids", "start": 444, "end": 447}, {"code": "30.5", "title": "Volume of Cylinders", "start": 448, "end": 450}, {"code": "30.6", "title": "Scaled Diagrams", "start": 451, "end": 457}]}, {"code": "31", "title": "Algebra VI: Algebraic Factorising", "start": 458, "end": 469, "sections": [{"code": "31.1", "title": "Algebraic Factors", "start": 458, "end": 460}, {"code": "31.2", "title": "Highest Common Factor", "start": 461, "end": 461}, {"code": "31.3", "title": "Grouping Factors I", "start": 462, "end": 462}, {"code": "31.4", "title": "Grouping Factors II", "start": 463, "end": 463}, {"code": "31.5", "title": "Quadratic Trinomials I", "start": 464, "end": 465}, {"code": "31.6", "title": "Quadratic Trinomials II", "start": 466, "end": 466}, {"code": "31.7", "title": "Difference of Two Squares", "start": 467, "end": 469}]}, {"code": "32", "title": "Distance, Speed, Time", "start": 470, "end": 490, "sections": [{"code": "32.1", "title": "Time and 24-Hour Clock", "start": 470, "end": 475}, {"code": "32.2", "title": "Distance, Speed and Time", "start": 476, "end": 479}, {"code": "32.3", "title": "Graphs without Formulae", "start": 480, "end": 483}, {"code": "32.4", "title": "Other Graphs", "start": 484, "end": 490}]}, {"code": "33", "title": "Trigonometry", "start": 491, "end": 507, "sections": [{"code": "33.1", "title": "Right-Angled Triangles and Pythagoras", "start": 491, "end": 494}, {"code": "33.2", "title": "Trigonometric Ratios", "start": 495, "end": 497}, {"code": "33.3", "title": "Finding Side Lengths", "start": 498, "end": 499}, {"code": "33.4", "title": "Finding Angles", "start": 500, "end": 501}, {"code": "33.5", "title": "Practical Problems", "start": 502, "end": 507}]}, {"code": "34", "title": "Applied Arithmetic II", "start": 508, "end": 519, "sections": [{"code": "34.1", "title": "Income Tax", "start": 509, "end": 510}, {"code": "34.2", "title": "Profit, Loss and Discounts", "start": 511, "end": 515}, {"code": "34.3", "title": "Compound Interest", "start": 516, "end": 519}]}, {"code": "35", "title": "Algebra VII: Quadratic Equations", "start": 520, "end": 529, "sections": [{"code": "35.1", "title": "Solving Quadratic Equations", "start": 520, "end": 520}, {"code": "35.2", "title": "Highest Common Factor", "start": 521, "end": 521}, {"code": "35.3", "title": "Difference of Two Squares", "start": 522, "end": 522}, {"code": "35.4", "title": "Quadratic Trinomials", "start": 523, "end": 523}, {"code": "35.5", "title": "Word Problems", "start": 525, "end": 529}]}, {"code": "36", "title": "Functions II", "start": 530, "end": 547, "sections": [{"code": "36.1", "title": "Linear Functions", "start": 530, "end": 533}, {"code": "36.2", "title": "Quadratic Functions", "start": 534, "end": 538}, {"code": "36.3", "title": "Interpreting Graphs", "start": 539, "end": 541}, {"code": "36.4", "title": "", "start": 542, "end": 547}]}, {"code": "37", "title": "Number Patterns II", "start": 551, "end": 570, "sections": [{"code": "37.1", "title": "General Term", "start": 551, "end": 555}, {"code": "37.2", "title": "Graphing Linear Patterns", "start": 556, "end": 559}, {"code": "37.3", "title": "Graphing Non-Linear Patterns", "start": 560, "end": 562}, {"code": "37.4", "title": "Using Graphs to Solve Problems", "start": 563, "end": 570}]}, {"code": "38", "title": "Algebra VIII: Algebraic Fractions", "start": 571, "end": 577, "sections": [{"code": "38.1", "title": "Algebraic Fractions", "start": 571, "end": 572}, {"code": "38.2", "title": "Solving Equations", "start": 573, "end": 577}]}, {"code": "39", "title": "Algebra IX: Further Expansions", "start": 578, "end": 584, "sections": [{"code": "39.1", "title": "Multiplying Terms with Brackets", "start": 578, "end": 579}, {"code": "39.2", "title": "Division in Algebra", "start": 580, "end": 584}]}, {"code": "CBA", "title": "Classroom-Based Assessments", "start": 590, "end": 595, "sections": []}, {"code": "ANSWERS", "title": "Answers", "start": 596, "end": 630, "sections": [{"code": "1.A", "title": "Answers", "start": 596, "end": 596}, {"code": "2.A", "title": "Answers", "start": 597, "end": 597}, {"code": "3.A", "title": "Answers", "start": 599, "end": 599}, {"code": "4.A", "title": "Answers", "start": 600, "end": 600}, {"code": "5.A", "title": "Answers", "start": 601, "end": 601}, {"code": "7.A", "title": "Answers", "start": 601, "end": 601}, {"code": "8.A", "title": "Answers", "start": 602, "end": 602}, {"code": "9.A", "title": "Answers", "start": 603, "end": 603}, {"code": "10.A", "title": "Answers", "start": 603, "end": 603}, {"code": "11.A", "title": "Answers", "start": 604, "end": 604}, {"code": "12.A", "title": "Answers", "start": 604, "end": 604}, {"code": "LL1_12.A", "title": "Linking Learning (Ch 1\u201312)", "start": 605, "end": 605}, {"code": "13.A", "title": "Answers", "start": 605, "end": 605}, {"code": "14.A", "title": "Answers", "start": 606, "end": 606}, {"code": "15.A", "title": "Answers", "start": 607, "end": 607}, {"code": "16.A", "title": "Answers", "start": 607, "end": 607}, {"code": "17.A", "title": "Answers", "start": 607, "end": 607}, {"code": "18.A", "title": "Answers", "start": 608, "end": 608}, {"code": "19.A", "title": "Answers", "start": 609, "end": 609}, {"code": "20.A", "title": "Answers", "start": 612, "end": 612}, {"code": "21.A", "title": "Answers", "start": 612, "end": 612}, {"code": "22.A", "title": "Answers", "start": 613, "end": 613}, {"code": "LL13_22.A", "title": "Linking Learning (Ch 13\u201322)", "start": 613, "end": 613}, {"code": "23.A", "title": "Answers", "start": 613, "end": 613}, {"code": "24.A", "title": "Answers", "start": 614, "end": 614}, {"code": "25.A", "title": "Answers", "start": 615, "end": 615}, {"code": "26.A", "title": "Answers", "start": 615, "end": 615}, {"code": "27.A", "title": "Answers", "start": 616, "end": 616}, {"code": "28.A", "title": "Answers", "start": 618, "end": 618}, {"code": "29.A", "title": "Answers", "start": 618, "end": 618}, {"code": "30.A", "title": "Answers", "start": 618, "end": 618}, {"code": "31.A", "title": "Answers", "start": 619, "end": 619}, {"code": "32.A", "title": "Answers", "start": 621, "end": 621}, {"code": "33.A", "title": "Answers", "start": 621, "end": 621}, {"code": "34.A", "title": "Answers", "start": 621, "end": 621}, {"code": "35.A", "title": "Answers", "start": 622, "end": 622}, {"code": "36.A", "title": "Answers", "start": 622, "end": 622}, {"code": "37.A", "title": "Answers", "start": 623, "end": 623}, {"code": "38.A", "title": "Answers", "start": 624, "end": 624}, {"code": "39.A", "title": "Answers", "start": 624, "end": 624}]}, {"code": "BACKCOVER", "title": "End Pages / Credits", "start": 627, "end": 627, "sections": []}]}, pageOffset: 0,
+            currentPage: 0, zoom: 1.0, isPanning: false, spaceHeld: false,
+            startX: 0, startY: 0, panStartX: 0, panStartY: 0, translateX: 0, translateY: 0,
+            currentFitMode: localStorage.getItem('fitMode') || 'height',
+            expandedChapters: JSON.parse(localStorage.getItem('expandedChapters') || '{}')
+        };
+    } catch(e) {
+        /* Template not yet processed by build.py — use empty defaults */
+        config = {
+            pages: [], imgBase: '', toc: {chapters:[]}, pageOffset: 0,
+            currentPage: 0, zoom: 1.0, isPanning: false, spaceHeld: false,
+            startX: 0, startY: 0, panStartX: 0, panStartY: 0, translateX: 0, translateY: 0,
+            currentFitMode: 'height', expandedChapters: {}
+        };
+    }
+
+    var $ = function(id){ return document.getElementById(id); };
+    var pageImage = $('page-image'), imageContainer = $('image-container'), zoomIndicator = $('zoom-indicator');
+
+    /* ── Scroll arrows auto-hide ── */
+    var sTimer;
+    function showSB(){ $('scroll-btns').classList.add('visible'); clearTimeout(sTimer); sTimer=setTimeout(function(){ $('scroll-btns').classList.remove('visible'); },3000); }
+    ['mousemove','mousedown','touchstart','wheel','keydown'].forEach(function(e){ document.addEventListener(e,showSB,{passive:true}); });
+
+    /* ══════════════════════════════════════
+       READING TOOLKIT — Ruler + Light Box
+       ══════════════════════════════════════ */
+    var activeTool = null; // 'ruler' | 'lightbox' | null
+    var toolDragging = false;
+    var rulerEl = $('reading-ruler');
+    var lbEl = $('lightbox');
+    var toolPosY = 200;
+
+    // Light box state (in container scroll coords)
+    var lb = { x: 50, y: 80, w: 400, h: 350 };
+    var lbDrag = null; // null | 'move' | 'tl' | 'tr' | 'bl' | 'br'
+    var lbStart = {};
+
+    /* Build ruler ticks */
+    (function buildRulerTicks(){
+        var cmEl = $('ruler-ticks'), inEl = $('ruler-ticks-in');
+        var h = '', maxW = 2400;
+        for(var mm = 0; mm * 3.78 <= maxW; mm++){
+            var x = (mm * 3.78).toFixed(1);
+            if(mm % 10 === 0){
+                h += '<div class="ruler-tick cm" style="left:'+x+'px"></div>';
+                h += '<div class="ruler-tick-label" style="left:'+x+'px">'+(mm/10)+'</div>';
+            } else if(mm % 5 === 0){
+                h += '<div class="ruler-tick half" style="left:'+x+'px"></div>';
+            } else {
+                h += '<div class="ruler-tick mm" style="left:'+x+'px"></div>';
+            }
+        }
+        cmEl.innerHTML = h;
+        h = '';
+        for(var e8 = 0; e8 * 12 <= maxW; e8++){
+            var xi = (e8 * 12).toFixed(1);
+            if(e8 % 8 === 0){
+                h += '<div class="ruler-tick-in inch" style="left:'+xi+'px"></div>';
+                h += '<div class="ruler-tick-in-label" style="left:'+xi+'px">'+(e8/8)+'</div>';
+            } else if(e8 % 4 === 0){
+                h += '<div class="ruler-tick-in half" style="left:'+xi+'px"></div>';
+            } else if(e8 % 2 === 0){
+                h += '<div class="ruler-tick-in quarter" style="left:'+xi+'px"></div>';
+            } else {
+                h += '<div class="ruler-tick-in eighth" style="left:'+xi+'px"></div>';
+            }
+        }
+        inEl.innerHTML = h;
+    })();
+
+    function setTool(tool){
+        if(tool === activeTool) tool = null;
+        activeTool = tool;
+        rulerEl.classList.toggle('active', activeTool === 'ruler');
+        lbEl.classList.toggle('active', activeTool === 'lightbox');
+        $('tool-ruler').classList.toggle('active', activeTool === 'ruler');
+        $('tool-lightbox').classList.toggle('active', activeTool === 'lightbox');
+        if(activeTool === 'ruler') posRuler(toolPosY);
+        if(activeTool === 'lightbox') posLB();
+    }
+
+    function toolY(clientY){
+        var rect = imageContainer.getBoundingClientRect();
+        return clientY - rect.top + imageContainer.scrollTop;
+    }
+    function toolX(clientX){
+        var rect = imageContainer.getBoundingClientRect();
+        return clientX - rect.left + imageContainer.scrollLeft;
+    }
+
+    /* ── Ruler ── */
+    function posRuler(y){ toolPosY = y; rulerEl.style.top = (y - 26) + 'px'; }
+
+    /* ── Light Box ── */
+    function posLB(){
+        lbEl.style.left = lb.x + 'px';
+        lbEl.style.top = lb.y + 'px';
+        lbEl.style.width = lb.w + 'px';
+        lbEl.style.height = lb.h + 'px';
+    }
+    function initLBSize(){
+        var cw = imageContainer.clientWidth, ch = imageContainer.clientHeight;
+        lb.w = Math.round(cw * 0.7);
+        lb.h = Math.round(ch * 0.4);
+        lb.x = Math.round((cw - lb.w) / 2);
+        lb.y = Math.round(imageContainer.scrollTop + ch * 0.2);
+    }
+
+    /* Arrow keys: ruler moves Y, lightbox moves position */
+    function moveToolByKey(dy, dx){
+        if(activeTool === 'ruler'){
+            toolPosY = Math.max(0, Math.min(imageContainer.scrollHeight, toolPosY + dy));
+            posRuler(toolPosY); return true;
+        }
+        if(activeTool === 'lightbox'){
+            lb.x += (dx||0); lb.y += dy;
+            posLB(); return true;
+        }
+        return false;
+    }
+
+    /* ── Mouse / touch for ruler drag ── */
+    imageContainer.addEventListener('mousedown', function(e){
+        if(activeTool !== 'ruler' || config.spaceHeld) return;
+        if(e.target.closest('.side-nav, .scroll-btns, .zoom-indicator, .lightbox')) return;
+        e.preventDefault(); toolDragging = true;
+        imageContainer.classList.add('tool-dragging');
+        toolPosY = toolY(e.clientY); posRuler(toolPosY);
+    });
+    window.addEventListener('mousemove', function(e){
+        if(!toolDragging || activeTool !== 'ruler') return;
+        toolPosY = toolY(e.clientY); posRuler(toolPosY);
+    });
+    window.addEventListener('mouseup', function(){
+        if(toolDragging){ toolDragging = false; imageContainer.classList.remove('tool-dragging'); }
+    });
+
+    /* Touch ruler drag */
+    var rulerTouchStart = null;
+    imageContainer.addEventListener('touchstart', function(e){
+        if(activeTool !== 'ruler' || e.touches.length !== 1) return;
+        if(e.target.closest('.side-nav, .scroll-btns, .zoom-indicator, .lightbox')) return;
+        rulerTouchStart = {x: e.touches[0].clientX, y: e.touches[0].clientY};
+    }, {passive: true});
+    imageContainer.addEventListener('touchmove', function(e){
+        if(activeTool !== 'ruler' || !rulerTouchStart || e.touches.length !== 1) return;
+        var dx = Math.abs(e.touches[0].clientX - rulerTouchStart.x);
+        var dy = Math.abs(e.touches[0].clientY - rulerTouchStart.y);
+        if(!toolDragging && (dx > 8 || dy > 8)){
+            toolDragging = true; imageContainer.classList.add('tool-dragging');
+        }
+        if(toolDragging){
+            e.preventDefault();
+            toolPosY = toolY(e.touches[0].clientY); posRuler(toolPosY);
+        }
+    }, {passive: false});
+    imageContainer.addEventListener('touchend', function(){
+        toolDragging = false; rulerTouchStart = null;
+        imageContainer.classList.remove('tool-dragging');
+    });
+
+    /* ── Light box drag: move body or resize corners ── */
+    lbEl.addEventListener('mousedown', function(e){
+        e.preventDefault(); e.stopPropagation();
+        var handle = e.target.closest('.lb-handle');
+        lbDrag = handle ? handle.dataset.corner : 'move';
+        lbStart = {mx: e.clientX, my: e.clientY, x: lb.x, y: lb.y, w: lb.w, h: lb.h};
+        if(handle) handle.classList.add('dragging');
+    });
+    window.addEventListener('mousemove', function(e){
+        if(!lbDrag) return;
+        var dx = e.clientX - lbStart.mx, dy = e.clientY - lbStart.my;
+        applyLBDrag(dx, dy);
+    });
+    window.addEventListener('mouseup', function(){
+        if(lbDrag){ lbDrag = null; lbEl.querySelectorAll('.lb-handle').forEach(function(h){h.classList.remove('dragging');}); }
+    });
+
+    /* Touch lightbox */
+    lbEl.addEventListener('touchstart', function(e){
+        if(e.touches.length !== 1) return;
+        e.stopPropagation();
+        var handle = e.target.closest('.lb-handle');
+        lbDrag = handle ? handle.dataset.corner : 'move';
+        lbStart = {mx: e.touches[0].clientX, my: e.touches[0].clientY, x: lb.x, y: lb.y, w: lb.w, h: lb.h};
+    }, {passive: true});
+    window.addEventListener('touchmove', function(e){
+        if(!lbDrag || e.touches.length !== 1) return;
+        var dx = e.touches[0].clientX - lbStart.mx, dy = e.touches[0].clientY - lbStart.my;
+        applyLBDrag(dx, dy);
+    }, {passive: true});
+    window.addEventListener('touchend', function(){ lbDrag = null; });
+
+    function applyLBDrag(dx, dy){
+        var MIN = 60;
+        if(lbDrag === 'move'){
+            lb.x = lbStart.x + dx; lb.y = lbStart.y + dy;
+        } else if(lbDrag === 'tl'){
+            lb.x = lbStart.x + dx; lb.y = lbStart.y + dy;
+            lb.w = Math.max(MIN, lbStart.w - dx); lb.h = Math.max(MIN, lbStart.h - dy);
+            if(lb.w === MIN) lb.x = lbStart.x + lbStart.w - MIN;
+            if(lb.h === MIN) lb.y = lbStart.y + lbStart.h - MIN;
+        } else if(lbDrag === 'tr'){
+            lb.y = lbStart.y + dy;
+            lb.w = Math.max(MIN, lbStart.w + dx); lb.h = Math.max(MIN, lbStart.h - dy);
+            if(lb.h === MIN) lb.y = lbStart.y + lbStart.h - MIN;
+        } else if(lbDrag === 'bl'){
+            lb.x = lbStart.x + dx;
+            lb.w = Math.max(MIN, lbStart.w - dx); lb.h = Math.max(MIN, lbStart.h + dy);
+            if(lb.w === MIN) lb.x = lbStart.x + lbStart.w - MIN;
+        } else if(lbDrag === 'br'){
+            lb.w = Math.max(MIN, lbStart.w + dx); lb.h = Math.max(MIN, lbStart.h + dy);
+        }
+        posLB();
+    }
+
+    /* ══════════════════════════════════════
+       CORE VIEWER
+       ══════════════════════════════════════ */
+    function init(){
+        $('total-pages').textContent = config.pages.length - config.pageOffset;
+        if(config.pages.length) loadPage(config.currentPage);
+        renderTOC(); setupEvents();
+        var s = localStorage.getItem('currentPage');
+        if(s){ var n=parseInt(s); if(n>=0 && n<config.pages.length) loadPage(n); }
+        setFitMode(config.currentFitMode);
+        if(localStorage.getItem('tocVisible')==='true') toggleTOC(true);
+        if(config.toc.chapters && config.toc.chapters.length) setTimeout(function(){ toggleTOC(true); }, 100);
+    }
+
+    function toggleTOC(show){
+        if(show===undefined) show = document.body.classList.contains('toc-hidden');
+        document.body.classList.toggle('toc-hidden', !show);
+        localStorage.setItem('tocVisible', show);
+    }
+
+    function setFitMode(mode){
+        config.currentFitMode = mode;
+        imageContainer.classList.remove('fit-height','fit-width');
+        imageContainer.classList.add('fit-'+mode);
+        $('fit-height').classList.toggle('active', mode==='height');
+        $('fit-width').classList.toggle('active', mode==='width');
+        config.zoom=1; config.translateX=config.translateY=0; updateTransform();
+        localStorage.setItem('fitMode', mode);
+    }
+
+    function loadPage(idx){
+        if(idx<0 || idx>=config.pages.length) return;
+        config.currentPage = idx;
+        pageImage.src = config.imgBase ? config.imgBase+'/'+config.pages[idx] : config.pages[idx];
+        $('current-page').textContent = (idx+1) - config.pageOffset;
+        config.zoom=1; config.translateX=config.translateY=0; updateTransform();
+        imageContainer.scrollTop = imageContainer.scrollLeft = 0;
+        updateActiveTOC(); localStorage.setItem('currentPage', idx);
+    }
+
+    function renderTOC(){
+        var c = $('toc-content');
+        if(!config.toc.chapters || !config.toc.chapters.length){ c.innerHTML='<div class="no-toc">No contents</div>'; return; }
+        var h = '';
+        config.toc.chapters.forEach(function(ch,i){
+            var exp = config.expandedChapters[i]===true;
+            h += '<div class="toc-chapter '+(exp?'expanded':'')+'" data-index="'+i+'">';
+            h += '<div class="toc-chapter-header">';
+            h += '<span class="chapter-expand '+(exp?'expanded':'')+'">▶</span>';
+            h += '<div class="chapter-number">'+(ch.code||'')+'</div>';
+            h += '<div class="toc-chapter-title" data-start="'+(ch.start-1)+'">'+(ch.title)+'</div>';
+            h += '</div><div class="toc-sections">';
+            (ch.sections||[]).forEach(function(s){
+                h += '<div class="toc-section" data-start="'+(s.start-1)+'"><div class="section-number">'+(s.code||'')+'</div><div>'+s.title+'</div></div>';
+            });
+            h += '</div></div>';
+        });
+        c.innerHTML = h;
+        c.querySelectorAll('.toc-chapter-header').forEach(function(el){
+            el.onclick = function(e){
+                var ch=el.parentElement, idx=+ch.dataset.index;
+                if(e.target.classList.contains('chapter-expand')||e.target.classList.contains('chapter-number')){
+                    ch.classList.toggle('expanded'); el.querySelector('.chapter-expand').classList.toggle('expanded');
+                    config.expandedChapters[idx]=ch.classList.contains('expanded');
+                    localStorage.setItem('expandedChapters', JSON.stringify(config.expandedChapters));
+                } else {
+                    var st=+el.querySelector('.toc-chapter-title').dataset.start;
+                    if(!isNaN(st)){ loadPage(st); toggleTOC(false); }
+                }
+            };
+        });
+        c.querySelectorAll('.toc-section').forEach(function(el){
+            el.onclick = function(){ var st=+el.dataset.start; if(!isNaN(st)){ loadPage(st); toggleTOC(false); } };
+        });
+    }
+
+    function updateActiveTOC(){
+        document.querySelectorAll('.toc-section').forEach(function(el){el.classList.remove('active');});
+        var act=null, mn=Infinity;
+        document.querySelectorAll('.toc-section').forEach(function(el){
+            var st=+el.dataset.start;
+            if(!isNaN(st) && config.currentPage>=st && config.currentPage-st<mn){ mn=config.currentPage-st; act=el; }
+        });
+        if(act){ act.classList.add('active'); setTimeout(function(){act.scrollIntoView({block:'center',behavior:'smooth'});},100); }
+    }
+
+    function updateTransform(){
+        pageImage.style.transform = 'translate('+config.translateX+'px,'+config.translateY+'px) scale('+config.zoom+')';
+        if(config.zoom!==1){
+            zoomIndicator.textContent = Math.round(config.zoom*100)+'%';
+            zoomIndicator.style.display = 'block';
+            setTimeout(function(){zoomIndicator.style.display='none';}, 800);
+        }
+    }
+
+    function scrollPage(dir){ imageContainer.scrollBy({top: dir*imageContainer.clientHeight*0.33, behavior:'smooth'}); }
+
+    function showPageInput(){
+        var inp = document.createElement('input');
+        inp.type='text'; inp.inputMode='numeric'; inp.className='page-input-inline';
+        inp.value = (config.currentPage+1) - config.pageOffset;
+        inp.onkeydown = function(e){ if(e.key==='Enter') subP(inp); else if(e.key==='Escape') hideP(inp); };
+        inp.onblur = function(){ subP(inp); };
+        var span = $('current-page');
+        span.style.display='none'; span.parentNode.insertBefore(inp,span); inp.focus(); inp.select();
+    }
+    function hideP(inp){ $('current-page').style.display=''; if(inp) inp.remove(); }
+    function subP(inp){ var d=parseInt(inp.value), idx=d+config.pageOffset-1; if(idx>=0&&idx<config.pages.length) loadPage(idx); hideP(inp); }
+
+    function copyLink(){
+        var d=(config.currentPage+1)-config.pageOffset, url=new URL(location.href); url.hash='#page='+d;
+        navigator.clipboard.writeText(url.toString()).then(function(){
+            $('copy-link').classList.add('copied'); document.querySelector('.copy-link-tooltip').classList.add('show');
+            setTimeout(function(){ $('copy-link').classList.remove('copied'); document.querySelector('.copy-link-tooltip').classList.remove('show'); },1200);
+        });
+    }
+
+    /* ── Fullscreen ── */
+    var uiT;
+    function isFS(){ return !!(document.fullscreenElement||document.webkitFullscreenElement); }
+    function isCM(){ return document.body.classList.contains('clean-mode'); }
+    function isIM(){ return isFS()||isCM(); }
+    function toggleFS(){
+        if(isFS()){ (document.exitFullscreen||document.webkitExitFullscreen).call(document); }
+        else if(isCM()){ document.body.classList.remove('clean-mode','show-ui'); }
+        else {
+            var el=document.documentElement, req=el.requestFullscreen||el.webkitRequestFullscreen;
+            if(req){ req.call(el).catch(function(){ document.body.classList.add('clean-mode'); }); }
+            else { document.body.classList.add('clean-mode'); }
+        }
+    }
+    function showUI(){
+        clearTimeout(uiT);
+        document.documentElement.classList.add('show-ui'); document.body.classList.add('show-ui');
+        uiT = setTimeout(function(){ document.documentElement.classList.remove('show-ui'); document.body.classList.remove('show-ui'); },3000);
+    }
+    document.addEventListener('fullscreenchange',function(){ if(!isFS()){ document.documentElement.classList.remove('show-ui'); document.body.classList.remove('show-ui'); }});
+    document.addEventListener('webkitfullscreenchange',function(){ if(!isFS()){ document.documentElement.classList.remove('show-ui'); document.body.classList.remove('show-ui'); }});
+    imageContainer.addEventListener('click', function(e){
+        if(isIM() && (e.target===pageImage||e.target===imageContainer)){ showUI(); e.stopPropagation(); }
+    });
+
+    /* ── All events ── */
+    function setupEvents(){
+        $('toc-toggle-fixed').onclick = function(){ toggleTOC(); };
+        $('toc-btn').onclick = function(){ toggleTOC(); };
+        $('toc-close').onclick = function(){ toggleTOC(false); };
+        $('fit-height').onclick = function(){ setFitMode('height'); };
+        $('fit-width').onclick = function(){ setFitMode('width'); };
+        $('zoom-in').onclick = function(){ config.zoom=Math.min(4,config.zoom+.15); updateTransform(); };
+        $('zoom-out').onclick = function(){ config.zoom=Math.max(.2,config.zoom-.15); updateTransform(); };
+        $('copy-link').onclick = copyLink;
+        $('fullscreen').onclick = toggleFS;
+        $('tool-ruler').onclick = function(){ setTool('ruler'); };
+        $('tool-lightbox').onclick = function(){ if(activeTool!=='lightbox') initLBSize(); setTool('lightbox'); };
+        $('current-page').onclick = showPageInput;
+        $('sidePrev').onclick = function(){ loadPage(config.currentPage-1); };
+        $('sideNext').onclick = function(){ loadPage(config.currentPage+1); };
+        $('scrollUp').onclick = function(){ scrollPage(-1); };
+        $('scrollDown').onclick = function(){ scrollPage(1); };
+
+        // Keyboard
+        window.addEventListener('keydown', function(e){
+            if(e.target.tagName==='INPUT') return;
+            if(e.code==='Space' && !config.spaceHeld){ config.spaceHeld=true; imageContainer.classList.add('panning'); e.preventDefault(); return; }
+            // Arrow keys: move tool if active, otherwise normal nav
+            if(e.key==='ArrowUp'){ e.preventDefault(); if(!moveToolByKey(-20, 0)) scrollPage(-1); }
+            else if(e.key==='ArrowDown'){ e.preventDefault(); if(!moveToolByKey(20, 0)) scrollPage(1); }
+            else if(e.key==='ArrowLeft'){
+                e.preventDefault();
+                if(activeTool==='lightbox') moveToolByKey(0, -20);
+                else loadPage(config.currentPage-1);
+            }
+            else if(e.key==='ArrowRight'){
+                e.preventDefault();
+                if(activeTool==='lightbox') moveToolByKey(0, 20);
+                else loadPage(config.currentPage+1);
+            }
+            else if(e.key==='Home') loadPage(0);
+            else if(e.key==='End') loadPage(config.pages.length-1);
+            else if(e.key==='h'||e.key==='H') setFitMode('height');
+            else if(e.key==='w'||e.key==='W') setFitMode('width');
+            else if(e.key==='t'||e.key==='T') toggleTOC();
+            else if(e.key==='r'||e.key==='R') setTool('ruler');
+            else if(e.key==='l'||e.key==='L'){ if(activeTool!=='lightbox') initLBSize(); setTool('lightbox'); }
+            else if(e.key==='f'||e.key==='F') toggleFS();
+            else if(e.key==='Escape'){
+                if(activeTool) setTool(null);
+                else if(isCM()) document.body.classList.remove('clean-mode','show-ui');
+            }
+        });
+        window.addEventListener('keyup', function(e){ if(e.code==='Space'){ config.spaceHeld=false; config.isPanning=false; imageContainer.classList.remove('panning'); } });
+
+        // Space+drag pan
+        imageContainer.addEventListener('mousedown', function(e){
+            if(config.spaceHeld){ config.isPanning=true; config.startX=e.clientX; config.startY=e.clientY; config.panStartX=config.translateX; config.panStartY=config.translateY; e.preventDefault(); }
+        });
+        window.addEventListener('mousemove', function(e){ if(!config.isPanning)return; config.translateX=config.panStartX+e.clientX-config.startX; config.translateY=config.panStartY+e.clientY-config.startY; updateTransform(); });
+        window.addEventListener('mouseup', function(){ config.isPanning=false; });
+
+        // Ctrl+wheel zoom
+        document.addEventListener('wheel', function(e){
+            if(e.ctrlKey||e.metaKey){ e.preventDefault(); config.zoom=Math.max(.2,Math.min(4,config.zoom+(e.deltaY>0?-.1:.1))); updateTransform(); }
+        }, {passive:false});
+
+        document.addEventListener('touchmove', function(e){ if(e.touches.length>1) e.preventDefault(); }, {passive:false});
+        ['gesturestart','gesturechange','gestureend'].forEach(function(ev){ document.addEventListener(ev, function(e){e.preventDefault();}); });
+
+        // Touch swipe
+        var touchS = null;
+        imageContainer.addEventListener('touchstart', function(e){
+            if(e.touches.length===1 && config.zoom<=1) touchS={x:e.touches[0].clientX, y:e.touches[0].clientY, t:Date.now()};
+        }, {passive:true});
+        imageContainer.addEventListener('touchend', function(e){
+            if(!touchS || config.zoom>1){ touchS=null; return; }
+            var dx=e.changedTouches[0].clientX-touchS.x, dy=e.changedTouches[0].clientY-touchS.y, dt=Date.now()-touchS.t;
+            if(Math.abs(dx)>50 && Math.abs(dx)>Math.abs(dy)*1.5 && dt<500) loadPage(config.currentPage+(dx>0?-1:1));
+            touchS=null;
+        });
+
+        // Pinch zoom
+        var ts={}, pan=false;
+        pageImage.ontouchstart = function(e){
+            if(e.touches.length===1 && config.zoom>1){ pan=true; ts={x:e.touches[0].clientX, y:e.touches[0].clientY, tx:config.translateX, ty:config.translateY}; }
+            else if(e.touches.length===2){ pan=false; e.preventDefault(); config.touchDist=Math.hypot(e.touches[1].clientX-e.touches[0].clientX, e.touches[1].clientY-e.touches[0].clientY); config.touchZoom=config.zoom; }
+        };
+        pageImage.ontouchmove = function(e){
+            if(e.touches.length===1 && pan && config.zoom>1){ e.preventDefault(); config.translateX=ts.tx+e.touches[0].clientX-ts.x; config.translateY=ts.ty+e.touches[0].clientY-ts.y; updateTransform(); }
+            else if(e.touches.length===2){ e.preventDefault(); var d=Math.hypot(e.touches[1].clientX-e.touches[0].clientX, e.touches[1].clientY-e.touches[0].clientY); config.zoom=Math.max(.2,Math.min(4,config.touchZoom*(d/config.touchDist))); updateTransform(); }
+        };
+        pageImage.ontouchend = function(){ pan=false; };
+        pageImage.ondblclick = function(){ config.zoom=1; config.translateX=config.translateY=0; updateTransform(); };
+
+    }
+
+    window.onload = init;
+    window.onhashchange = function(){
+        var m=location.hash.match(/^#page=(-?\d+)$/);
+        if(m){ var idx=parseInt(m[1])+config.pageOffset-1; if(idx>=0&&idx<config.pages.length) loadPage(idx); }
+    };
+    if(location.hash.indexOf('#page=')===0){
+        var d=parseInt(location.hash.slice(6));
+        if(!isNaN(d)){ var idx=d+config.pageOffset-1; if(idx>=0) config.currentPage=idx; }
+    }
+    </script>
+</body>
+</html>

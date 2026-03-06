@@ -1,0 +1,44 @@
+# LCA2 - Case Studies
+# Page 1 = File page 4
+# offset is 3
+
+# Front Matter
+CHAPTER|COVER|Cover & Front Matter|COVER.0|start=1|end=3
+
+# Unit 1: Current Affairs
+CHAPTER|01|Current Affairs|CH01.0|start=4|end=69
+SECTION|1.1|To investigate the Marriage Equality Act - Ireland 2015|start=4|end=8
+SECTION|1.2|To examine greenhouse gas emissions|start=9|end=13
+SECTION|1.3|To examine mobile phone app usage|start=14|end=18
+SECTION|1.4|To find out how often you check your phone each day|start=19|end=22
+SECTION|1.5|To investigate the reproductive rate of an infectious disease|start=23|end=27
+SECTION|1.6|To investigate trends in fuel prices|start=28|end=32
+SECTION|1.7|To compare data on protein bars|start=33|end=37
+SECTION|1.8|To understand how data is used to report on homelessness|start=38|end=41
+SECTION|1.9|To look at household expenditure|start=42|end=46
+SECTION|1.10|To examine household waste management|start=47|end=51
+SECTION|1.11|To consider day time/night time populations|start=52|end=56
+SECTION|1.12|To investigate the population of Ireland|start=57|end=60
+SECTION|1.13|To focus on positive mental health and wellbeing|start=61|end=65
+SECTION|1.14|To examine the nature of statistical data|start=66|end=69
+
+# Unit 2: Travel and Recreation
+CHAPTER|02|Travel and Recreation|CH02.0|start=71|end=139
+SECTION|2.1|To understand timing when planning a trip|start=71|end=75
+SECTION|2.2|To work out how to pay for a holiday|start=76|end=80
+SECTION|2.3|To investigate weather data|start=81|end=84
+SECTION|2.4|To explore the idea of currency|start=85|end=89
+SECTION|2.5|To investigate interrailing in Europe|start=90|end=94
+SECTION|2.6|To examine alternative routes to Paris from Ireland|start=95|end=99
+SECTION|2.7|To plan a party|start=100|end=104
+SECTION|2.8|To plan the school Christmas show|start=105|end=109
+SECTION|2.9|To organise a 1st year sports tournament|start=110|end=114
+SECTION|2.10|To compare two booking options for a holiday abroad|start=115|end=119
+SECTION|2.11|To investigate accommodation options for a holiday in Ireland|start=120|end=124
+SECTION|2.12|To investigate travel insurance|start=125|end=129
+SECTION|2.13|To investigate Earth to Earth travel through space|start=130|end=134
+SECTION|2.14|Student-designed case study|start=135|end=139
+
+# Module 2 Key Assignment
+CHAPTER|03|Module 2 Key Assignment|CH03.0|start=140|end=140
+SECTION|3.1|Sign-off sheet|start=140|end=140

@@ -1,0 +1,228 @@
+# Active Maths 3 (LC Ordinary Level) - Table of Contents
+# CORRECTED VERSION - Based on actual book pages
+# Book page numbering starts at 1 on PDF page 11 (file page 11)
+# Therefore offset = 10
+
+# offset=10
+
+# Front Matter
+CHAPTER|COVER|Cover & Title Pages|COVER.0|start=1|end=4
+CHAPTER|TOC|Table of Contents|TOC.0|start=5|end=7
+CHAPTER|INTRO|Introduction|INTRO.0|start=9|end=10
+
+# Main Content Chapters
+CHAPTER|01|Real Numbers|CH01.0|start=11|end=16
+SECTION|1.1|Number Systems|start=12|end=14
+SECTION|1.2|Factors, Multiples and Prime Numbers|start=15|end=17
+SECTION|1.3|Decimals|start=18|end=20
+SECTION|1.4|Scientific Notation|start=21|end=26
+
+CHAPTER|02|Arithmetic|CH02.0|start=27|end=50
+SECTION|2.1|Proportional Parts - Dividing Quantities in a Given Ratio|start=28|end=29
+SECTION|2.2|Percentages|start=30|end=31
+SECTION|2.3|Percentage Error and Accumulated Error|start=32|end=33
+SECTION|2.4|Income Tax|start=34|end=36
+SECTION|2.5|Pay-Related Social Insurance (PRSI) and Universal Social Charge (USC)|start=37|end=38
+SECTION|2.6|Value Added Tax (VAT)|start=39|end=40
+SECTION|2.7|Percentage Profit and Loss; Discounts|start=41|end=42
+SECTION|2.8|Compound Interest and Loans|start=43|end=44
+SECTION|2.9|Depreciation|start=45|end=46
+SECTION|2.10|Arithmetic for Everyday Life|start=47|end=49
+SECTION|2.11|Currency Exchange|start=50|end=53
+
+CHAPTER|03|Algebra I|CH03.0|start=54|end=72
+SECTION|3.1|Expressions|start=55|end=56
+SECTION|3.2|Evaluating Expressions|start=57|end=59
+SECTION|3.3|Simplifying Expressions|start=60|end=60
+SECTION|3.4|Expanding Expressions|start=61|end=62
+SECTION|3.5|Factorising Expressions|start=63|end=65
+SECTION|3.6|Expressions Involving Fractions|start=66|end=67
+SECTION|3.7|Dividing Algebraic Expressions|start=68|end=68
+SECTION|3.8|Long Division in Algebra|start=68|end=68
+SECTION|3.9|Rearranging Formulae|start=69|end=74
+
+CHAPTER|04|Indices and Surds|CH04.0|start=75|end=83
+SECTION|4.1|Numbers in Index Form|start=76|end=76
+SECTION|4.2|Laws 1-4 of Indices|start=76|end=77
+SECTION|4.3|Laws 5-9 of Indices|start=78|end=80
+SECTION|4.4|Equations with x as an Index|start=81|end=82
+SECTION|4.5|Surds|start=83|end=85
+
+CHAPTER|05|Algebra II|CH05.0|start=86|end=109
+SECTION|5.1|Solving Linear Equations|start=87|end=88
+SECTION|5.2|Solving Problems Involving Linear Equations|start=89|end=90
+SECTION|5.3|Solving Linear Equations Involving Fractions|start=91|end=91
+SECTION|5.4|Linear Inequalities|start=91|end=93
+SECTION|5.5|Solving Simultaneous Linear Equations|start=94|end=96
+SECTION|5.6|Solving Quadratic Equations|start=97|end=99
+SECTION|5.7|Solving Quadratic Equations II|start=100|end=101
+SECTION|5.8|Solving Problems Using Quadratic Equations|start=102|end=104
+SECTION|5.9|Solving Non-Factorisable Quadratic Equations|start=105|end=105
+SECTION|5.10|Solving Quadratic Equations Involving Fractions|start=106|end=106
+SECTION|5.11|Forming Quadratic Equations|start=107|end=108
+SECTION|5.12|Solving Simultaneous Equations: One Linear and One Non-Linear|start=109|end=113
+
+CHAPTER|06|Linear and Quadratic Functions|CH06.0|start=114|end=139
+SECTION|6.1|Introduction|start=115|end=120
+SECTION|6.2|Composite Functions|start=121|end=122
+SECTION|6.3|Linear Functions|start=123|end=125
+SECTION|6.4|Quadratic Functions|start=126|end=129
+SECTION|6.5|Real-Life Problems Solved by Quadratic Graphs|start=130|end=132
+SECTION|6.6|Transformations of Quadratic Functions|start=133|end=139
+
+CHAPTER|07|Complex Numbers|CH07.0|start=140|end=155
+SECTION|7.1|Introduction|start=140|end=140
+SECTION|7.2|Complex Numbers and the Argand Diagram|start=141|end=142
+SECTION|7.3|Addition and Subtraction of Complex Numbers|start=143|end=145
+SECTION|7.4|Modulus of a Complex Number|start=146|end=147
+SECTION|7.5|Multiplying Complex Numbers|start=148|end=149
+SECTION|7.6|Conjugate of a Complex Number|start=150|end=151
+SECTION|7.7|Dividing Complex Numbers|start=152|end=153
+SECTION|7.8|Equality of Complex Numbers|start=154|end=154
+SECTION|7.9|Quadratic Equations with Complex Roots|start=155|end=157
+
+CHAPTER|08|Cubic and Exponential Functions|CH08.0|start=158|end=171
+SECTION|8.1|Cubic Functions|start=159|end=162
+SECTION|8.2|Exponential Functions|start=163|end=171
+
+CHAPTER|09|Number Patterns|CH09.0|start=172|end=186
+SECTION|9.1|Patterns|start=173|end=174
+SECTION|9.2|Arithmetic Sequences|start=175|end=178
+SECTION|9.3|The General Term of an Arithmetic Sequence|start=179|end=181
+SECTION|9.4|Solving for a and d|start=182|end=183
+SECTION|9.5|Arithmetic Series|start=184|end=188
+SECTION|9.6|Some Non-Linear Sequences|start=189|end=196
+
+CHAPTER|10|Calculus|CH10.0|start=197|end=221
+SECTION|10.1|Calculus|start=197|end=197
+SECTION|10.2|First Derivatives|start=198|end=199
+SECTION|10.3|Second Derivatives|start=200|end=201
+SECTION|10.4|Slopes and Tangent Lines|start=202|end=204
+SECTION|10.5|Increasing and Decreasing Functions|start=205|end=208
+SECTION|10.6|Maxima and Minima|start=209|end=211
+SECTION|10.7|Maximum and Minimum Problems|start=212|end=215
+SECTION|10.8|Rates of Change|start=216|end=221
+
+CHAPTER|11|Applied Measure|CH11.0|start=222|end=254
+SECTION|11.1|Triangles and Quadrilaterals|start=223|end=226
+SECTION|11.2|Circles|start=227|end=230
+SECTION|11.3|Rectangular Solids|start=231|end=233
+SECTION|11.4|Prisms|start=234|end=236
+SECTION|11.5|Cylinders|start=237|end=239
+SECTION|11.6|Right Circular Cones|start=239|end=241
+SECTION|11.7|Spheres|start=241|end=242
+SECTION|11.8|Finding a Missing Dimension|start=243|end=247
+SECTION|11.9|The Trapezoidal Rule|start=248|end=254
+
+CHAPTER|12|Counting and Arrangements|CH12.0|start=256|end=267
+SECTION|12.1|Listing Outcomes|start=256|end=259
+SECTION|12.2|The Fundamental Principle of Counting|start=260|end=261
+SECTION|12.3|Arrangements|start=262|end=267
+
+CHAPTER|13|Probability|CH13.0|start=268|end=304
+SECTION|13.1|Introducing Probability|start=269|end=270
+SECTION|13.2|Relative Frequency (Experimental Probability)|start=271|end=275
+SECTION|13.3|Theoretical Probability|start=276|end=278
+SECTION|13.4|Set Theory and Probability|start=279|end=283
+SECTION|13.5|Sample Spaces for Successive Events|start=284|end=288
+SECTION|13.6|AND/OR: Multiple Events|start=289|end=292
+SECTION|13.7|Bernoulli Trials|start=293|end=296
+SECTION|13.8|Expected Value|start=297|end=304
+
+CHAPTER|14|Statistics I|CH14.0|start=305|end=339
+SECTION|14.1|Statistics in Today's World|start=306|end=306
+SECTION|14.2|Statistical Investigations|start=306|end=308
+SECTION|14.3|Collecting Data|start=309|end=309
+SECTION|14.4|Frequency Tables|start=310|end=310
+SECTION|14.5|Graphing Data: Bar Charts and Pie Charts|start=311|end=316
+SECTION|14.6|Graphing Data: Stem-and-Leaf Plots|start=317|end=320
+SECTION|14.7|Graphing Data: Histograms|start=321|end=321
+SECTION|14.8|Distribution of Data|start=322|end=325
+SECTION|14.9|Scatter Graphs and Correlation|start=326|end=339
+
+CHAPTER|15|Statistics II|CH15.0|start=340|end=369
+SECTION|15.1|Measures of Central Tendency: Mean, Mode and Median|start=341|end=347
+SECTION|15.2|Deciding Which Average to Use|start=348|end=349
+SECTION|15.3|Measures of Variation|start=350|end=355
+SECTION|15.4|The Normal Distribution and the Empirical Rule|start=356|end=359
+SECTION|15.5|Sampling Variability|start=360|end=360
+SECTION|15.6|Hypothesis Testing|start=360|end=363
+SECTION|15.7|Misuses of Statistics|start=364|end=369
+
+CHAPTER|16|Geometry|CH16.0|start=370|end=403
+SECTION|16.1|Revision of Concepts, Notation and Axioms|start=371|end=373
+SECTION|16.2|Angles and Lines: Theorems 1, 3 & 5|start=374|end=376
+SECTION|16.3|Triangles, Angles and Sides: Theorems 2, 4, 6, 7 & 8|start=377|end=378
+SECTION|16.4|Parallelograms: Theorems 9 & 10|start=379|end=381
+SECTION|16.5|Triangles, Parallel Lines and Ratios: Theorems 11, 12 & 13|start=382|end=386
+SECTION|16.6|Theorem of Pythagoras|start=387|end=388
+SECTION|16.7|Area of a Triangle and Area of a Parallelogram|start=389|end=392
+SECTION|16.8|Circle Theorems and Corollaries|start=393|end=397
+SECTION|16.9|Congruent Triangles and Proof|start=398|end=403
+
+CHAPTER|17|Trigonometry|CH17.0|start=405|end=433
+SECTION|17.1|Right-Angled Triangles and the Theorem of Pythagoras|start=406|end=407
+SECTION|17.2|Right-Angled Triangles and the Trigonometric Ratios|start=408|end=410
+SECTION|17.3|Finding the Length of a Side in a Right-Angled Triangle|start=411|end=412
+SECTION|17.4|Using Trigonometry to Solve Practical Problems|start=413|end=417
+SECTION|17.5|Area of a Triangle|start=418|end=419
+SECTION|17.6|Special Angles 30°, 45° and 60°|start=420|end=420
+SECTION|17.7|The Unit Circle|start=420|end=420
+SECTION|17.8|Evaluating Trigonometric Ratios of All Angles|start=421|end=422
+SECTION|17.9|The Sine Rule|start=423|end=425
+SECTION|17.10|The Cosine Rule|start=426|end=428
+SECTION|17.11|Length of an Arc and Area of a Sector|start=429|end=433
+
+CHAPTER|18|Co-ordinate Geometry: The Line|CH18.0|start=435|end=459
+SECTION|18.1|The xy-Plane|start=436|end=436
+SECTION|18.2|Distance Between Two Points|start=437|end=438
+SECTION|18.3|Midpoint of a Line Segment|start=439|end=440
+SECTION|18.4|Slope of a Line|start=441|end=444
+SECTION|18.5|The Equation of a Line|start=445|end=446
+SECTION|18.6|Equations of the Form y = mx + c|start=447|end=448
+SECTION|18.7|Finding the Equation of a Line|start=449|end=450
+SECTION|18.8|Intersecting Lines|start=451|end=452
+SECTION|18.9|Further Equations|start=453|end=454
+SECTION|18.10|Area of a Triangle|start=455|end=459
+
+CHAPTER|19|Constructions, Transformations and Enlargements|CH19.0|start=461|end=493
+SECTION|19.1|Junior Cycle Constructions|start=462|end=470
+SECTION|19.2|Leaving Certificate Ordinary Level Constructions|start=471|end=473
+SECTION|19.3|Leaving Certificate Ordinary Level Constructions II|start=474|end=477
+SECTION|19.4|Transformations|start=478|end=482
+SECTION|19.5|Enlargements|start=483|end=487
+SECTION|19.6|Properties of Enlargements|start=487|end=493
+
+CHAPTER|20|Co-ordinate Geometry: The Circle|CH20.0|start=494|end=510
+SECTION|20.1|Circles with Centre (0,0) and Radius r|start=494|end=497
+SECTION|20.2|Lines and Circles|start=498|end=500
+SECTION|20.3|Circles with Centre (h,k) and Radius r|start=501|end=504
+SECTION|20.4|Intercepts and Points Inside, Outside or On a Circle|start=505|end=510
+
+CHAPTER|ANSWERS|Answers|ANSWERS.0|start=511|end=563
+SECTION|A1|Chapter 1|start=511|end=512
+SECTION|A2|Chapter 2|start=512|end=513
+SECTION|A3|Chapter 3|start=513|end=514
+SECTION|A4|Chapter 4|start=514|end=514
+SECTION|A5|Chapter 5|start=514|end=516
+SECTION|A6|Chapter 6|start=516|end=517
+SECTION|A7|Chapter 7|start=517|end=518
+SECTION|A8|Chapter 8|start=518|end=519
+SECTION|A9|Chapter 9|start=519|end=522
+SECTION|A10|Chapter 10|start=522|end=523
+SECTION|A11|Chapter 11|start=523|end=524
+SECTION|A12|Chapter 12|start=524|end=525
+SECTION|A13|Chapter 13|start=525|end=528
+SECTION|A14|Chapter 14|start=528|end=531
+SECTION|A15|Chapter 15|start=531|end=533
+SECTION|A16|Chapter 16|start=533|end=534
+SECTION|A17|Chapter 17|start=534|end=536
+SECTION|A18|Chapter 18|start=536|end=537
+SECTION|A19|Chapter 19|start=537|end=538
+SECTION|A20|Chapter 20|start=538|end=538
+
+# offset is 10
+
+CHAPTER|BACKCOVER|End Pages / Credits|start=540|end=540|end_inclusive=true
+
+

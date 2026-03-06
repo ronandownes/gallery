@@ -1,0 +1,43 @@
+# LCA1 - Case Studies
+# Page 1 = File page 4
+# offset is 3
+
+# Front Matter
+CHAPTER|COVER|Cover & Front Matter|COVER.0|start=1|end=3
+
+# Unit 1: Researching and Planning
+CHAPTER|01|Researching and Planning|CH01.0|start=4|end=60
+SECTION|1.1|To investigate how life expectancy in Ireland has changed over time|start=4|end=7
+SECTION|1.2|To compare the rainfall in Limerick and Samara|start=8|end=12
+SECTION|1.3|To find out which supermarket offers the best value for money|start=13|end=17
+SECTION|1.4|To investigate the change in the height of students from 1st year to 4th year|start=18|end=22
+SECTION|1.5|To compare this week's weather forecast for Dublin and Rome|start=23|end=26
+SECTION|1.6|To determine the most popular type of student mobile phone|start=27|end=30
+SECTION|1.7|To investigate the rate at which hot water cools in various containers|start=31|end=35
+SECTION|1.8|To identify the most popular colour in a box of Smarties|start=36|end=39
+SECTION|1.9|To investigate Apple's sales figures for three products|start=40|end=43
+SECTION|1.10|To investigate and use a histogram|start=44|end=47
+SECTION|1.11|To calculate the mean, mode, median and range of the number of red Skittles in a bag|start=48|end=52
+SECTION|1.12|To examine how graphs can be misleading|start=53|end=56
+SECTION|1.13|To select the best type of graph to represent your data|start=57|end=60
+
+# Unit 2: Budgeting
+CHAPTER|02|Budgeting|CH02.0|start=61|end=122
+SECTION|2.1|To prepare a budget for furnishing a child's bedroom|start=61|end=65
+SECTION|2.2|To investigate the use of scale drawings|start=66|end=69
+SECTION|2.3|To investigate floor covering options for a child's bedroom|start=70|end=73
+SECTION|2.4|To investigate a playground design by measuring various shapes|start=74|end=78
+SECTION|2.5|To design and budget for a mural for a child's bedroom using simple shapes|start=79|end=83
+SECTION|2.6|To design and price the materials needed to make stage props|start=84|end=88
+SECTION|2.7|To make a 3D cube from a 2D net|start=89|end=92
+SECTION|2.8|To make a 3D rectangular box from a 2D net|start=93|end=96
+SECTION|2.9|To continue the investigation of 3D shapes|start=97|end=100
+SECTION|2.10|To create a class design with 3D shapes|start=101|end=103
+SECTION|2.11|To explore the volume of regular shapes|start=104|end=108
+SECTION|2.12|To investigate the nature of angles|start=109|end=113
+SECTION|2.13|To investigate Pythagoras' theorem|start=114|end=118
+SECTION|2.14|Student-designed case study|start=119|end=122
+
+# Module 1 Key Assignment
+CHAPTER|03|Module 1 Key Assignment|CH03.0|start=124|end=124
+SECTION|3.1|Sign-off sheet|start=124|end=124

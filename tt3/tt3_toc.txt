@@ -1,0 +1,228 @@
+# Text & Tests 3 (LC Ordinary Level) - Table of Contents
+# CORRECTED VERSION - Based on PDF page numbers
+# Book page numbering starts at 1 on PDF page 11 (file page 11)
+# Offset applied = 10
+
+# offset=10
+
+# Front Matter
+CHAPTER|COVER|Cover & Title Pages|COVER.0|start=1|end=4
+CHAPTER|TOC|Table of Contents|TOC.0|start=5|end=9
+CHAPTER|INTRO|Preface|INTRO.0|start=10|end=10
+
+# Main Content Chapters (Book Page + 10 = PDF Page)
+CHAPTER|01|Financial Mathematics|CH01.0|start=11|end=48
+SECTION|1.1|Fractions, decimals, significant figures|start=11|end=14
+SECTION|1.2|Ratio and proportion|start=15|end=17
+SECTION|1.3|Percentages|start=18|end=22
+SECTION|1.4|Percentage error|start=23|end=24
+SECTION|1.5|Currency conversions|start=25|end=26
+SECTION|1.6|Income tax|start=27|end=31
+SECTION|1.7|Compound interest|start=32|end=40
+SECTION|1.8|Working with numbers in standard form|start=41|end=44
+SECTION|1.9|Test Yourself & Summary|start=45|end=48
+
+CHAPTER|02|Algebra 1|CH02.0|start=49|end=74
+SECTION|2.1|Simplifying algebraic expressions|start=49|end=50
+SECTION|2.2|Adding algebraic fractions|start=51|end=52
+SECTION|2.3|Evaluating expressions|start=53|end=53
+SECTION|2.4|Solving linear equations|start=54|end=55
+SECTION|2.5|Solving linear equations with fractions|start=56|end=57
+SECTION|2.6|Algebraic division|start=58|end=59
+SECTION|2.7|Linear inequalities|start=60|end=62
+SECTION|2.8|Simultaneous equations|start=63|end=65
+SECTION|2.9|Applications of simultaneous equations|start=66|end=68
+SECTION|2.10|Changing subject of formula|start=69|end=71
+SECTION|2.11|Test Yourself & Summary|start=72|end=74
+
+CHAPTER|03|Algebra 2|CH03.0|start=75|end=99
+SECTION|3.1|Factorising quadratic expressions|start=75|end=77
+SECTION|3.2|Using factors for quadratic equations|start=78|end=80
+SECTION|3.3|Quadratic equations with fractions|start=81|end=81
+SECTION|3.4|Using the quadratic formula|start=82|end=83
+SECTION|3.5|Simultaneous (linear & quadratic)|start=84|end=85
+SECTION|3.6|Forming quadratic equations|start=86|end=86
+SECTION|3.7|The law of indices|start=87|end=89
+SECTION|3.8|Equations involving indices|start=90|end=91
+SECTION|3.9|Dealing with surds|start=92|end=95
+SECTION|3.10|Test Yourself & Summary|start=96|end=99
+
+CHAPTER|04|Complex Numbers|CH04.0|start=100|end=121
+SECTION|4.1|Number systems|start=100|end=101
+SECTION|4.2|Complex numbers|start=102|end=103
+SECTION|4.3|Adding and subtracting|start=104|end=104
+SECTION|4.4|Multiplying complex numbers|start=105|end=106
+SECTION|4.5|Dividing complex numbers|start=107|end=108
+SECTION|4.6|The Argand diagram|start=109|end=109
+SECTION|4.7|The modulus|start=110|end=111
+SECTION|4.8|Equality of complex numbers|start=112|end=113
+SECTION|4.9|Quadratic equations with complex roots|start=114|end=114
+SECTION|4.10|Transformations|start=115|end=118
+SECTION|4.11|Test Yourself & Summary|start=119|end=121
+
+CHAPTER|05|Patterns and Sequences|CH05.0|start=122|end=148
+SECTION|5.1|Patterns in number|start=122|end=123
+SECTION|5.2|The nth term|start=124|end=126
+SECTION|5.3|Sequences from shapes|start=127|end=130
+SECTION|5.4|Arithmetic sequences|start=131|end=133
+SECTION|5.5|Finding a and d|start=134|end=136
+SECTION|5.6|Arithmetic series|start=137|end=141
+SECTION|5.7|Quadratic sequences|start=142|end=145
+SECTION|5.8|Test Yourself & Summary|start=146|end=148
+
+CHAPTER|06|Functions|CH06.0|start=149|end=165
+SECTION|6.1|Functions|start=149|end=153
+SECTION|6.2|Operations involving functions|start=154|end=157
+SECTION|6.3|Finding unknown coefficients|start=158|end=162
+SECTION|6.4|Test Yourself & Summary|start=163|end=165
+
+CHAPTER|07|Graphing Functions|CH07.0|start=166|end=201
+SECTION|7.1|Graphing linear functions|start=166|end=171
+SECTION|7.2|Graphs of quadratic functions|start=172|end=174
+SECTION|7.3|Interpreting quadratic graphs|start=175|end=181
+SECTION|7.4|Cubic functions|start=182|end=189
+SECTION|7.5|Graphing exponential functions|start=190|end=196
+SECTION|7.6|Test Yourself & Summary|start=197|end=201
+
+CHAPTER|08|Graphs and Real-Life Problems|CH08.0|start=202|end=218
+SECTION|8.1|Speed, distance, time|start=202|end=206
+SECTION|8.2|Real-life graphs|start=207|end=212
+SECTION|8.3|Test Yourself & Summary|start=213|end=218
+
+CHAPTER|09|Coordinate Geometry - the Line|CH09.0|start=219|end=248
+SECTION|9.1|Coordinating the plane|start=219|end=220
+SECTION|9.2|Distance|start=221|end=223
+SECTION|9.3|Midpoint|start=224|end=224
+SECTION|9.4|Slope|start=225|end=229
+SECTION|9.5|Equation of a line|start=230|end=232
+SECTION|9.6|y = mx + c|start=233|end=234
+SECTION|9.7|Perpendicular and parallel lines|start=235|end=236
+SECTION|9.8|Graphing lines|start=237|end=239
+SECTION|9.9|Intersection|start=240|end=241
+SECTION|9.10|Area of a triangle|start=242|end=243
+SECTION|9.11|Test Yourself & Summary|start=244|end=248
+
+CHAPTER|10|Calculus|CH10.0|start=249|end=279
+SECTION|10.1|The slope of a line|start=249|end=251
+SECTION|10.2|The slope of a curve|start=252|end=254
+SECTION|10.3|Tangents and curves|start=255|end=257
+SECTION|10.4|Turning points|start=258|end=266
+SECTION|10.5|Rates of change|start=267|end=271
+SECTION|10.6|Maximum values|start=272|end=275
+SECTION|10.7|Test Yourself & Summary|start=276|end=279
+
+CHAPTER|11|Probability|CH11.0|start=280|end=330
+SECTION|11.1|Probability and chance|start=280|end=282
+SECTION|11.2|Events and outcomes|start=283|end=288
+SECTION|11.3|Sample spaces|start=289|end=291
+SECTION|11.4|Experiments|start=292|end=297
+SECTION|11.5|Addition rule|start=298|end=300
+SECTION|11.6|Venn diagrams|start=301|end=303
+SECTION|11.7|Bernoulli trials|start=304|end=310
+SECTION|11.8|Tree diagrams|start=311|end=314
+SECTION|11.9|Expected value|start=315|end=318
+SECTION|11.10|Principle of counting|start=319|end=320
+SECTION|11.11|Arrangements|start=321|end=325
+SECTION|11.12|Test Yourself & Summary|start=326|end=330
+
+CHAPTER|12|Geometry|CH12.0|start=331|end=365
+SECTION|12.1|Angles and triangles|start=331|end=337
+SECTION|12.2|Area|start=338|end=341
+SECTION|12.3|Triangles and ratios|start=342|end=348
+SECTION|12.4|Circle theorems|start=349|end=353
+SECTION|12.5|Formal proofs|start=354|end=360
+SECTION|12.6|Test Yourself & Summary|start=361|end=365
+
+CHAPTER|13|Coordinate Geometry - the Circle|CH13.0|start=366|end=378
+SECTION|13.1|Centre (0,0)|start=366|end=368
+SECTION|13.2|Points and circles|start=369|end=370
+SECTION|13.3|Centre (h,k)|start=371|end=373
+SECTION|13.4|Intersection|start=374|end=376
+SECTION|13.5|Intersecting the axes|start=377|end=377
+SECTION|13.6|Test Yourself & Summary|start=377|end=378
+
+CHAPTER|14|Collecting Data|CH14.0|start=379|end=391
+SECTION|14.1|Types of data|start=379|end=381
+SECTION|14.2|Categorical data|start=382|end=382
+SECTION|14.3|Collecting data|start=383|end=383
+SECTION|14.4|Questionnaires|start=384|end=385
+SECTION|14.5|Sampling|start=386|end=387
+SECTION|14.6|Test Yourself & Summary|start=388|end=391
+
+CHAPTER|15|Measures of Location and Spread|CH15.0|start=392|end=432
+SECTION|15.1|Averages|start=392|end=396
+SECTION|15.2|Range|start=397|end=400
+SECTION|15.3|Selecting averages|start=401|end=403
+SECTION|15.4|Frequency distributions|start=404|end=409
+SECTION|15.5|Grouped frequency|start=410|end=413
+SECTION|15.6|Standard deviation|start=414|end=420
+SECTION|15.7|Test Yourself & Summary|start=421|end=432
+
+CHAPTER|16|Normal Curve - Margin of Error|CH16.0|start=433|end=450
+SECTION|16.1|Empirical rule|start=433|end=437
+SECTION|16.2|Confidence intervals|start=438|end=442
+SECTION|16.3|Hypothesis testing|start=443|end=447
+SECTION|16.4|Test Yourself & Summary|start=448|end=450
+
+CHAPTER|17|Representing Data|CH17.0|start=451|end=489
+SECTION|17.1|Charts and plots|start=451|end=457
+SECTION|17.2|Histograms|start=458|end=460
+SECTION|17.3|Shape of distribution|start=461|end=464
+SECTION|17.4|Stem and leaf|start=465|end=472
+SECTION|17.5|Scatter graphs|start=473|end=479
+SECTION|17.6|Correlation|start=480|end=481
+SECTION|17.7|Causality|start=482|end=485
+SECTION|17.8|Test Yourself & Summary|start=486|end=489
+
+CHAPTER|18|Area and Volume|CH18.0|start=490|end=536
+SECTION|18.1|Perimeter and area|start=490|end=494
+SECTION|18.2|Circles and sectors|start=495|end=499
+SECTION|18.3|Prisms|start=500|end=506
+SECTION|18.4|Cylinders and spheres|start=507|end=511
+SECTION|18.5|The cone|start=512|end=516
+SECTION|18.6|Practical problems|start=517|end=519
+SECTION|18.7|Tolerance|start=520|end=523
+SECTION|18.8|Trapezoidal rule|start=524|end=530
+SECTION|18.9|Test Yourself & Summary|start=531|end=536
+
+CHAPTER|19|Trigonometry|CH19.0|start=537|end=570
+SECTION|19.1|Pythagoras|start=537|end=539
+SECTION|19.2|Sine, cosine, tangent|start=540|end=541
+SECTION|19.3|Using a calculator|start=542|end=542
+SECTION|19.4|Right-angled triangles|start=543|end=547
+SECTION|19.5|Area of a triangle|start=548|end=550
+SECTION|19.6|Sine rule|start=551|end=554
+SECTION|19.7|Cosine rule|start=555|end=560
+SECTION|19.8|Large angles|start=561|end=565
+SECTION|19.9|Test Yourself & Summary|start=566|end=570
+
+CHAPTER|20|Enlargements and Constructions|CH20.0|start=571|end=604
+SECTION|20.1|Enlargements|start=571|end=579
+SECTION|20.2|Transformation geometry|start=580|end=584
+SECTION|20.3|Constructions 1|start=585|end=588
+SECTION|20.4|Constructions 2|start=589|end=592
+SECTION|20.5|Constructions 3|start=593|end=599
+SECTION|20.6|Test Yourself & Summary|start=600|end=604
+
+# Answers Section (Actual PDF Pages)
+CHAPTER|ANSWERS|Answers|ANSWERS.0|start=605|end=660
+SECTION|A1|Financial Mathematics (Ch 1)|start=605|end=608
+SECTION|A2|Algebra 1 (Ch 2)|start=608|end=610
+SECTION|A3|Algebra 2 (Ch 3)|start=610|end=613
+SECTION|A4|Complex Numbers (Ch 4)|start=613|end=615
+SECTION|A5|Patterns and Sequences (Ch 5)|start=615|end=617
+SECTION|A6|Functions (Ch 6)|start=617|end=619
+SECTION|A7|Graphing Functions (Ch 7)|start=619|end=623
+SECTION|A8|Graphs & Real-Life (Ch 8)|start=623|end=624
+SECTION|A9|Line (Ch 9)|start=624|end=627
+SECTION|A10|Calculus (Ch 10)|start=627|end=630
+SECTION|A11|Probability (Ch 11)|start=630|end=633
+SECTION|A12|Geometry (Ch 12)|start=633|end=636
+SECTION|A13|Circle (Ch 13)|start=636|end=637
+SECTION|A14|Collecting Data (Ch 14)|start=637|end=638
+SECTION|A15|Location and Spread (Ch 15)|start=638|end=640
+SECTION|A16|Normal Curve (Ch 16)|start=640|end=642
+SECTION|A17|Representing Data (Ch 17)|start=642|end=645
+SECTION|A18|Area and Volume (Ch 18)|start=645|end=648
+SECTION|A19|Trigonometry (Ch 19)|start=648|end=651
+SECTION|A20|Enlargements (Ch 20)|start=651|end=653

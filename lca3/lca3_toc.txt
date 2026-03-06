@@ -1,0 +1,43 @@
+# Case Studies - Maths in Action
+# Page 1 = File page 4
+# offset is 3
+
+# Front Matter
+CHAPTER|COVER|Cover & Front Matter|COVER.0|start=1|end=3
+
+# Unit 1: Personal Finance
+CHAPTER|01|Personal Finance|CH01.0|start=4|end=71
+SECTION|1.1|To investigate the cost of borrowing|start=4|end=8
+SECTION|1.2|To fund a car purchase - part 1|start=9|end=13
+SECTION|1.3|To fund a car purchase - part 2|start=14|end=18
+SECTION|1.4|To look at other financing options|start=19|end=23
+SECTION|1.5|To examine credit cards and debit cards|start=24|end=28
+SECTION|1.6|To look at personal budgets|start=29|end=33
+SECTION|1.7|To analyse personal expenditure|start=34|end=37
+SECTION|1.8|To find student accommodation|start=38|end=42
+SECTION|1.9|To find an affordable student house share|start=43|end=47
+SECTION|1.10|To investigate purpose-built student accommodation|start=48|end=52
+SECTION|1.11|To consider whether to buy a new or second hand car|start=53|end=56
+SECTION|1.12|To estimate the annual cost of running a car|start=57|end=61
+SECTION|1.13|To investigate buying a mobile phone|start=62|end=71
+
+# Unit 2: Healthy Life Choices
+CHAPTER|02|Healthy Life Choices|CH02.0|start=72|end=140
+SECTION|2.1|To measure fitness levels|start=72|end=76
+SECTION|2.2|To investigate the glycaemic index and sugar levels|start=77|end=81
+SECTION|2.3|To investigate guidelines for healthy eating|start=82|end=86
+SECTION|2.4|To analyse data from health and fitness apps|start=87|end=91
+SECTION|2.5|To examine food labelling|start=92|end=96
+SECTION|2.6|To investigate numbers on food packaging|start=97|end=101
+SECTION|2.7|To explore health recommendations for sleep|start=102|end=106
+SECTION|2.8|To understand blood pressure and how it is measured|start=107|end=111
+SECTION|2.9|To design a training programme for a 10km run|start=112|end=116
+SECTION|2.10|To convert your classroom into a fitness room|start=117|end=120
+SECTION|2.11|To explore the use of numbers in cooking|start=121|end=125
+SECTION|2.12|To compare fast food with home-cooked meals|start=126|end=130
+SECTION|2.13|To carry out a survey on healthy lifestyle choices|start=131|end=135
+SECTION|2.14|Student-designed case study|start=136|end=140
+
+# Module 3 Key Assignment
+CHAPTER|03|Module 3 Key Assignment|CH03.0|start=141|end=141
+SECTION|3.1|Sign-off sheet|start=141|end=141

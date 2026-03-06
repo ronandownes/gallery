@@ -1,0 +1,58 @@
+# LCA4 - Mathematics and Work (Case Studies)
+# Page 1 = File page 4
+# offset is 3
+
+# Front Matter
+CHAPTER|COVER|Cover & Front Matter|COVER.0|start=1|end=3
+
+# Unit 1: Mathematics and Work - Case Studies
+CHAPTER|01|Mathematics and Work|CH01.0|start=4|end=106
+SECTION|1.1|To investigate the order of operations|start=4|end=7
+SECTION|1.2|To investigate setting up a small business - part 1|start=8|end=12
+SECTION|1.3|To investigate setting up a small business - part 2|start=13|end=17
+SECTION|1.4|To collect and analyse customer feedback|start=18|end=22
+SECTION|1.5|To decide how to price goods and services|start=23|end=27
+SECTION|1.6|To cost your service|start=28|end=32
+SECTION|1.7|To assess the cost of employing a person|start=33|end=37
+SECTION|1.8|To investigate advertising your business|start=38|end=42
+SECTION|1.9|To design a company logo and price office stationery|start=43|end=47
+SECTION|1.10|To discuss profit|start=48|end=52
+SECTION|1.11|To investigate cost, profit and VAT|start=53|end=56
+SECTION|1.12|To consider income and expenditure|start=57|end=61
+SECTION|1.13|To investigate PAYE and tax credits|start=62|end=66
+SECTION|1.14|To investigate PRSI and USC|start=67|end=71
+SECTION|1.15|To explore sources of funding and support for a new business|start=72|end=76
+SECTION|1.16|To determine the cost of renting commercial premises|start=77|end=81
+SECTION|1.17|To find a shop to rent|start=82|end=86
+SECTION|1.18|To explore different types of employment|start=87|end=91
+SECTION|1.19|To examine employment contracts|start=92|end=96
+SECTION|1.20|To examine working on site, working from home and a hybrid of both|start=97|end=101
+SECTION|1.21|Student-designed case study|start=102|end=106
+
+# Module 4 Key Assignment
+CHAPTER|02|Module 4 Key Assignment|CH02.0|start=107|end=107
+SECTION|2.1|Sign-off sheet|start=107|end=107
+
+# Revision of Learning Outcomes
+CHAPTER|03|Revision of Learning Outcomes|CH03.0|start=108|end=123
+SECTION|3.1|Module 1 - Mathematics and planning|start=108|end=112
+SECTION|3.2|Module 2 - Mathematics and the world around me|start=113|end=117
+SECTION|3.3|Module 3 - Mathematics and life skills|start=118|end=121
+SECTION|3.4|Module 4 - Mathematics and work|start=122|end=123
+
+# Revision of Mathematical Concepts and Skills (MCS)
+CHAPTER|04|Revision of Mathematical Concepts and Skills|CH04.0|start=124|end=145
+SECTION|4.1|General calculations 1|start=124|end=124
+SECTION|4.2|General calculations 2|start=125|end=125
+SECTION|4.3|Perimeter and area|start=126|end=127
+SECTION|4.4|Surface area and volume|start=128|end=129
+SECTION|4.5|Geometry|start=130|end=131
+SECTION|4.6|Angles|start=132|end=133
+SECTION|4.7|Order of operations|start=134|end=134
+SECTION|4.8|Pythagoras' theorem|start=135|end=135
+SECTION|4.9|Ratio and proportion|start=136|end=136
+SECTION|4.10|Rounding|start=137|end=137
+SECTION|4.11|Fractions, decimals and percentages|start=138|end=138
+SECTION|4.12|Units of distance and time|start=139|end=139
+SECTION|4.13|Graphs|start=140|end=141
+SECTION|4.14|Algebra - evaluating expressions|start=142|end=145

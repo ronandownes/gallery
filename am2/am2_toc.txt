@@ -1,0 +1,215 @@
+
+# Active Maths 2 (Junior Cycle Higher Level) - Table of Contents
+# 3rd Edition - 2025
+# Book page numbering starts at page 1 on PDF file page 9 (Chapter 1 starts here)
+# Use actual file page numbers
+# offset is 8
+
+# Front Matter
+CHAPTER|COVER|Cover & Title Pages|COVER.0|start=1|end=4
+CHAPTER|TOC|Table of Contents|TOC.0|start=5|end=6
+CHAPTER|INTRO|Introduction|INTRO.0|start=7|end=8
+
+# Main Content
+CHAPTER|01|Sets|CH01.0|start=9|end=26
+SECTION|1.1|Review|start=10|end=11
+SECTION|1.2|Three Sets|start=14|end=17
+SECTION|1.3|Problem-Solving with Three Sets|start=20|end=26
+
+CHAPTER|02|Counting and Probability|CH02.0|start=27|end=43
+SECTION|2.1|The Fundamental Principle of Counting|start=28|end=28
+SECTION|2.2|Introducing Probability|start=28|end=28
+SECTION|2.3|Theoretical Probability|start=29|end=31
+SECTION|2.4|Relative Frequency|start=32|end=32
+SECTION|2.5|Sample Spaces for Successive Events|start=33|end=43
+
+CHAPTER|03|Statistics|CH03.0|start=44|end=71
+SECTION|3.1|Collecting Data|start=45|end=45
+SECTION|3.2|Displaying Categorical Data|start=46|end=49
+SECTION|3.3|Displaying Numerical Data|start=50|end=58
+SECTION|3.4|Measures of Centre and Variability|start=59|end=62
+SECTION|3.5|Grouped Frequency Distributions|start=63|end=66
+SECTION|3.6|Deciding Which Average to Use|start=67|end=69
+SECTION|3.7|Misconceptions and Misuses of Statistics|start=70|end=71
+
+CHAPTER|04|Algebra I: Expressions|CH04.0|start=73|end=83
+SECTION|4.1|Revision of Notation in Algebra|start=74|end=74
+SECTION|4.2|Evaluating Algebraic Expressions|start=74|end=76
+SECTION|4.3|Simplifying Algebraic Expressions|start=77|end=80
+SECTION|4.4|Generating and Interpreting Expressions|start=81|end=83
+
+
+
+
+CHAPTER|05|Algebra II: Factorising|CH05.0|start=85|end=97
+SECTION|5.1|Factorising|start=85|end=85
+SECTION|5.2|Factorising Using HCF|start=86|end=86
+SECTION|5.3|Grouping|start=87|end=88
+SECTION|5.4|Quadratic Trinomials I|start=89|end=91
+SECTION|5.5|Quadratic Trinomials II|start=92|end=94
+SECTION|5.6|The Difference of Two Squares|start=95|end=97
+
+CHAPTER|06|Co-ordinate Geometry I|CH06.0|start=98|end=126
+SECTION|6.1|Midpoint of a Line Segment|start=98|end=101
+SECTION|6.2|Slope of a Line|start=102|end=104
+SECTION|6.3|Distance Between Two Points|start=105|end=107
+SECTION|6.4|Equation of a Line|start=108|end=110
+SECTION|6.5|Equation y = mx + c|start=111|end=114
+SECTION|6.6|Equation with Slope m|start=115|end=117
+SECTION|6.7|Transformation Geometry|start=118|end=126
+
+CHAPTER|07|Applied Arithmetic|CH07.0|start=127|end=141
+SECTION|7.1|Income Tax|start=127|end=129
+SECTION|7.2|Statutory and Non-Statutory Deductions|start=130|end=132
+SECTION|7.3|Profit, Loss and Discounts|start=133|end=136
+SECTION|7.4|Compound Interest|start=137|end=141
+
+CHAPTER|08|Geometry I|CH08.0|start=143|end=158
+SECTION|8.1|Concepts, Notation and Axioms|start=144|end=146
+SECTION|8.2|Angles and Lines|start=147|end=148
+SECTION|8.3|Triangles, Angles and Sides|start=149|end=152
+SECTION|8.4|Quadrilaterals|start=153|end=158
+
+CHAPTER|09|Indices|CH09.0|start=159|end=171
+SECTION|9.1|Review|start=160|end=161
+SECTION|9.2|Laws 4-6 of Indices|start=162|end=164
+SECTION|9.3|Laws 7-9 of Indices|start=165|end=167
+SECTION|9.4|Using Indices to Solve Equations|start=168|end=168
+SECTION|9.5|Scientific Notation|start=169|end=171
+
+CHAPTER|10|Algebra III: Algebraic Fractions|CH10.0|start=173|end=183
+SECTION|10.1|Adding and Subtracting I|start=174|end=174
+SECTION|10.2|Adding and Subtracting II|start=175|end=176
+SECTION|10.3|Division in Algebra|start=177|end=177
+SECTION|10.4|Long Division in Algebra|start=178|end=179
+SECTION|10.5|Manipulation of Formulae|start=180|end=183
+
+CHAPTER|11|Applied Measure I|CH11.0|start=185|end=201
+SECTION|11.1|Two-Dimensional Shapes|start=186|end=193
+SECTION|11.2|Scaled Diagrams|start=194|end=195
+SECTION|11.3|Rectangular Solids and Prisms|start=196|end=201
+
+CHAPTER|12|Distance, Speed, Time|CH12.0|start=203|end=216
+SECTION|12.1|Time and 24-Hour Clock|start=203|end=206
+SECTION|12.2|Distance, Speed and Time I|start=207|end=209
+SECTION|12.3|Distance, Speed and Time II|start=210|end=216
+
+CHAPTER|13|Algebra IV: Linear Equations|CH13.0|start=222|end=234
+SECTION|13.1|Solving in One Variable|start=223|end=224
+SECTION|13.2|Solving in Two Variables|start=225|end=227
+SECTION|13.3|Solving Problems|start=229|end=234
+
+CHAPTER|14|Algebra V: Linear Inequalities|CH14.0|start=235|end=244
+SECTION|14.1|Graphing Inequalities|start=235|end=237
+SECTION|14.2|Solving Linear Inequalities|start=238|end=240
+SECTION|14.3|Compound Inequalities|start=241|end=244
+
+CHAPTER|15|Number Systems|CH15.0|start=246|end=257
+SECTION|15.1|Review|start=246|end=248
+SECTION|15.2|Irrational Numbers|start=249|end=251
+SECTION|15.3|Laws of Surds|start=252|end=253
+SECTION|15.4|Multiplication and Division of Surds|start=254|end=257
+
+CHAPTER|16|Algebra VI: Quadratic Equations|CH16.0|start=258|end=271
+SECTION|16.1|Solving Using Factors|start=258|end=258
+SECTION|16.2|Highest Common Factor|start=259|end=259
+SECTION|16.3|Difference of Two Squares|start=259|end=260
+SECTION|16.4|Solving Quadratic Trinomials|start=261|end=262
+SECTION|16.5|Non-Factorisable Equations|start=263|end=264
+SECTION|16.6|Forming Quadratic Equations|start=264|end=265
+SECTION|16.7|Using Graphs|start=265|end=267
+SECTION|16.8|Word Problems|start=267|end=271
+
+CHAPTER|17|Co-ordinate Geometry II|CH17.0|start=273|end=288
+SECTION|17.1|Graphing Lines|start=273|end=274
+SECTION|17.2|Point of Intersection|start=275|end=277
+SECTION|17.3|Parallel and Perpendicular Lines|start=278|end=280
+SECTION|17.4|Equations of Lines|start=280|end=288
+
+CHAPTER|18|Number Patterns|CH18.0|start=289|end=311
+SECTION|18.1|Linear Patterns|start=290|end=291
+SECTION|18.2|Categorising Patterns|start=292|end=297
+SECTION|18.3|General Term|start=298|end=301
+SECTION|18.4|Graphs and Patterns|start=303|end=311
+
+CHAPTER|19|Graphing Functions|CH19.0|start=312|end=330
+SECTION|19.1|Linear Functions|start=312|end=317
+SECTION|19.2|Quadratic Functions|start=318|end=322
+SECTION|19.3|Solution Sets of Inequalities|start=323|end=325
+SECTION|19.4|Exponential Functions|start=325|end=330
+
+CHAPTER|20|Geometry II|CH20.0|start=331|end=355
+SECTION|20.1|Parallel Lines and Triangles|start=332|end=335
+SECTION|20.2|Similar Triangles|start=336|end=341
+SECTION|20.3|Theorem of Pythagoras|start=342|end=346
+SECTION|20.4|Circle Theorems|start=347|end=355
+
+CHAPTER|21|Constructions|CH21.0|start=357|end=375
+SECTION|21.1|Revision|start=358|end=358
+SECTION|21.2|Construction 3|start=358|end=359
+SECTION|21.3|Construction 7|start=359|end=361
+SECTION|21.4|Construction 10|start=362|end=363
+SECTION|21.5|Construction 11|start=364|end=364
+SECTION|21.6|Construction 12|start=365|end=366
+SECTION|21.7|Construction 13|start=367|end=367
+SECTION|21.8|Construction 14|start=368|end=371
+SECTION|21.9|Construction 15|start=372|end=375
+
+CHAPTER|22|Applied Measure II|CH22.0|start=376|end=387
+SECTION|22.1|Cylinders and Spheres|start=376|end=381
+SECTION|22.2|Finding Dimensions|start=382|end=387
+
+CHAPTER|23|Trigonometry|CH23.0|start=389|end=407
+SECTION|23.1|Pythagoras|start=389|end=389
+SECTION|23.2|Trigonometric Ratios|start=390|end=394
+SECTION|23.3|Finding Side Lengths|start=395|end=396
+SECTION|23.4|Finding Angles|start=397|end=400
+SECTION|23.5|Practical Problems|start=401|end=407
+
+CHAPTER|24|Geometry III: Proofs|CH24.0|start=408|end=424
+SECTION|24.1|Theorem Terms|start=408|end=408
+SECTION|24.2|Congruent Triangles|start=409|end=413
+SECTION|24.3|Introduction to Proof|start=414|end=414
+SECTION|24.4|Proofs Theorems 1-6|start=414|end=416
+SECTION|24.5|Proofs Theorems 9-10|start=417|end=419
+SECTION|24.6|Proofs Theorems 13-15|start=420|end=422
+SECTION|24.7|Proofs Theorem 19|start=423|end=424
+
+# Back Matter
+CHAPTER|CBA|Classroom-Based Assessments|CBA.0|start=435|end=439
+CHAPTER|ANSWERS|Answers|ANSWERS.0|start=441|end=469
+
+
+SECTION|1.A|Answers|start=586|end=586|end_inclusive=true
+SECTION|2.A|Answers|start=587|end=587|end_inclusive=true
+SECTION|3.A|Answers|start=588|end=588|end_inclusive=true
+SECTION|4.A|Answers|start=589|end=589|end_inclusive=true
+SECTION|5.A|Answers|start=590|end=590|end_inclusive=true
+SECTION|6.A|Answers|start=591|end=591|end_inclusive=true
+SECTION|7.A|Answers|start=592|end=592|end_inclusive=true
+SECTION|8.A|Answers|start=593|end=593|end_inclusive=true
+SECTION|9.A|Answers|start=594|end=594|end_inclusive=true
+SECTION|10.A|Answers|start=595|end=595|end_inclusive=true
+SECTION|11.A|Answers|start=596|end=596|end_inclusive=true
+SECTION|12.A|Answers|start=597|end=597|end_inclusive=true
+SECTION|13.A|Answers|start=598|end=598|end_inclusive=true
+SECTION|14.A|Answers|start=599|end=599|end_inclusive=true
+SECTION|15.A|Answers|start=600|end=600|end_inclusive=true
+SECTION|16.A|Answers|start=601|end=601|end_inclusive=true
+SECTION|17.A|Answers|start=602|end=602|end_inclusive=true
+SECTION|18.A|Answers|start=603|end=603|end_inclusive=true
+SECTION|19.A|Answers|start=604|end=604|end_inclusive=true
+SECTION|20.A|Answers|start=605|end=605|end_inclusive=true
+SECTION|21.A|Answers|start=606|end=606|end_inclusive=true
+SECTION|22.A|Answers|start=607|end=607|end_inclusive=true
+SECTION|23.A|Answers|start=608|end=608|end_inclusive=true
+SECTION|24.A|Answers|start=609|end=609|end_inclusive=true
+SECTION|25.A|Answers|start=610|end=610|end_inclusive=true
+SECTION|26.A|Answers|start=611|end=611|end_inclusive=true
+SECTION|27.A|Answers|start=612|end=612|end_inclusive=true
+SECTION|28.A|Answers|start=613|end=613|end_inclusive=true
+SECTION|29.A|Answers|start=614|end=614|end_inclusive=true
+SECTION|30.A|Answers|start=615|end=615|end_inclusive=true
+SECTION|31.A|Answers|start=616|end=616|end_inclusive=true
+SECTION|32.A|Answers|start=617|end=617|end_inclusive=true
+CHAPTER|BACKCOVER|End Pages / Credits|start=625|end=625|end_inclusive=true
