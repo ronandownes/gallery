@@ -1,0 +1,664 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>fams - Viewer</title>
+<style>
+* { box-sizing: border-box; }
+html, body {
+  margin: 0;
+  height: 100%;
+  overflow: hidden;
+  background: #1a1a1a;
+  color: #e8e8e8;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+body { display: flex; }
+button, input, select { font: inherit; }
+body.toc-hidden .toc-sidebar { margin-left: -320px; }
+.toc-toggle-fixed {
+  position: fixed; top: 52px; left: 0; z-index: 2200;
+  border: none; background: #7f5cff; color: white;
+  padding: 8px 7px; border-radius: 0 6px 6px 0; cursor: pointer;
+  box-shadow: 2px 2px 10px rgba(0,0,0,.25);
+}
+.toc-sidebar {
+  width: 320px; flex-shrink: 0; background: #222; border-right: 1px solid #333;
+  display: flex; flex-direction: column; transition: margin-left .22s ease; z-index: 1500;
+}
+.toc-header { display: flex; align-items: center; justify-content: space-between; padding: 10px 12px; border-bottom: 1px solid #333; }
+.toc-header h2 { margin: 0; font-size: 14px; }
+.toc-close { border: 1px solid #444; background: #2d2d2d; color: #ddd; border-radius: 4px; width: 30px; height: 30px; cursor: pointer; }
+.toc-content { flex: 1; overflow: auto; padding: 6px; }
+.toc-chapter { margin-bottom: 4px; border-radius: 6px; overflow: hidden; }
+.toc-chapter-header { display: flex; align-items: center; gap: 6px; background: #2c2c2c; padding: 7px 8px; cursor: pointer; }
+.toc-chapter-header:hover, .toc-section:hover { background: #343434; }
+.chapter-expand { width: 12px; color: #a89aff; transition: transform .15s; font-size: 10px; }
+.toc-chapter.expanded .chapter-expand { transform: rotate(90deg); }
+.chapter-number { min-width: 32px; color: #a89aff; font-weight: 700; font-size: 11px; }
+.toc-chapter-title { font-size: 11px; line-height: 1.3; flex: 1; }
+.toc-sections { display: none; background: #252525; }
+.toc-chapter.expanded .toc-sections { display: block; }
+.toc-section { display: flex; gap: 6px; cursor: pointer; padding: 6px 8px 6px 30px; }
+.toc-section.active { background: #3a3a3a; }
+.section-number { min-width: 28px; color: #9a9a9a; font-size: 10px; }
+.toc-no-data { color: #8f8f8f; padding: 16px; font-size: 12px; }
+
+.viewer { flex: 1; min-width: 0; display: flex; flex-direction: column; position: relative; }
+.controls {
+  height: 42px; min-height: 42px; display: flex; align-items: center; gap: 6px; padding: 6px 8px;
+  background: #222; border-bottom: 1px solid #333; z-index: 1000;
+}
+.controls-left, .controls-right { display: flex; align-items: center; gap: 6px; }
+.controls-right { margin-left: auto; }
+.toolbar-btn {
+  border: 1px solid #444; background: #303030; color: #e8e8e8; border-radius: 6px;
+  min-width: 32px; height: 30px; padding: 0 8px; cursor: pointer;
+}
+.toolbar-btn:hover { background: #3a3a3a; }
+.toolbar-btn.active { background: #7f5cff; border-color: #9b87ff; color: white; }
+.sep { width: 1px; height: 18px; background: #444; }
+.page-info { display: flex; align-items: center; gap: 3px; font-size: 12px; }
+#current-page { padding: 3px 6px; border-radius: 4px; cursor: pointer; }
+#current-page:hover { background: #393939; }
+.page-input-inline {
+  width: 50px; padding: 3px 4px; text-align: center; border: 1px solid #7f5cff;
+  border-radius: 4px; background: #181818; color: #fff;
+}
+
+.image-container { position: relative; flex: 1; overflow: auto; background: #1a1a1a; touch-action: none; }
+.image-container.fit-height { display: flex; align-items: center; justify-content: center; }
+.image-container.fit-height #page-image { height: 100%; width: auto; max-width: 100%; object-fit: contain; }
+.image-container.fit-width #page-image { width: 100%; height: auto; object-fit: contain; }
+#page-image {
+  display: block; transform-origin: 50% 50%; box-shadow: 0 6px 22px rgba(0,0,0,.45);
+  user-select: none; -webkit-user-drag: none;
+}
+.zoom-indicator {
+  position: absolute; right: 12px; bottom: 12px; background: rgba(0,0,0,.65); color: white;
+  border-radius: 4px; padding: 4px 8px; font-size: 11px; display: none; z-index: 900;
+}
+
+.teacher-pointer {
+  position: absolute; width: 46px; height: 46px; border: 4px solid #9b4dff; border-radius: 50%;
+  box-shadow: 0 0 0 4px rgba(155,77,255,.18), 0 0 18px rgba(155,77,255,.28);
+  transform: translate(-50%, -50%); display: none; pointer-events: none; z-index: 1300;
+}
+.teacher-pointer::after {
+  content: ""; position: absolute; inset: 50% auto auto 50%; width: 10px; height: 10px;
+  border-radius: 50%; background: #9b4dff; transform: translate(-50%, -50%);
+}
+.teacher-pointer.active { display: block; }
+
+#ink-layer { position: absolute; inset: 0; z-index: 1200; display: none; touch-action: none; }
+#ink-layer.active { display: block; cursor: crosshair; }
+
+.reading-ruler { position: absolute; left: 0; width: 100%; height: 54px; display: none; z-index: 1100; pointer-events: none; }
+.reading-ruler.active { display: block; }
+.ruler-bar {
+  position: absolute; inset: 0;
+  background: repeating-linear-gradient(90deg, transparent 0, transparent 3px, rgba(120,75,0,.06) 3px, rgba(120,75,0,.06) 6px),
+              linear-gradient(180deg, #dbb46f 0%, #d3a95d 10%, #c89745 45%, #c2913c 55%, #d0a65b 90%, #d9b46f 100%);
+  border-top: 1px solid #8b6914; border-bottom: 2px solid #6f5210; box-shadow: 0 2px 8px rgba(0,0,0,.3);
+}
+.ruler-edge { position: absolute; left: 0; right: 0; bottom: 0; height: 6px; background: linear-gradient(180deg, #9b7420, #7b5c16); }
+.ruler-ticks { position: absolute; left: 0; right: 0; bottom: 6px; height: 20px; }
+.ruler-tick { position: absolute; bottom: 0; width: 1px; background: #66480f; }
+.ruler-tick.cm { height: 16px; width: 1.5px; }
+.ruler-tick.half { height: 10px; }
+.ruler-tick.mm { height: 6px; opacity: .7; }
+.ruler-tick-label { position: absolute; bottom: 21px; transform: translateX(-50%); font-size: 8px; color: #5b3f0b; font-weight: 700; }
+
+.lightbox {
+  position: absolute; display: none; z-index: 1000; border: 2px solid rgba(255,220,100,.65);
+  border-radius: 6px; box-shadow: 0 0 0 4000px rgba(0,0,0,.38);
+}
+.lightbox.active { display: block; }
+.lightbox.focused { border-color: rgba(255,220,100,.95); }
+.lb-handle {
+  position: absolute; width: 16px; height: 16px; background: rgba(255,220,100,.82);
+  border: 1px solid rgba(170,130,25,.9); border-radius: 4px; z-index: 1001;
+}
+.lb-handle.tl { top: -8px; left: -8px; cursor: nw-resize; }
+.lb-handle.tr { top: -8px; right: -8px; cursor: ne-resize; }
+.lb-handle.bl { bottom: -8px; left: -8px; cursor: sw-resize; }
+.lb-handle.br { bottom: -8px; right: -8px; cursor: se-resize; }
+
+.smart-nav {
+  position: fixed; left: 50%; top: calc(100% - 96px); transform: translate(-50%, -50%);
+  width: 56px; height: 56px; border: none; border-radius: 50%; background: rgba(255,255,255,.90);
+  color: #222; box-shadow: 0 5px 18px rgba(0,0,0,.22); z-index: 2100; cursor: grab;
+  user-select: none; touch-action: none;
+}
+.smart-nav.dragging { cursor: grabbing; }
+.smart-nav span { font-size: 28px; font-weight: 700; line-height: 1; }
+
+@media print {
+  .toc-sidebar, .toc-toggle-fixed, .controls, .smart-nav, .teacher-pointer, #ink-layer,
+  .reading-ruler, .lightbox, .zoom-indicator { display: none !important; }
+  body, html { overflow: visible !important; background: white !important; }
+  .viewer, .image-container { overflow: visible !important; display: block !important; }
+  #page-image { width: 100% !important; height: auto !important; transform: none !important; box-shadow: none !important; }
+}
+
+@media (max-width: 700px) {
+  .toc-sidebar { width: 270px; }
+  body.toc-hidden .toc-sidebar { margin-left: -270px; }
+  .toolbar-btn { min-width: 28px; height: 28px; }
+  .smart-nav { width: 48px; height: 48px; }
+  .smart-nav span { font-size: 24px; }
+}
+</style>
+</head>
+<body class="toc-hidden">
+<button class="toc-toggle-fixed" id="toc-toggle-fixed" title="Contents">📖</button>
+
+<div class="toc-sidebar">
+  <div class="toc-header">
+    <h2>Contents</h2>
+    <button class="toc-close" id="toc-close">×</button>
+  </div>
+  <div class="toc-content" id="toc-content"></div>
+</div>
+
+<div class="viewer">
+  <div class="controls">
+    <div class="controls-left">
+      <button class="toolbar-btn" id="toc-btn" title="Contents">☰</button>
+      <span class="sep"></span>
+      <button class="toolbar-btn active" id="fit-height" title="Fit height">↕</button>
+      <button class="toolbar-btn" id="fit-width" title="Fit width">↔</button>
+      <span class="sep"></span>
+      <button class="toolbar-btn" id="zoom-out" title="Zoom out">−</button>
+      <button class="toolbar-btn" id="zoom-in" title="Zoom in">+</button>
+      <span class="sep"></span>
+      <span class="page-info">
+        <span id="current-page" title="Go to page">1</span>
+        <span>/</span>
+        <span id="total-pages">0</span>
+      </span>
+    </div>
+
+    <div class="controls-right">
+      <button class="toolbar-btn" id="pointer-btn" title="Pointer">🟣</button>
+      <button class="toolbar-btn" id="tool-ruler" title="Ruler">📏</button>
+      <button class="toolbar-btn" id="tool-lightbox" title="Lightbox">🔦</button>
+      <button class="toolbar-btn" id="tool-pen" title="Pen">✍</button>
+      <button class="toolbar-btn" id="tool-undo" title="Undo ink">↶</button>
+      <button class="toolbar-btn" id="tool-clear-ink" title="Clear ink">⌫</button>
+      <span class="sep"></span>
+      <button class="toolbar-btn" id="copy-link" title="Copy link">📎</button>
+      <button class="toolbar-btn" id="print-btn" title="Print">🖨</button>
+      <button class="toolbar-btn" id="fullscreen" title="Fullscreen">⛶</button>
+    </div>
+  </div>
+
+  <div class="image-container fit-height" id="image-container">
+    <img id="page-image" src="" alt="Page">
+    <canvas id="ink-layer"></canvas>
+    <div class="teacher-pointer" id="teacher-pointer"></div>
+
+    <div class="reading-ruler" id="reading-ruler">
+      <div class="ruler-bar">
+        <div class="ruler-ticks" id="ruler-ticks"></div>
+        <div class="ruler-edge"></div>
+      </div>
+    </div>
+
+    <div class="lightbox" id="lightbox">
+      <div class="lb-handle tl" data-corner="tl"></div>
+      <div class="lb-handle tr" data-corner="tr"></div>
+      <div class="lb-handle bl" data-corner="bl"></div>
+      <div class="lb-handle br" data-corner="br"></div>
+    </div>
+
+    <div class="zoom-indicator" id="zoom-indicator"></div>
+  </div>
+</div>
+
+<button class="smart-nav" id="smart-nav" title="Drag to an edge, then click">
+  <span id="smart-nav-icon">↓</span>
+</button>
+
+<script>
+(function () {
+  "use strict";
+
+  let config;
+  try {
+    config = {
+      pages: ["001.webp", "002.webp", "003.webp", "004.webp", "005.webp", "006.webp", "007.webp", "008.webp", "009.webp", "010.webp", "011.webp", "012.webp", "013.webp", "014.webp", "015.webp", "016.webp", "017.webp", "018.webp", "019.webp", "020.webp", "021.webp", "022.webp", "023.webp", "024.webp", "025.webp", "026.webp", "027.webp", "028.webp", "029.webp", "030.webp", "031.webp", "032.webp", "033.webp", "034.webp", "035.webp", "036.webp", "037.webp", "038.webp", "039.webp", "040.webp", "041.webp", "042.webp", "043.webp", "044.webp", "045.webp", "046.webp", "047.webp", "048.webp", "049.webp", "050.webp", "051.webp", "052.webp", "053.webp", "054.webp", "055.webp", "056.webp", "057.webp", "058.webp", "059.webp", "060.webp", "061.webp", "062.webp", "063.webp", "064.webp", "065.webp", "066.webp", "067.webp", "068.webp", "069.webp", "070.webp", "071.webp", "072.webp", "073.webp", "074.webp", "075.webp", "076.webp", "077.webp", "078.webp", "079.webp", "080.webp", "081.webp", "082.webp", "083.webp", "084.webp", "085.webp", "086.webp", "087.webp", "088.webp", "089.webp", "090.webp", "091.webp", "092.webp", "093.webp", "094.webp", "095.webp", "096.webp", "097.webp", "098.webp", "099.webp", "100.webp", "101.webp", "102.webp", "103.webp", "104.webp", "105.webp", "106.webp", "107.webp", "108.webp", "109.webp", "110.webp", "111.webp", "112.webp", "113.webp", "114.webp", "115.webp", "116.webp", "117.webp", "118.webp", "119.webp", "120.webp", "121.webp", "122.webp", "123.webp", "124.webp", "125.webp", "126.webp", "127.webp", "128.webp", "129.webp", "130.webp", "131.webp", "132.webp", "133.webp", "134.webp", "135.webp", "136.webp", "137.webp", "138.webp", "139.webp", "140.webp", "141.webp", "142.webp", "143.webp", "144.webp", "145.webp", "146.webp", "147.webp", "148.webp", "149.webp", "150.webp", "151.webp", "152.webp", "153.webp", "154.webp", "155.webp", "156.webp", "157.webp", "158.webp", "159.webp", "160.webp", "161.webp", "162.webp", "163.webp", "164.webp", "165.webp", "166.webp", "167.webp", "168.webp", "169.webp", "170.webp", "171.webp", "172.webp", "173.webp", "174.webp", "175.webp", "176.webp", "177.webp", "178.webp", "179.webp", "180.webp", "181.webp", "182.webp", "183.webp", "184.webp", "185.webp", "186.webp", "187.webp", "188.webp", "189.webp", "190.webp", "191.webp", "192.webp", "193.webp", "194.webp", "195.webp", "196.webp", "197.webp", "198.webp", "199.webp", "200.webp", "201.webp", "202.webp", "203.webp", "204.webp", "205.webp", "206.webp", "207.webp", "208.webp", "209.webp", "210.webp", "211.webp", "212.webp", "213.webp", "214.webp", "215.webp", "216.webp", "217.webp", "218.webp", "219.webp", "220.webp", "221.webp", "222.webp", "223.webp", "224.webp", "225.webp", "226.webp", "227.webp", "228.webp", "229.webp", "230.webp", "231.webp", "232.webp", "233.webp", "234.webp", "235.webp", "236.webp", "237.webp", "238.webp", "239.webp", "240.webp", "241.webp", "242.webp", "243.webp", "244.webp", "245.webp", "246.webp", "247.webp", "248.webp", "249.webp", "250.webp", "251.webp", "252.webp", "253.webp", "254.webp", "255.webp", "256.webp", "257.webp", "258.webp", "259.webp", "260.webp", "261.webp", "262.webp", "263.webp", "264.webp", "265.webp", "266.webp", "267.webp", "268.webp", "269.webp", "270.webp", "271.webp", "272.webp", "273.webp", "274.webp", "275.webp", "276.webp", "277.webp", "278.webp", "279.webp", "280.webp", "281.webp", "282.webp", "283.webp", "284.webp", "285.webp", "286.webp", "287.webp", "288.webp", "289.webp", "290.webp", "291.webp", "292.webp", "293.webp", "294.webp", "295.webp", "296.webp", "297.webp", "298.webp", "299.webp", "300.webp", "301.webp", "302.webp", "303.webp", "304.webp", "305.webp", "306.webp", "307.webp", "308.webp", "309.webp", "310.webp", "311.webp", "312.webp", "313.webp", "314.webp", "315.webp", "316.webp", "317.webp", "318.webp", "319.webp", "320.webp", "321.webp", "322.webp", "323.webp", "324.webp", "325.webp", "326.webp", "327.webp", "328.webp", "329.webp", "330.webp", "331.webp", "332.webp", "333.webp", "334.webp", "335.webp", "336.webp", "337.webp", "338.webp", "339.webp", "340.webp", "341.webp", "342.webp", "343.webp", "344.webp", "345.webp", "346.webp", "347.webp", "348.webp", "349.webp", "350.webp", "351.webp", "352.webp", "353.webp", "354.webp", "355.webp", "356.webp", "357.webp", "358.webp", "359.webp", "360.webp", "361.webp", "362.webp", "363.webp", "364.webp", "365.webp", "366.webp", "367.webp", "368.webp", "369.webp", "370.webp", "371.webp", "372.webp", "373.webp", "374.webp", "375.webp", "376.webp", "377.webp", "378.webp", "379.webp", "380.webp", "381.webp", "382.webp", "383.webp", "384.webp", "385.webp", "386.webp", "387.webp", "388.webp", "389.webp", "390.webp", "391.webp", "392.webp", "393.webp", "394.webp", "395.webp", "396.webp", "397.webp", "398.webp", "399.webp", "400.webp", "401.webp", "402.webp", "403.webp", "404.webp", "405.webp", "406.webp", "407.webp", "408.webp", "409.webp", "410.webp", "411.webp", "412.webp", "413.webp", "414.webp", "415.webp", "416.webp", "417.webp", "418.webp", "419.webp", "420.webp", "421.webp", "422.webp", "423.webp", "424.webp", "425.webp", "426.webp"],
+      imgBase: "webp",
+      toc: {"chapters": [{"code": "01", "title": "Units & Vectors (Solutions)", "start": 1, "end": 30, "sections": [{"code": "1.A", "title": "Exercise 1.A", "start": 1, "end": 5}, {"code": "1.B", "title": "Exercise 1.B", "start": 6, "end": 11}, {"code": "1.C", "title": "Exercise 1.C", "start": 12, "end": 17}, {"code": "1.D", "title": "Exercise 1.D", "start": 18, "end": 21}, {"code": "1.E", "title": "Exercise 1.E", "start": 22, "end": 24}, {"code": "1.F", "title": "Exercise 1.F", "start": 25, "end": 27}, {"code": "1.G", "title": "Exercise 1.G", "start": 28, "end": 30}]}, {"code": "02", "title": "Uniform Acceleration (Solutions)", "start": 31, "end": 58, "sections": [{"code": "2.A", "title": "Exercise 2.A", "start": 31, "end": 34}, {"code": "2.B", "title": "Exercise 2.B", "start": 35, "end": 40}, {"code": "2.C", "title": "Exercise 2.C", "start": 41, "end": 43}, {"code": "2.D", "title": "Exercise 2.D", "start": 44, "end": 45}, {"code": "2.E", "title": "Exercise 2.E", "start": 46, "end": 48}, {"code": "2.F", "title": "Exercise 2.F", "start": 49, "end": 50}, {"code": "2.G", "title": "Exercise 2.G", "start": 51, "end": 52}, {"code": "2.H", "title": "Exercise 2.H", "start": 53, "end": 55}, {"code": "2.I", "title": "Exercise 2.I", "start": 56, "end": 58}]}, {"code": "03", "title": "Projectiles (Solutions)", "start": 59, "end": 82, "sections": [{"code": "3.A", "title": "Exercise 3.A", "start": 59, "end": 61}, {"code": "3.B", "title": "Exercise 3.B", "start": 62, "end": 63}, {"code": "3.C", "title": "Exercise 3.C", "start": 64, "end": 68}, {"code": "3.D", "title": "Exercise 3.D", "start": 69, "end": 70}, {"code": "3.E", "title": "Exercise 3.E", "start": 71, "end": 75}, {"code": "3.F", "title": "Exercise 3.F", "start": 76, "end": 80}, {"code": "3.G", "title": "Exercise 3.G", "start": 81, "end": 82}]}, {"code": "04", "title": "Newton\u2019s Laws & Connected Particles (Solutions)", "start": 83, "end": 119, "sections": [{"code": "4.A", "title": "Exercise 4.A", "start": 83, "end": 119}]}, {"code": "05", "title": "Work, Power, Energy & Momentum (Solutions)", "start": 120, "end": 133, "sections": [{"code": "5.A", "title": "Exercise 5.A", "start": 120, "end": 123}, {"code": "5.B", "title": "Exercise 5.B", "start": 124, "end": 125}, {"code": "5.C", "title": "Exercise 5.C", "start": 126, "end": 127}, {"code": "5.D", "title": "Exercise 5.D", "start": 128, "end": 128}, {"code": "5.E", "title": "Exercise 5.E", "start": 129, "end": 130}, {"code": "5.F", "title": "Exercise 5.F", "start": 131, "end": 133}]}, {"code": "06", "title": "Impacts and Collisions (Solutions)", "start": 134, "end": 187, "sections": [{"code": "6.A", "title": "Exercise 6.A", "start": 134, "end": 140}, {"code": "6.B", "title": "Exercise 6.B", "start": 141, "end": 187}]}, {"code": "07", "title": "Motion in a Circle (Solutions)", "start": 188, "end": 215, "sections": [{"code": "7.A", "title": "Exercise 7.A", "start": 188, "end": 188}, {"code": "7.B", "title": "Exercise 7.B", "start": 189, "end": 192}, {"code": "7.C", "title": "Exercise 7.C", "start": 193, "end": 196}, {"code": "7.D", "title": "Exercise 7.D", "start": 197, "end": 205}, {"code": "7.E", "title": "Exercise 7.E", "start": 206, "end": 210}, {"code": "7.F", "title": "Exercise 7.F", "start": 211, "end": 215}]}, {"code": "08", "title": "Difference Equations (Solutions)", "start": 216, "end": 251, "sections": [{"code": "8.A", "title": "Exercise 8.A", "start": 216, "end": 220}, {"code": "8.B", "title": "Exercise 8.B", "start": 221, "end": 222}, {"code": "8.C", "title": "Exercise 8.C", "start": 223, "end": 228}, {"code": "8.D", "title": "Exercise 8.D", "start": 229, "end": 231}, {"code": "8.E", "title": "Exercise 8.E", "start": 232, "end": 239}, {"code": "8.F", "title": "Exercise 8.F", "start": 240, "end": 246}, {"code": "8.G", "title": "Exercise 8.G", "start": 247, "end": 251}]}, {"code": "09", "title": "Differentiation and Integration (Solutions)", "start": 252, "end": 284, "sections": [{"code": "9.A", "title": "Exercise 9.A", "start": 252, "end": 253}, {"code": "9.B", "title": "Exercise 9.B", "start": 254, "end": 254}, {"code": "9.C", "title": "Exercise 9.C", "start": 255, "end": 257}, {"code": "9.D", "title": "Exercise 9.D", "start": 258, "end": 262}, {"code": "9.E", "title": "Exercise 9.E", "start": 263, "end": 267}, {"code": "9.F", "title": "Exercise 9.F", "start": 268, "end": 276}, {"code": "9.G", "title": "Exercise 9.G", "start": 277, "end": 278}, {"code": "9.H", "title": "Exercise 9.H", "start": 279, "end": 280}, {"code": "9.I", "title": "Exercise 9.I", "start": 281, "end": 284}]}, {"code": "10", "title": "Differential Equations (Solutions)", "start": 285, "end": 338, "sections": [{"code": "10.A", "title": "Exercise 10.A", "start": 285, "end": 286}, {"code": "10.B", "title": "Exercise 10.B", "start": 287, "end": 296}, {"code": "10.C", "title": "Exercise 10.C", "start": 297, "end": 299}, {"code": "10.D", "title": "Exercise 10.D", "start": 300, "end": 305}, {"code": "10.E", "title": "Exercise 10.E", "start": 306, "end": 318}, {"code": "10.F", "title": "Exercise 10.F", "start": 319, "end": 323}, {"code": "10.G", "title": "Exercise 10.G", "start": 324, "end": 328}, {"code": "10.H", "title": "Exercise 10.H", "start": 329, "end": 338}]}, {"code": "11", "title": "Networks and Graphs (Solutions)", "start": 339, "end": 375, "sections": [{"code": "11.A", "title": "Exercise 11.A", "start": 339, "end": 342}, {"code": "11.B", "title": "Exercise 11.B", "start": 343, "end": 344}, {"code": "11.C", "title": "Exercise 11.C", "start": 345, "end": 347}, {"code": "11.D", "title": "Exercise 11.D", "start": 348, "end": 352}, {"code": "11.E", "title": "Exercise 11.E", "start": 353, "end": 355}, {"code": "11.F", "title": "Exercise 11.F", "start": 356, "end": 359}, {"code": "11.G", "title": "Exercise 11.G", "start": 360, "end": 364}, {"code": "11.H", "title": "Exercise 11.H", "start": 365, "end": 368}, {"code": "11.I", "title": "Exercise 11.I", "start": 369, "end": 375}]}, {"code": "12", "title": "Optimal Paths (Solutions)", "start": 376, "end": 426, "sections": [{"code": "12.A", "title": "Exercise 12.A", "start": 376, "end": 378}, {"code": "12.B", "title": "Exercise 12.B", "start": 379, "end": 382}, {"code": "12.C", "title": "Exercise 12.C", "start": 383, "end": 386}, {"code": "12.D", "title": "Exercise 12.D", "start": 387, "end": 388}, {"code": "12.E", "title": "Exercise 12.E", "start": 389, "end": 392}, {"code": "12.F", "title": "Exercise 12.F", "start": 393, "end": 396}, {"code": "12.G", "title": "Exercise 12.G", "start": 397, "end": 402}, {"code": "12.H", "title": "Exercise 12.H", "start": 403, "end": 409}, {"code": "12.I", "title": "Exercise 12.I", "start": 410, "end": 419}, {"code": "12.J", "title": "Exercise 12.J", "start": 420, "end": 426}]}]},
+      pageOffset: 0,
+      currentPage: 0,
+      zoom: 1,
+      translateX: 0,
+      translateY: 0,
+      isPanning: false,
+      startX: 0,
+      startY: 0,
+      panStartX: 0,
+      panStartY: 0,
+      currentFitMode: localStorage.getItem("fitMode") || "height",
+      expandedChapters: JSON.parse(localStorage.getItem("expandedChapters") || "{}")
+    };
+  } catch (e) {
+    config = {
+      pages: [], imgBase: "webp", toc: { chapters: [] }, pageOffset: 0, currentPage: 0,
+      zoom: 1, translateX: 0, translateY: 0, isPanning: false, startX: 0, startY: 0,
+      panStartX: 0, panStartY: 0, currentFitMode: "height", expandedChapters: {}
+    };
+  }
+
+  const $ = (id) => document.getElementById(id);
+  const body = document.body;
+  const imageContainer = $("image-container");
+  const pageImage = $("page-image");
+  const inkCanvas = $("ink-layer");
+  const pointerEl = $("teacher-pointer");
+  const rulerEl = $("reading-ruler");
+  const rulerTicksEl = $("ruler-ticks");
+  const lightboxEl = $("lightbox");
+  const zoomIndicator = $("zoom-indicator");
+  const smartNavEl = $("smart-nav");
+  const smartNavIconEl = $("smart-nav-icon");
+
+  let activeOverlay = null;
+  let pointerOn = false;
+  let penMode = false;
+  let lightboxFocused = false;
+  let toolPosY = 180;
+  let toolDragging = false;
+  let lbDrag = null;
+  let lbStart = null;
+  let smartNavDrag = null;
+  let pointerPos = { x: 100, y: 100 };
+  let hideZoomTimer = null;
+  let lightbox = { x: 60, y: 80, w: 380, h: 280 };
+  let inkCtx = null;
+  let inkDrawing = false;
+  let inkHistory = [];
+
+  function clamp(v, a, b) { return Math.max(a, Math.min(b, v)); }
+  function escapeHtml(s) {
+    return String(s).replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;")
+      .replaceAll('"', "&quot;").replaceAll("'", "&#39;");
+  }
+  function showZoomIndicator() {
+    zoomIndicator.textContent = Math.round(config.zoom * 100) + "%";
+    zoomIndicator.style.display = "block";
+    clearTimeout(hideZoomTimer);
+    hideZoomTimer = setTimeout(() => { zoomIndicator.style.display = "none"; }, 900);
+  }
+  function updateTransform() {
+    pageImage.style.transform = `translate(${config.translateX}px, ${config.translateY}px) scale(${config.zoom})`;
+    inkCanvas.style.transform = `translate(${config.translateX}px, ${config.translateY}px) scale(${config.zoom})`;
+    showZoomIndicator();
+  }
+  function setFitMode(mode) {
+    config.currentFitMode = mode;
+    imageContainer.classList.remove("fit-height", "fit-width");
+    imageContainer.classList.add(mode === "width" ? "fit-width" : "fit-height");
+    $("fit-height").classList.toggle("active", mode === "height");
+    $("fit-width").classList.toggle("active", mode === "width");
+    config.zoom = 1; config.translateX = 0; config.translateY = 0; updateTransform();
+    localStorage.setItem("fitMode", mode);
+  }
+  function updateUrl() {
+    const visiblePage = config.currentPage + 1 - config.pageOffset;
+    const url = new URL(window.location.href);
+    url.hash = `page=${visiblePage}`;
+    history.replaceState(null, "", url.toString());
+  }
+  function clearInk() { inkHistory = []; if (inkCtx) inkCtx.clearRect(0, 0, inkCanvas.width, inkCanvas.height); }
+  function loadPage(index) {
+    if (index < 0 || index >= config.pages.length) return;
+    config.currentPage = index;
+    pageImage.src = `${config.imgBase}/${config.pages[index]}`;
+    $("current-page").textContent = String(index + 1 - config.pageOffset);
+    imageContainer.scrollTop = 0; imageContainer.scrollLeft = 0;
+    config.zoom = 1; config.translateX = 0; config.translateY = 0; updateTransform();
+    clearInk(); updateActiveTOC(); updateUrl();
+  }
+  function copyLink() { navigator.clipboard.writeText(window.location.href).catch(() => {}); }
+  function toggleTOC(force) {
+    const show = typeof force === "boolean" ? force : body.classList.contains("toc-hidden");
+    body.classList.toggle("toc-hidden", !show);
+    localStorage.setItem("tocVisible", show ? "true" : "false");
+  }
+  function loadPageAndHideTOC(index) { loadPage(index); toggleTOC(false); }
+
+  function renderTOC() {
+    const container = $("toc-content");
+    const chapters = config.toc && config.toc.chapters ? config.toc.chapters : [];
+    if (!chapters.length) { container.innerHTML = '<div class="toc-no-data">No contents</div>'; return; }
+    let html = "";
+    chapters.forEach((ch, i) => {
+      const expanded = config.expandedChapters[i] === true;
+      html += `
+        <div class="toc-chapter ${expanded ? "expanded" : ""}" data-index="${i}">
+          <div class="toc-chapter-header">
+            <span class="chapter-expand">▶</span>
+            <div class="chapter-number">${escapeHtml(ch.code || "")}</div>
+            <div class="toc-chapter-title" data-start="${(ch.start || 1) - 1}">${escapeHtml(ch.title || "")}</div>
+          </div>
+          <div class="toc-sections">
+            ${(ch.sections || []).map(sec => `
+              <div class="toc-section" data-start="${(sec.start || 1) - 1}">
+                <div class="section-number">${escapeHtml(sec.code || "")}</div>
+                <div>${escapeHtml(sec.title || "")}</div>
+              </div>`).join("")}
+          </div>
+        </div>`;
+    });
+    container.innerHTML = html;
+    container.querySelectorAll(".toc-chapter-header").forEach((el) => {
+      el.addEventListener("click", (ev) => {
+        const chapter = el.closest(".toc-chapter");
+        const index = Number(chapter.dataset.index);
+        const titleEl = el.querySelector(".toc-chapter-title");
+        const start = Number(titleEl.dataset.start);
+        if (ev.target.classList.contains("chapter-expand") || ev.target.classList.contains("chapter-number")) {
+          chapter.classList.toggle("expanded");
+          config.expandedChapters[index] = chapter.classList.contains("expanded");
+          localStorage.setItem("expandedChapters", JSON.stringify(config.expandedChapters));
+          return;
+        }
+        if (!Number.isNaN(start)) loadPageAndHideTOC(start);
+      });
+    });
+    container.querySelectorAll(".toc-section").forEach((el) => {
+      el.addEventListener("click", () => {
+        const start = Number(el.dataset.start);
+        if (!Number.isNaN(start)) loadPageAndHideTOC(start);
+      });
+    });
+  }
+
+  function updateActiveTOC() {
+    document.querySelectorAll(".toc-section").forEach((el) => el.classList.remove("active"));
+    let best = null, bestDiff = Infinity;
+    document.querySelectorAll(".toc-section").forEach((el) => {
+      const start = Number(el.dataset.start);
+      if (!Number.isNaN(start) && config.currentPage >= start && config.currentPage - start < bestDiff) {
+        best = el; bestDiff = config.currentPage - start;
+      }
+    });
+    if (best) best.classList.add("active");
+  }
+
+  function showPageInput() {
+    const old = $("current-page");
+    const current = old.textContent;
+    const input = document.createElement("input");
+    input.type = "number"; input.min = "1";
+    input.max = String(Math.max(1, config.pages.length - config.pageOffset));
+    input.value = current; input.className = "page-input-inline";
+    const parent = old.parentNode;
+    parent.replaceChild(input, old);
+    function finish(commit) {
+      const span = document.createElement("span");
+      span.id = "current-page"; span.title = "Go to page"; span.textContent = current;
+      span.onclick = showPageInput;
+      parent.replaceChild(span, input);
+      if (commit) {
+        const entered = parseInt(input.value, 10);
+        if (!Number.isNaN(entered)) loadPage(entered - 1 + config.pageOffset);
+      }
+    }
+    input.addEventListener("keydown", (e) => { if (e.key === "Enter") finish(true); else if (e.key === "Escape") finish(false); });
+    input.addEventListener("blur", () => finish(true));
+    input.focus(); input.select();
+  }
+
+  function scrollPage(direction) {
+    const step = Math.max(120, Math.round(imageContainer.clientHeight / 3));
+    imageContainer.scrollBy({ top: direction * step, behavior: "smooth" });
+  }
+  function toggleFullscreen() { if (!document.fullscreenElement) document.documentElement.requestFullscreen?.(); else document.exitFullscreen?.(); }
+
+  function setPointer(on) { pointerOn = !!on; pointerEl.classList.toggle("active", pointerOn); $("pointer-btn").classList.toggle("active", pointerOn); if (pointerOn) positionPointer(pointerPos.x, pointerPos.y); }
+  function positionPointer(clientX, clientY) {
+    pointerPos = { x: clientX, y: clientY };
+    if (!pointerOn) return;
+    const rect = imageContainer.getBoundingClientRect();
+    pointerEl.style.left = (clientX - rect.left + imageContainer.scrollLeft) + "px";
+    pointerEl.style.top = (clientY - rect.top + imageContainer.scrollTop) + "px";
+  }
+
+  function buildRulerTicks() {
+    let html = ""; const maxPx = 2400;
+    for (let mm = 0; mm * 3.78 <= maxPx; mm++) {
+      const x = (mm * 3.78).toFixed(1);
+      if (mm % 10 === 0) { html += `<div class="ruler-tick cm" style="left:${x}px"></div><div class="ruler-tick-label" style="left:${x}px">${mm/10}</div>`; }
+      else if (mm % 5 === 0) { html += `<div class="ruler-tick half" style="left:${x}px"></div>`; }
+      else { html += `<div class="ruler-tick mm" style="left:${x}px"></div>`; }
+    }
+    rulerTicksEl.innerHTML = html;
+  }
+  function positionRuler(y) { toolPosY = y; rulerEl.style.top = (y - 27) + "px"; }
+  function setRuler(on) {
+    if (on) { activeOverlay = "ruler"; rulerEl.classList.add("active"); $("tool-ruler").classList.add("active"); positionRuler(toolPosY); }
+    else if (activeOverlay === "ruler") { activeOverlay = null; rulerEl.classList.remove("active"); $("tool-ruler").classList.remove("active"); }
+  }
+
+  function initLightbox() {
+    const w = Math.round(imageContainer.clientWidth * 0.68), h = Math.round(imageContainer.clientHeight * 0.36);
+    lightbox.w = Math.max(180, w); lightbox.h = Math.max(120, h);
+    lightbox.x = Math.round((imageContainer.clientWidth - lightbox.w) / 2);
+    lightbox.y = Math.round(imageContainer.scrollTop + imageContainer.clientHeight * 0.22);
+    positionLightbox();
+  }
+  function positionLightbox() {
+    lightboxEl.style.left = lightbox.x + "px"; lightboxEl.style.top = lightbox.y + "px";
+    lightboxEl.style.width = lightbox.w + "px"; lightboxEl.style.height = lightbox.h + "px";
+  }
+  function focusLightbox(on) { lightboxFocused = !!on; lightboxEl.classList.toggle("focused", lightboxFocused); }
+  function setLightbox(on) {
+    if (on) {
+      if (!lightboxEl.classList.contains("active")) initLightbox();
+      activeOverlay = "lightbox"; lightboxEl.classList.add("active"); $("tool-lightbox").classList.add("active"); focusLightbox(true); positionLightbox();
+    } else if (activeOverlay === "lightbox" || lightboxEl.classList.contains("active")) {
+      if (activeOverlay === "lightbox") activeOverlay = null;
+      lightboxEl.classList.remove("active"); $("tool-lightbox").classList.remove("active"); focusLightbox(false);
+    }
+  }
+
+  function sizeInkCanvasToImage() {
+    const rect = pageImage.getBoundingClientRect(), containerRect = imageContainer.getBoundingClientRect();
+    const left = rect.left - containerRect.left + imageContainer.scrollLeft;
+    const top = rect.top - containerRect.top + imageContainer.scrollTop;
+    const width = rect.width, height = rect.height;
+    inkCanvas.style.left = left + "px"; inkCanvas.style.top = top + "px";
+    inkCanvas.style.width = width + "px"; inkCanvas.style.height = height + "px";
+    const ratio = window.devicePixelRatio || 1;
+    inkCanvas.width = Math.max(1, Math.round(width * ratio));
+    inkCanvas.height = Math.max(1, Math.round(height * ratio));
+    inkCtx = inkCanvas.getContext("2d");
+    inkCtx.setTransform(ratio, 0, 0, ratio, 0, 0);
+    inkCtx.lineCap = "round"; inkCtx.lineJoin = "round"; inkCtx.strokeStyle = "#cc1f4a"; inkCtx.lineWidth = 3;
+  }
+  function redrawInk() {
+    if (!inkCtx) return;
+    inkCtx.clearRect(0, 0, inkCanvas.width, inkCanvas.height);
+    for (const stroke of inkHistory) {
+      inkCtx.strokeStyle = stroke.color; inkCtx.lineWidth = stroke.width; inkCtx.beginPath();
+      stroke.points.forEach((pt, i) => { if (i === 0) inkCtx.moveTo(pt.x, pt.y); else inkCtx.lineTo(pt.x, pt.y); });
+      inkCtx.stroke();
+    }
+  }
+  function localPointFromClient(clientX, clientY) {
+    const rect = inkCanvas.getBoundingClientRect(); return { x: clientX - rect.left, y: clientY - rect.top };
+  }
+  function setPenMode(on) { penMode = !!on; inkCanvas.classList.toggle("active", penMode); $("tool-pen").classList.toggle("active", penMode); if (penMode) { sizeInkCanvasToImage(); redrawInk(); } }
+  function undoInk() { if (!inkHistory.length) return; inkHistory.pop(); redrawInk(); }
+
+  function detectSmartNavMode() {
+    const rect = smartNavEl.getBoundingClientRect();
+    const cx = rect.left + rect.width / 2, cy = rect.top + rect.height / 2;
+    const dTop = cy, dBottom = window.innerHeight - cy, dLeft = cx, dRight = window.innerWidth - cx;
+    const m = Math.min(dTop, dBottom, dLeft, dRight);
+    if (m === dTop) return "up"; if (m === dBottom) return "down"; if (m === dLeft) return "left"; return "right";
+  }
+  function updateSmartNav() {
+    const mode = detectSmartNavMode(); smartNavEl.dataset.mode = mode;
+    smartNavIconEl.textContent = mode === "up" ? "↑" : mode === "down" ? "↓" : mode === "left" ? "‹" : "›";
+    smartNavEl.title = mode === "up" ? "Scroll up" : mode === "down" ? "Scroll down" : mode === "left" ? "Previous page" : "Next page";
+  }
+  function actSmartNav() {
+    const mode = smartNavEl.dataset.mode || "down";
+    if (mode === "up") scrollPage(-1); else if (mode === "down") scrollPage(1); else if (mode === "left") loadPage(config.currentPage - 1); else loadPage(config.currentPage + 1);
+  }
+
+  function initFromHash() {
+    const m = (window.location.hash || "").match(/page=(\d+)/); if (!m) return;
+    const visiblePage = parseInt(m[1], 10); if (Number.isNaN(visiblePage)) return;
+    const internalIndex = visiblePage - 1 + config.pageOffset;
+    if (internalIndex >= 0 && internalIndex < config.pages.length) config.currentPage = internalIndex;
+  }
+  function initPageCount() { $("total-pages").textContent = String(Math.max(0, config.pages.length - config.pageOffset)); }
+  function restoreUiState() { if (localStorage.getItem("tocVisible") === "true") toggleTOC(true); setFitMode(config.currentFitMode); }
+  function tryStartPan(clientX, clientY, target) {
+    const onCanvas = (target === pageImage || target === imageContainer), onLightbox = !!target.closest(".lightbox");
+    if (penMode) return false;
+    if (config.zoom > 1 && onCanvas && !onLightbox) {
+      config.isPanning = true; config.startX = clientX; config.startY = clientY; config.panStartX = config.translateX; config.panStartY = config.translateY; return true;
+    }
+    return false;
+  }
+  function moveLightboxByKey(dx, dy) { lightbox.x += dx; lightbox.y += dy; positionLightbox(); }
+
+  function bindEvents() {
+    $("toc-toggle-fixed").onclick = () => toggleTOC();
+    $("toc-btn").onclick = () => toggleTOC();
+    $("toc-close").onclick = () => toggleTOC(false);
+    $("fit-height").onclick = () => setFitMode("height");
+    $("fit-width").onclick = () => setFitMode("width");
+    $("zoom-in").onclick = () => { config.zoom = Math.min(4, config.zoom + 0.15); updateTransform(); };
+    $("zoom-out").onclick = () => { config.zoom = Math.max(0.25, config.zoom - 0.15); updateTransform(); };
+    $("copy-link").onclick = copyLink;
+    $("fullscreen").onclick = toggleFullscreen;
+    $("print-btn").onclick = () => window.print();
+    $("pointer-btn").onclick = () => setPointer(!pointerOn);
+    $("tool-ruler").onclick = () => { if (rulerEl.classList.contains("active")) setRuler(false); else setRuler(true); };
+    $("tool-lightbox").onclick = () => { if (lightboxEl.classList.contains("active")) setLightbox(false); else setLightbox(true); };
+    $("tool-pen").onclick = () => setPenMode(!penMode);
+    $("tool-clear-ink").onclick = clearInk;
+    $("tool-undo").onclick = undoInk;
+    $("current-page").onclick = showPageInput;
+
+    imageContainer.addEventListener("mousemove", (e) => positionPointer(e.clientX, e.clientY));
+    imageContainer.addEventListener("mouseleave", () => { if (pointerOn) pointerEl.style.display = "none"; });
+    imageContainer.addEventListener("mouseenter", () => { if (pointerOn) pointerEl.style.display = "block"; });
+    imageContainer.addEventListener("scroll", () => { positionPointer(pointerPos.x, pointerPos.y); if (rulerEl.classList.contains("active")) positionRuler(toolPosY); });
+
+    imageContainer.addEventListener("mousedown", (e) => {
+      if (e.target === pageImage || e.target === imageContainer) focusLightbox(false);
+      if (activeOverlay === "ruler" && e.target !== inkCanvas && !e.target.closest(".lightbox") && !penMode) {
+        toolDragging = true;
+        toolPosY = e.clientY - imageContainer.getBoundingClientRect().top + imageContainer.scrollTop;
+        positionRuler(toolPosY); return;
+      }
+      if (tryStartPan(e.clientX, e.clientY, e.target)) e.preventDefault();
+    });
+
+    window.addEventListener("mousemove", (e) => {
+      if (toolDragging && rulerEl.classList.contains("active")) {
+        toolPosY = e.clientY - imageContainer.getBoundingClientRect().top + imageContainer.scrollTop;
+        positionRuler(toolPosY);
+      }
+      if (config.isPanning) {
+        config.translateX = config.panStartX + (e.clientX - config.startX);
+        config.translateY = config.panStartY + (e.clientY - config.startY);
+        updateTransform();
+      }
+      if (lbDrag && lbStart) {
+        const dx = e.clientX - lbStart.x, dy = e.clientY - lbStart.y, minSize = 60;
+        if (lbDrag === "move") { lightbox.x = lbStart.boxX + dx; lightbox.y = lbStart.boxY + dy; }
+        else if (lbDrag === "tl") { lightbox.x = lbStart.boxX + dx; lightbox.y = lbStart.boxY + dy; lightbox.w = Math.max(minSize, lbStart.boxW - dx); lightbox.h = Math.max(minSize, lbStart.boxH - dy); }
+        else if (lbDrag === "tr") { lightbox.y = lbStart.boxY + dy; lightbox.w = Math.max(minSize, lbStart.boxW + dx); lightbox.h = Math.max(minSize, lbStart.boxH - dy); }
+        else if (lbDrag === "bl") { lightbox.x = lbStart.boxX + dx; lightbox.w = Math.max(minSize, lbStart.boxW - dx); lightbox.h = Math.max(minSize, lbStart.boxH + dy); }
+        else if (lbDrag === "br") { lightbox.w = Math.max(minSize, lbStart.boxW + dx); lightbox.h = Math.max(minSize, lbStart.boxH + dy); }
+        positionLightbox();
+      }
+      if (smartNavDrag) {
+        const dx = e.clientX - smartNavDrag.startX, dy = e.clientY - smartNavDrag.startY;
+        if (Math.abs(dx) > 4 || Math.abs(dy) > 4) smartNavDrag.moved = true;
+        const w = smartNavEl.offsetWidth, h = smartNavEl.offsetHeight;
+        const left = clamp(smartNavDrag.left + dx, 8, window.innerWidth - w - 8);
+        const top = clamp(smartNavDrag.top + dy, 8, window.innerHeight - h - 8);
+        smartNavEl.style.left = (left + w / 2) + "px"; smartNavEl.style.top = (top + h / 2) + "px"; updateSmartNav();
+      }
+    });
+
+    window.addEventListener("mouseup", () => {
+      toolDragging = false; config.isPanning = false; lbDrag = null; lbStart = null;
+      if (smartNavDrag) { const moved = smartNavDrag.moved; smartNavDrag = null; smartNavEl.classList.remove("dragging"); if (!moved) actSmartNav(); }
+    });
+
+    lightboxEl.addEventListener("mousedown", (e) => {
+      e.preventDefault(); e.stopPropagation(); focusLightbox(true);
+      const handle = e.target.closest(".lb-handle"); lbDrag = handle ? handle.dataset.corner : "move";
+      lbStart = { x: e.clientX, y: e.clientY, boxX: lightbox.x, boxY: lightbox.y, boxW: lightbox.w, boxH: lightbox.h };
+    });
+
+    smartNavEl.addEventListener("mousedown", (e) => {
+      e.preventDefault(); e.stopPropagation(); const rect = smartNavEl.getBoundingClientRect();
+      smartNavDrag = { startX: e.clientX, startY: e.clientY, left: rect.left, top: rect.top, moved: false };
+      smartNavEl.classList.add("dragging");
+    });
+
+    imageContainer.addEventListener("wheel", (e) => {
+      if (e.ctrlKey) { e.preventDefault(); const delta = e.deltaY < 0 ? 0.08 : -0.08; config.zoom = clamp(config.zoom + delta, 0.25, 4); updateTransform(); }
+    }, { passive: false });
+
+    window.addEventListener("keydown", (e) => {
+      if (document.activeElement && document.activeElement.tagName === "INPUT") return;
+      if (e.key === "ArrowUp") {
+        e.preventDefault(); if (lightboxFocused && lightboxEl.classList.contains("active")) moveLightboxByKey(0, -18); else if (rulerEl.classList.contains("active")) positionRuler(toolPosY - 18); else scrollPage(-1);
+      } else if (e.key === "ArrowDown") {
+        e.preventDefault(); if (lightboxFocused && lightboxEl.classList.contains("active")) moveLightboxByKey(0, 18); else if (rulerEl.classList.contains("active")) positionRuler(toolPosY + 18); else scrollPage(1);
+      } else if (e.key === "ArrowLeft") {
+        e.preventDefault(); if (lightboxFocused && lightboxEl.classList.contains("active")) moveLightboxByKey(-18, 0); else loadPage(config.currentPage - 1);
+      } else if (e.key === "ArrowRight") {
+        e.preventDefault(); if (lightboxFocused && lightboxEl.classList.contains("active")) moveLightboxByKey(18, 0); else loadPage(config.currentPage + 1);
+      } else if (e.key.toLowerCase() === "t") toggleTOC();
+      else if (e.key.toLowerCase() === "p") setPointer(!pointerOn);
+      else if (e.key.toLowerCase() === "r") { if (rulerEl.classList.contains("active")) setRuler(false); else setRuler(true); }
+      else if (e.key.toLowerCase() === "l") { if (lightboxEl.classList.contains("active")) setLightbox(false); else setLightbox(true); }
+    });
+
+    pageImage.addEventListener("load", () => { sizeInkCanvasToImage(); redrawInk(); if (lightboxEl.classList.contains("active")) positionLightbox(); if (pointerOn) positionPointer(pointerPos.x, pointerPos.y); });
+
+    inkCanvas.addEventListener("pointerdown", (e) => {
+      if (!penMode) return; e.preventDefault(); sizeInkCanvasToImage();
+      const pt = localPointFromClient(e.clientX, e.clientY); const stroke = { color: "#cc1f4a", width: 3, points: [pt] };
+      inkHistory.push(stroke); inkDrawing = true; redrawInk(); inkCanvas.setPointerCapture?.(e.pointerId);
+    });
+    inkCanvas.addEventListener("pointermove", (e) => { if (!penMode || !inkDrawing || !inkHistory.length) return; const pt = localPointFromClient(e.clientX, e.clientY); inkHistory[inkHistory.length - 1].points.push(pt); redrawInk(); });
+    inkCanvas.addEventListener("pointerup", () => { inkDrawing = false; });
+    inkCanvas.addEventListener("pointercancel", () => { inkDrawing = false; });
+
+    window.addEventListener("resize", () => { sizeInkCanvasToImage(); redrawInk(); updateSmartNav(); if (lightboxEl.classList.contains("active")) positionLightbox(); });
+  }
+
+  function init() {
+    buildRulerTicks();
+    initFromHash();
+    initPageCount();
+    renderTOC();
+    restoreUiState();
+    bindEvents();
+    loadPage(config.currentPage);
+    if (config.toc && config.toc.chapters && config.toc.chapters.length) setTimeout(() => toggleTOC(true), 80);
+    updateSmartNav();
+  }
+
+  init();
+})();
+</script>
+</body>
+</html>

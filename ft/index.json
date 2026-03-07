@@ -99,5 +99,6 @@
   "pageCount": 94,
   "pageOffset": 0,
   "hasTOC": true,
-  "tocChapters": 38
+  "tocChapters": 38,
+  "imageDir": "webp"
 }

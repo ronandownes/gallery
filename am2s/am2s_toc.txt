@@ -1,0 +1,153 @@
+# Active Maths 2 (Junior Cycle Higher Level) - Solutions Table of Contents
+# Solutions PDF: am2s_Optimized.pdf
+# Use actual file page numbers (PDF pages start at 1)
+# NOTE: Chapter 06 solutions were not detected in this PDF (no 'CH 06 SOLUTIONS' header found).
+
+CHAPTER|S01|Sets - Solutions|SCH01.0|start=1|end=5
+SECTION|1.1|Exercise 1.1|start=1|end=1
+SECTION|1.2|Exercise 1.2|start=2|end=2
+SECTION|1.3|Exercise 1.3|start=3|end=5
+
+CHAPTER|S02|Counting and Probability - Solutions|SCH02.0|start=6|end=11
+SECTION|2.1|Exercise 2.1|start=6|end=11
+
+CHAPTER|S03|Statistics - Solutions|SCH03.0|start=12|end=25
+SECTION|3.1|Exercise 3.1|start=12|end=13
+SECTION|3.2|Exercise 3.2|start=14|end=16
+SECTION|3.3|Exercise 3.3|start=17|end=18
+SECTION|3.4|Exercise 3.4|start=19|end=20
+SECTION|3.5|Exercise 3.5|start=21|end=21
+SECTION|3.6|Exercise 3.6|start=22|end=25
+
+CHAPTER|S04|Algebra I: Expressions - Solutions|SCH04.0|start=26|end=32
+SECTION|4.1|Exercise 4.1|start=26|end=27
+SECTION|4.2|Exercise 4.2|start=28|end=29
+SECTION|4.3|Exercise 4.3|start=30|end=32
+
+CHAPTER|S05|Algebra II: Factorising - Solutions|SCH05.0|start=33|end=44
+SECTION|5.1|Exercise 5.1|start=33|end=33
+SECTION|5.2|Exercise 5.2|start=33|end=34
+SECTION|5.3|Exercise 5.3|start=35|end=37
+SECTION|5.4|Exercise 5.4|start=38|end=39
+SECTION|5.5|Exercise 5.5|start=40|end=44
+
+CHAPTER|S06|Co-ordinate Geometry I - Solutions|SCH06.0|start=|end=|missing=true
+
+CHAPTER|S07|Applied Arithmetic - Solutions|SCH07.0|start=45|end=50
+SECTION|7.1|Exercise 7.1|start=45|end=45
+SECTION|7.2|Exercise 7.2|start=46|end=46
+SECTION|7.3|Exercise 7.3|start=46|end=46
+SECTION|7.4|Exercise 7.4|start=47|end=50
+
+CHAPTER|S08|Geometry I - Solutions|SCH08.0|start=51|end=57
+SECTION|8.1|Exercise 8.1|start=51|end=53
+SECTION|8.2|Exercise 8.2|start=54|end=57
+
+CHAPTER|S09|Indices - Solutions|SCH09.0|start=58|end=64
+SECTION|9.1|Exercise 9.1|start=58|end=58
+SECTION|9.2|Exercise 9.2|start=59|end=59
+SECTION|9.3|Exercise 9.3|start=60|end=61
+SECTION|9.4|Exercise 9.4|start=62|end=62
+SECTION|9.5|Exercise 9.5|start=63|end=64
+
+CHAPTER|S10|Algebra III: Algebraic Fractions - Solutions|SCH10.0|start=65|end=75
+SECTION|10.1|Exercise 10.1|start=65|end=65
+SECTION|10.2|Exercise 10.2|start=66|end=67
+SECTION|10.3|Exercise 10.3|start=68|end=68
+SECTION|10.4|Exercise 10.4|start=69|end=70
+SECTION|10.5|Exercise 10.5|start=71|end=75
+
+CHAPTER|S11|Applied Measure I - Solutions|SCH11.0|start=76|end=83
+SECTION|11.1|Exercise 11.1|start=76|end=78
+SECTION|11.2|Exercise 11.2|start=79|end=79
+SECTION|11.3|Exercise 11.3|start=80|end=83
+
+CHAPTER|S12|Distance, Speed, Time - Solutions|SCH12.0|start=84|end=88
+SECTION|12.1|Exercise 12.1|start=84|end=84
+SECTION|12.2|Exercise 12.2|start=85|end=86
+SECTION|12.3|Exercise 12.3|start=87|end=88
+
+CHAPTER|S13|Algebra IV: Linear Equations - Solutions|SCH13.0|start=93|end=106
+SECTION|13.1|Exercise 13.1|start=93|end=95
+SECTION|13.2|Exercise 13.2|start=96|end=101
+SECTION|13.3|Exercise 13.3|start=102|end=106
+
+CHAPTER|S14|Algebra V: Linear Inequalities - Solutions|SCH14.0|start=107|end=112
+SECTION|14.2|Exercise 14.2|start=108|end=108
+SECTION|14.3|Exercise 14.3|start=109|end=112
+
+CHAPTER|S15|Number Systems - Solutions|SCH15.0|start=113|end=119
+SECTION|15.1|Exercise 15.1|start=113|end=113
+SECTION|15.2|Exercise 15.2|start=114|end=114
+SECTION|15.3|Exercise 15.3|start=115|end=116
+SECTION|15.4|Exercise 15.4|start=117|end=119
+
+CHAPTER|S16|Algebra VI: Quadratic Equations - Solutions|SCH16.0|start=120|end=132
+SECTION|16.1|Exercise 16.1|start=120|end=120
+SECTION|16.2|Exercise 16.2|start=121|end=123
+SECTION|16.3|Exercise 16.3|start=124|end=125
+SECTION|16.4|Exercise 16.4|start=126|end=126
+SECTION|16.5|Exercise 16.5|start=127|end=132
+
+CHAPTER|S17|Co-ordinate Geometry II - Solutions|SCH17.0|start=133|end=147
+SECTION|17.1|Exercise 17.1|start=133|end=147
+
+CHAPTER|S18|Number Patterns - Solutions|SCH18.0|start=148|end=162
+SECTION|18.1|Exercise 18.1|start=148|end=148
+SECTION|18.2|Exercise 18.2|start=149|end=150
+SECTION|18.3|Exercise 18.3|start=151|end=154
+SECTION|18.4|Exercise 18.4|start=155|end=162
+
+CHAPTER|S19|Graphing Functions - Solutions|SCH19.0|start=163|end=172
+SECTION|19.1|Exercise 19.1|start=163|end=163
+SECTION|19.2|Exercise 19.2|start=164|end=166
+SECTION|19.3|Exercise 19.3|start=167|end=167
+SECTION|19.4|Exercise 19.4|start=168|end=172
+
+CHAPTER|S20|Geometry II - Solutions|SCH20.0|start=173|end=186
+SECTION|20.1|Exercise 20.1|start=173|end=173
+SECTION|20.2|Exercise 20.2|start=174|end=176
+SECTION|20.3|Exercise 20.3|start=177|end=179
+SECTION|20.4|Exercise 20.4|start=180|end=186
+
+CHAPTER|S21|Constructions - Solutions|SCH21.0|start=187|end=191
+SECTION|21.1|Exercise 21.1|start=187|end=187
+SECTION|21.2|Exercise 21.2|start=187|end=187
+SECTION|21.3|Exercise 21.3|start=187|end=187
+SECTION|21.4|Exercise 21.4|start=188|end=188
+SECTION|21.5|Exercise 21.5|start=188|end=188
+SECTION|21.6|Exercise 21.6|start=189|end=189
+SECTION|21.7|Exercise 21.7|start=190|end=191
+
+CHAPTER|S22|Applied Measure II - Solutions|SCH22.0|start=192|end=200
+SECTION|22.1|Exercise 22.1|start=192|end=194
+SECTION|22.2|Exercise 22.2|start=195|end=200
+
+CHAPTER|S23|Trigonometry - Solutions|SCH23.0|start=201|end=211
+SECTION|23.1|Exercise 23.1|start=201|end=203
+SECTION|23.2|Exercise 23.2|start=204|end=204
+SECTION|23.3|Exercise 23.3|start=205|end=206
+SECTION|23.4|Exercise 23.4|start=207|end=211
+
+CHAPTER|S24|Geometry III: Proofs - Solutions|SCH24.0|start=212|end=218
+SECTION|24.1|Exercise 24.1|start=212|end=213
+SECTION|24.2|Exercise 24.2|start=214|end=214
+SECTION|24.3|Exercise 24.3|start=214|end=214
+SECTION|24.4|Exercise 24.4|start=215|end=215
+SECTION|24.5|Exercise 24.5|start=216|end=218
+
+CHAPTER|LL1–12|Linking Learning: Chapters 1–12 - Solutions|LL1_12.0|start=89|end=92
+SECTION|LL1–12.Q1|Question 1|start=89|end=89
+SECTION|LL1–12.Q2|Question 2|start=89|end=89
+SECTION|LL1–12.Q3|Question 3|start=89|end=89
+SECTION|LL1–12.Q4|Question 4|start=90|end=90
+SECTION|LL1–12.Q5|Question 5|start=91|end=91
+SECTION|LL1–12.Q6|Question 6|start=92|end=92
+
+CHAPTER|LL13–24|Linking Learning: Chapters 13–24 - Solutions|LL13_24.0|start=219|end=225
+SECTION|LL13–24.Q1|Question 1|start=219|end=219
+SECTION|LL13–24.Q2|Question 2|start=220|end=220
+SECTION|LL13–24.Q3|Question 3|start=221|end=221
+SECTION|LL13–24.Q4|Question 4|start=222|end=222
+SECTION|LL13–24.Q5|Question 5|start=223|end=223
+SECTION|LL13–24.Q6|Question 6|start=224|end=225

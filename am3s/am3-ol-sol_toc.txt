@@ -1,0 +1,24 @@
+# Active Maths 3 – Solutions Book (Ordinary Level)
+# 3rd Edition (Folens, 2023)
+# Auto-extracted from PDF using chapter start pages from the book Contents, mapped to PDF pages (1-based)
+
+CHAPTER|AM3-SOL-CH01|Chapter 1 – Real Numbers|start=5|end=11
+CHAPTER|AM3-SOL-CH02|Chapter 2 – Arithmetic|start=12|end=22
+CHAPTER|AM3-SOL-CH03|Chapter 3 – Algebra I|start=23|end=33
+CHAPTER|AM3-SOL-CH04|Chapter 4 – Indices and Surds|start=34|end=39
+CHAPTER|AM3-SOL-CH05|Chapter 5 – Algebra II|start=40|end=60
+CHAPTER|AM3-SOL-CH06|Chapter 6 – Linear and Quadratic Functions|start=61|end=78
+CHAPTER|AM3-SOL-CH07|Chapter 7 – Complex Numbers|start=79|end=97
+CHAPTER|AM3-SOL-CH08|Chapter 8 – Cubic and Exponential Functions|start=98|end=106
+CHAPTER|AM3-SOL-CH09|Chapter 9 – Number Patterns|start=107|end=120
+CHAPTER|AM3-SOL-CH10|Chapter 10 – Calculus|start=121|end=136
+CHAPTER|AM3-SOL-CH11|Chapter 11 – Applied Measure|start=137|end=149
+CHAPTER|AM3-SOL-CH12|Chapter 12 – Counting and Arrangements|start=150|end=153
+CHAPTER|AM3-SOL-CH13|Chapter 13 – Probability|start=154|end=168
+CHAPTER|AM3-SOL-CH14|Chapter 14 – Statistics I|start=169|end=184
+CHAPTER|AM3-SOL-CH15|Chapter 15 – Statistics II|start=185|end=196
+CHAPTER|AM3-SOL-CH16|Chapter 16 – Geometry|start=197|end=208
+CHAPTER|AM3-SOL-CH17|Chapter 17 – Trigonometry|start=209|end=220
+CHAPTER|AM3-SOL-CH18|Chapter 18 – Co-ordinate Geometry: The Line|start=221|end=236
+CHAPTER|AM3-SOL-CH19|Chapter 19 – Constructions, Transformations and Enlargements|start=237|end=242
+CHAPTER|AM3-SOL-CH20|Chapter 20 – Co-ordinate Geometry: The Circle|start=243|end=255
