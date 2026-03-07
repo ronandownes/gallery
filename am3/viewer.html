@@ -6,36 +6,48 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <title>am3 - Viewer</title>
 <style>
-* { box-sizing: border-box; }
-html, body {
-  margin: 0;
-  height: 100%;
-  overflow: hidden;
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; overflow: hidden; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   background: #1a1a1a;
   color: #e8e8e8;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  display: flex;
 }
-body { display: flex; }
-button, input, select { font: inherit; }
 body.toc-hidden .toc-sidebar { margin-left: -320px; }
-.toc-toggle-fixed {
-  position: fixed; top: 52px; left: 0; z-index: 2200;
-  border: none; background: #7f5cff; color: white;
-  padding: 8px 7px; border-radius: 0 6px 6px 0; cursor: pointer;
-  box-shadow: 2px 2px 10px rgba(0,0,0,.25);
-}
+
 .toc-sidebar {
-  width: 320px; flex-shrink: 0; background: #222; border-right: 1px solid #333;
-  display: flex; flex-direction: column; transition: margin-left .22s ease; z-index: 1500;
+  width: 320px;
+  flex-shrink: 0;
+  background: #222;
+  border-right: 1px solid #333;
+  display: flex;
+  flex-direction: column;
+  transition: margin-left .22s ease;
+  z-index: 1500;
 }
-.toc-header { display: flex; align-items: center; justify-content: space-between; padding: 10px 12px; border-bottom: 1px solid #333; }
+.toc-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 12px;
+  border-bottom: 1px solid #333;
+}
 .toc-header h2 { margin: 0; font-size: 14px; }
-.toc-close { border: 1px solid #444; background: #2d2d2d; color: #ddd; border-radius: 4px; width: 30px; height: 30px; cursor: pointer; }
+.toc-close {
+  border: 1px solid #444; background: #2d2d2d; color: #ddd;
+  border-radius: 4px; width: 30px; height: 30px; cursor: pointer;
+}
 .toc-content { flex: 1; overflow: auto; padding: 6px; }
 .toc-chapter { margin-bottom: 4px; border-radius: 6px; overflow: hidden; }
-.toc-chapter-header { display: flex; align-items: center; gap: 6px; background: #2c2c2c; padding: 7px 8px; cursor: pointer; }
+.toc-chapter-header {
+  display: flex; align-items: center; gap: 6px;
+  background: #2c2c2c; padding: 7px 8px; cursor: pointer;
+}
 .toc-chapter-header:hover, .toc-section:hover { background: #343434; }
-.chapter-expand { width: 12px; color: #a89aff; transition: transform .15s; font-size: 10px; }
+.chapter-expand {
+  width: 12px; color: #a89aff; transition: transform .15s; font-size: 10px;
+}
 .toc-chapter.expanded .chapter-expand { transform: rotate(90deg); }
 .chapter-number { min-width: 32px; color: #a89aff; font-weight: 700; font-size: 11px; }
 .toc-chapter-title { font-size: 11px; line-height: 1.3; flex: 1; }
@@ -46,62 +58,89 @@ body.toc-hidden .toc-sidebar { margin-left: -320px; }
 .section-number { min-width: 28px; color: #9a9a9a; font-size: 10px; }
 .toc-no-data { color: #8f8f8f; padding: 16px; font-size: 12px; }
 
-.viewer { flex: 1; min-width: 0; display: flex; flex-direction: column; position: relative; }
+.viewer {
+  flex: 1; min-width: 0; display: flex; flex-direction: column; position: relative;
+}
+
 .controls {
-  height: 42px; min-height: 42px; display: flex; align-items: center; gap: 6px; padding: 6px 8px;
-  background: #222; border-bottom: 1px solid #333; z-index: 1000;
+  height: 42px; min-height: 42px;
+  display: flex; align-items: center; gap: 6px;
+  padding: 6px 8px;
+  background: #222; border-bottom: 1px solid #333;
+  z-index: 1000;
 }
 .controls-left, .controls-right { display: flex; align-items: center; gap: 6px; }
 .controls-right { margin-left: auto; }
 .toolbar-btn {
-  border: 1px solid #444; background: #303030; color: #e8e8e8; border-radius: 6px;
-  min-width: 32px; height: 30px; padding: 0 8px; cursor: pointer;
+  border: 1px solid #444; background: #303030; color: #e8e8e8;
+  border-radius: 6px; min-width: 32px; height: 30px; padding: 0 8px; cursor: pointer;
 }
 .toolbar-btn:hover { background: #3a3a3a; }
-.toolbar-btn.active { background: #7f5cff; border-color: #9b87ff; color: white; }
+.toolbar-btn.active { background: #7f5cff; border-color: #9b87ff; color: #fff; }
 .sep { width: 1px; height: 18px; background: #444; }
 .page-info { display: flex; align-items: center; gap: 3px; font-size: 12px; }
 #current-page { padding: 3px 6px; border-radius: 4px; cursor: pointer; }
 #current-page:hover { background: #393939; }
 .page-input-inline {
-  width: 50px; padding: 3px 4px; text-align: center; border: 1px solid #7f5cff;
-  border-radius: 4px; background: #181818; color: #fff;
+  width: 60px; padding: 3px 4px; text-align: center;
+  border: 1px solid #7f5cff; border-radius: 4px; background: #181818; color: #fff;
 }
+.tiny-links { display: flex; gap: 8px; align-items: center; margin-left: 6px; }
+.tiny-links a { font-size: 10px; color: #bfbfbf; text-decoration: none; }
+.tiny-links a:hover { color: #fff; text-decoration: underline; }
 
-.image-container { position: relative; flex: 1; overflow: auto; background: #1a1a1a; touch-action: none; }
+.image-container {
+  position: relative; flex: 1; overflow: auto; background: #1a1a1a; touch-action: none;
+}
 .image-container.fit-height { display: flex; align-items: center; justify-content: center; }
-.image-container.fit-height #page-image { height: 100%; width: auto; max-width: 100%; object-fit: contain; }
-.image-container.fit-width #page-image { width: 100%; height: auto; object-fit: contain; }
+.image-container.fit-height #page-image {
+  height: 100%; width: auto; max-width: 100%; object-fit: contain;
+}
+.image-container.fit-width #page-image {
+  width: 100%; height: auto; object-fit: contain;
+}
 #page-image {
-  display: block; transform-origin: 50% 50%; box-shadow: 0 6px 22px rgba(0,0,0,.45);
+  display: block;
+  transform-origin: 50% 50%;
+  box-shadow: 0 6px 22px rgba(0,0,0,.45);
   user-select: none; -webkit-user-drag: none;
 }
 .zoom-indicator {
-  position: absolute; right: 12px; bottom: 12px; background: rgba(0,0,0,.65); color: white;
-  border-radius: 4px; padding: 4px 8px; font-size: 11px; display: none; z-index: 900;
+  position: absolute; right: 12px; bottom: 12px;
+  background: rgba(0,0,0,.65); color: #fff; border-radius: 4px;
+  padding: 4px 8px; font-size: 11px; display: none; z-index: 900;
 }
 
+/* Pointer */
 .teacher-pointer {
-  position: absolute; width: 46px; height: 46px; border: 4px solid #9b4dff; border-radius: 50%;
-  box-shadow: 0 0 0 4px rgba(155,77,255,.18), 0 0 18px rgba(155,77,255,.28);
-  transform: translate(-50%, -50%); display: none; pointer-events: none; z-index: 1300;
+  position: absolute;
+  width: 84px; height: 84px;
+  display: none; pointer-events: none; z-index: 1300;
+  transform: translate(-20px,-20px);
 }
-.teacher-pointer::after {
-  content: ""; position: absolute; inset: 50% auto auto 50%; width: 10px; height: 10px;
-  border-radius: 50%; background: #9b4dff; transform: translate(-50%, -50%);
-}
+.teacher-pointer svg { width: 100%; height: 100%; filter: drop-shadow(0 0 8px rgba(123,68,255,.45)); }
 .teacher-pointer.active { display: block; }
 
-#ink-layer { position: absolute; inset: 0; z-index: 1200; display: none; touch-action: none; }
+/* Ink */
+#ink-layer {
+  position: absolute; inset: 0; z-index: 1200; display: none; touch-action: none;
+}
 #ink-layer.active { display: block; cursor: crosshair; }
 
-.reading-ruler { position: absolute; left: 0; width: 100%; height: 54px; display: none; z-index: 1100; pointer-events: none; }
+/* Ruler */
+.reading-ruler {
+  position: absolute; left: 0; width: 100%; height: 54px;
+  display: none; z-index: 1100; pointer-events: none;
+}
 .reading-ruler.active { display: block; }
 .ruler-bar {
   position: absolute; inset: 0;
-  background: repeating-linear-gradient(90deg, transparent 0, transparent 3px, rgba(120,75,0,.06) 3px, rgba(120,75,0,.06) 6px),
-              linear-gradient(180deg, #dbb46f 0%, #d3a95d 10%, #c89745 45%, #c2913c 55%, #d0a65b 90%, #d9b46f 100%);
-  border-top: 1px solid #8b6914; border-bottom: 2px solid #6f5210; box-shadow: 0 2px 8px rgba(0,0,0,.3);
+  background:
+    repeating-linear-gradient(90deg, transparent 0, transparent 3px, rgba(120,75,0,.06) 3px, rgba(120,75,0,.06) 6px),
+    linear-gradient(180deg, #dbb46f 0%, #d3a95d 10%, #c89745 45%, #c2913c 55%, #d0a65b 90%, #d9b46f 100%);
+  border-top: 1px solid #8b6914;
+  border-bottom: 2px solid #6f5210;
+  box-shadow: 0 2px 8px rgba(0,0,0,.3);
 }
 .ruler-edge { position: absolute; left: 0; right: 0; bottom: 0; height: 6px; background: linear-gradient(180deg, #9b7420, #7b5c16); }
 .ruler-ticks { position: absolute; left: 0; right: 0; bottom: 6px; height: 20px; }
@@ -111,55 +150,85 @@ body.toc-hidden .toc-sidebar { margin-left: -320px; }
 .ruler-tick.mm { height: 6px; opacity: .7; }
 .ruler-tick-label { position: absolute; bottom: 21px; transform: translateX(-50%); font-size: 8px; color: #5b3f0b; font-weight: 700; }
 
+/* Lightbox */
 .lightbox {
-  position: absolute; display: none; z-index: 1000; border: 2px solid rgba(255,220,100,.65);
-  border-radius: 6px; box-shadow: 0 0 0 4000px rgba(0,0,0,.38);
+  position: absolute; display: none; z-index: 1000;
+  border: 2px solid rgba(255,220,100,.65);
+  border-radius: 6px;
+  box-shadow: 0 0 0 4000px rgba(0,0,0,.38);
 }
 .lightbox.active { display: block; }
 .lightbox.focused { border-color: rgba(255,220,100,.95); }
 .lb-handle {
-  position: absolute; width: 16px; height: 16px; background: rgba(255,220,100,.82);
-  border: 1px solid rgba(170,130,25,.9); border-radius: 4px; z-index: 1001;
+  position: absolute; width: 16px; height: 16px;
+  background: rgba(255,220,100,.82); border: 1px solid rgba(170,130,25,.9);
+  border-radius: 4px; z-index: 1001;
 }
 .lb-handle.tl { top: -8px; left: -8px; cursor: nw-resize; }
 .lb-handle.tr { top: -8px; right: -8px; cursor: ne-resize; }
 .lb-handle.bl { bottom: -8px; left: -8px; cursor: sw-resize; }
 .lb-handle.br { bottom: -8px; right: -8px; cursor: se-resize; }
 
+/* Smart nav */
 .smart-nav {
-  position: fixed; left: 50%; top: calc(100% - 96px); transform: translate(-50%, -50%);
-  width: 56px; height: 56px; border: none; border-radius: 50%; background: rgba(255,255,255,.90);
-  color: #222; box-shadow: 0 5px 18px rgba(0,0,0,.22); z-index: 2100; cursor: grab;
-  user-select: none; touch-action: none;
+  position: fixed;
+  width: 56px; height: 56px;
+  border: none; border-radius: 50%;
+  background: rgba(255,255,255,.90); color: #222;
+  box-shadow: 0 5px 18px rgba(0,0,0,.22);
+  z-index: 2100; cursor: grab; user-select: none; touch-action: none;
 }
 .smart-nav.dragging { cursor: grabbing; }
+.smart-nav.hidden { display: none; }
 .smart-nav span { font-size: 28px; font-weight: 700; line-height: 1; }
 
+/* Print dialog */
+.print-range-dialog {
+  position: fixed; inset: 0; display: none; align-items: center; justify-content: center;
+  z-index: 3000; background: rgba(0,0,0,.5);
+}
+.print-range-dialog.open { display: flex; }
+.print-card {
+  width: min(360px,92vw); background: #222; border: 1px solid #444;
+  border-radius: 12px; padding: 16px; box-shadow: 0 10px 30px rgba(0,0,0,.35);
+}
+.print-card h3 { margin: 0 0 12px; font-size: 16px; }
+.print-row { display: flex; gap: 12px; margin-bottom: 12px; }
+.print-field { flex: 1; }
+.print-field label { display: block; font-size: 12px; color: #bbb; margin-bottom: 4px; }
+.print-field input {
+  width: 100%; padding: 8px; border-radius: 6px;
+  border: 1px solid #555; background: #171717; color: #fff;
+}
+.print-actions { display: flex; justify-content: flex-end; gap: 8px; }
+.print-actions button {
+  border: 1px solid #555; background: #303030; color: #fff;
+  border-radius: 6px; height: 34px; padding: 0 12px; cursor: pointer;
+}
+.print-actions button.primary { background: #7f5cff; border-color: #9b87ff; }
+
 @media print {
-  .toc-sidebar, .toc-toggle-fixed, .controls, .smart-nav, .teacher-pointer, #ink-layer,
-  .reading-ruler, .lightbox, .zoom-indicator { display: none !important; }
-  body, html { overflow: visible !important; background: white !important; }
-  .viewer, .image-container { overflow: visible !important; display: block !important; }
-  #page-image { width: 100% !important; height: auto !important; transform: none !important; box-shadow: none !important; }
+  .toc-sidebar,.controls,.smart-nav,.teacher-pointer,#ink-layer,.reading-ruler,.lightbox,.zoom-indicator,.print-range-dialog {
+    display:none!important;
+  }
+  html,body{overflow:visible!important;background:#fff!important}
+  .viewer,.image-container{overflow:visible!important;display:block!important}
+  #page-image{width:100%!important;height:auto!important;transform:none!important;box-shadow:none!important}
 }
 
-@media (max-width: 700px) {
-  .toc-sidebar { width: 270px; }
-  body.toc-hidden .toc-sidebar { margin-left: -270px; }
-  .toolbar-btn { min-width: 28px; height: 28px; }
-  .smart-nav { width: 48px; height: 48px; }
-  .smart-nav span { font-size: 24px; }
+@media (max-width:700px) {
+  .toc-sidebar{width:270px}
+  body.toc-hidden .toc-sidebar{margin-left:-270px}
+  .toolbar-btn{min-width:28px;height:28px}
+  .smart-nav{width:48px;height:48px}
+  .smart-nav span{font-size:24px}
+  .tiny-links{display:none}
 }
 </style>
 </head>
 <body class="toc-hidden">
-<button class="toc-toggle-fixed" id="toc-toggle-fixed" title="Contents">📖</button>
-
 <div class="toc-sidebar">
-  <div class="toc-header">
-    <h2>Contents</h2>
-    <button class="toc-close" id="toc-close">×</button>
-  </div>
+  <div class="toc-header"><h2>Contents</h2><button class="toc-close" id="toc-close">×</button></div>
   <div class="toc-content" id="toc-content"></div>
 </div>
 
@@ -174,23 +243,23 @@ body.toc-hidden .toc-sidebar { margin-left: -320px; }
       <button class="toolbar-btn" id="zoom-out" title="Zoom out">−</button>
       <button class="toolbar-btn" id="zoom-in" title="Zoom in">+</button>
       <span class="sep"></span>
-      <span class="page-info">
-        <span id="current-page" title="Go to page">1</span>
-        <span>/</span>
-        <span id="total-pages">0</span>
-      </span>
+      <span class="page-info"><span id="current-page" title="Go to page">1</span><span>/</span><span id="total-pages">0</span></span>
+      <div class="tiny-links">
+        <a href="https://www.geogebra.org/calculator" target="_blank" rel="noopener noreferrer">GG Calc</a>
+        <a href="https://www.geogebra.org/geometry" target="_blank" rel="noopener noreferrer">GG Geometry</a>
+      </div>
     </div>
-
     <div class="controls-right">
-      <button class="toolbar-btn" id="pointer-btn" title="Pointer">🟣</button>
+      <button class="toolbar-btn" id="pointer-btn" title="Pointer">➤</button>
       <button class="toolbar-btn" id="tool-ruler" title="Ruler">📏</button>
       <button class="toolbar-btn" id="tool-lightbox" title="Lightbox">🔦</button>
       <button class="toolbar-btn" id="tool-pen" title="Pen">✍</button>
       <button class="toolbar-btn" id="tool-undo" title="Undo ink">↶</button>
       <button class="toolbar-btn" id="tool-clear-ink" title="Clear ink">⌫</button>
       <span class="sep"></span>
+      <button class="toolbar-btn" id="smart-nav-toggle" title="Show or hide smart navigator">⇄</button>
       <button class="toolbar-btn" id="copy-link" title="Copy link">📎</button>
-      <button class="toolbar-btn" id="print-btn" title="Print">🖨</button>
+      <button class="toolbar-btn" id="print-range-btn" title="Print range">🖨</button>
       <button class="toolbar-btn" id="fullscreen" title="Fullscreen">⛶</button>
     </div>
   </div>
@@ -198,466 +267,157 @@ body.toc-hidden .toc-sidebar { margin-left: -320px; }
   <div class="image-container fit-height" id="image-container">
     <img id="page-image" src="" alt="Page">
     <canvas id="ink-layer"></canvas>
-    <div class="teacher-pointer" id="teacher-pointer"></div>
 
-    <div class="reading-ruler" id="reading-ruler">
-      <div class="ruler-bar">
-        <div class="ruler-ticks" id="ruler-ticks"></div>
-        <div class="ruler-edge"></div>
-      </div>
+    <div class="teacher-pointer" id="teacher-pointer">
+      <svg viewBox="0 0 100 100" aria-hidden="true">
+        <path d="M12 10 L84 50 L58 50 L58 92 L42 92 L42 50 L22 50 Z" fill="#7b44ff" stroke="#4c1fd6" stroke-width="4" stroke-linejoin="round"></path>
+      </svg>
     </div>
 
+    <div class="reading-ruler" id="reading-ruler"><div class="ruler-bar"><div class="ruler-ticks" id="ruler-ticks"></div><div class="ruler-edge"></div></div></div>
+
     <div class="lightbox" id="lightbox">
-      <div class="lb-handle tl" data-corner="tl"></div>
-      <div class="lb-handle tr" data-corner="tr"></div>
-      <div class="lb-handle bl" data-corner="bl"></div>
-      <div class="lb-handle br" data-corner="br"></div>
+      <div class="lb-handle tl" data-corner="tl"></div><div class="lb-handle tr" data-corner="tr"></div><div class="lb-handle bl" data-corner="bl"></div><div class="lb-handle br" data-corner="br"></div>
     </div>
 
     <div class="zoom-indicator" id="zoom-indicator"></div>
   </div>
 </div>
 
-<button class="smart-nav" id="smart-nav" title="Drag to an edge, then click">
-  <span id="smart-nav-icon">↓</span>
-</button>
+<button class="smart-nav" id="smart-nav" title="Drag to an edge, then click"><span id="smart-nav-icon">↓</span></button>
+
+<div class="print-range-dialog" id="print-range-dialog">
+  <div class="print-card">
+    <h3>Print page range</h3>
+    <div class="print-row">
+      <div class="print-field"><label for="print-from">From page</label><input id="print-from" type="number" min="1"></div>
+      <div class="print-field"><label for="print-to">To page</label><input id="print-to" type="number" min="1"></div>
+    </div>
+    <div class="print-actions">
+      <button id="print-cancel">Cancel</button>
+      <button class="primary" id="print-do">Print</button>
+    </div>
+  </div>
+</div>
 
 <script>
-(function () {
-  "use strict";
+(function(){
+"use strict";
+let config;
+try{
+  config={pages:["001.webp", "002.webp", "003.webp", "004.webp", "005.webp", "006.webp", "007.webp", "008.webp", "009.webp", "010.webp", "011.webp", "012.webp", "013.webp", "014.webp", "015.webp", "016.webp", "017.webp", "018.webp", "019.webp", "020.webp", "021.webp", "022.webp", "023.webp", "024.webp", "025.webp", "026.webp", "027.webp", "028.webp", "029.webp", "030.webp", "031.webp", "032.webp", "033.webp", "034.webp", "035.webp", "036.webp", "037.webp", "038.webp", "039.webp", "040.webp", "041.webp", "042.webp", "043.webp", "044.webp", "045.webp", "046.webp", "047.webp", "048.webp", "049.webp", "050.webp", "051.webp", "052.webp", "053.webp", "054.webp", "055.webp", "056.webp", "057.webp", "058.webp", "059.webp", "060.webp", "061.webp", "062.webp", "063.webp", "064.webp", "065.webp", "066.webp", "067.webp", "068.webp", "069.webp", "070.webp", "071.webp", "072.webp", "073.webp", "074.webp", "075.webp", "076.webp", "077.webp", "078.webp", "079.webp", "080.webp", "081.webp", "082.webp", "083.webp", "084.webp", "085.webp", "086.webp", "087.webp", "088.webp", "089.webp", "090.webp", "091.webp", "092.webp", "093.webp", "094.webp", "095.webp", "096.webp", "097.webp", "098.webp", "099.webp", "100.webp", "101.webp", "102.webp", "103.webp", "104.webp", "105.webp", "106.webp", "107.webp", "108.webp", "109.webp", "110.webp", "111.webp", "112.webp", "113.webp", "114.webp", "115.webp", "116.webp", "117.webp", "118.webp", "119.webp", "120.webp", "121.webp", "122.webp", "123.webp", "124.webp", "125.webp", "126.webp", "127.webp", "128.webp", "129.webp", "130.webp", "131.webp", "132.webp", "133.webp", "134.webp", "135.webp", "136.webp", "137.webp", "138.webp", "139.webp", "140.webp", "141.webp", "142.webp", "143.webp", "144.webp", "145.webp", "146.webp", "147.webp", "148.webp", "149.webp", "150.webp", "151.webp", "152.webp", "153.webp", "154.webp", "155.webp", "156.webp", "157.webp", "158.webp", "159.webp", "160.webp", "161.webp", "162.webp", "163.webp", "164.webp", "165.webp", "166.webp", "167.webp", "168.webp", "169.webp", "170.webp", "171.webp", "172.webp", "173.webp", "174.webp", "175.webp", "176.webp", "177.webp", "178.webp", "179.webp", "180.webp", "181.webp", "182.webp", "183.webp", "184.webp", "185.webp", "186.webp", "187.webp", "188.webp", "189.webp", "190.webp", "191.webp", "192.webp", "193.webp", "194.webp", "195.webp", "196.webp", "197.webp", "198.webp", "199.webp", "200.webp", "201.webp", "202.webp", "203.webp", "204.webp", "205.webp", "206.webp", "207.webp", "208.webp", "209.webp", "210.webp", "211.webp", "212.webp", "213.webp", "214.webp", "215.webp", "216.webp", "217.webp", "218.webp", "219.webp", "220.webp", "221.webp", "222.webp", "223.webp", "224.webp", "225.webp", "226.webp", "227.webp", "228.webp", "229.webp", "230.webp", "231.webp", "232.webp", "233.webp", "234.webp", "235.webp", "236.webp", "237.webp", "238.webp", "239.webp", "240.webp", "241.webp", "242.webp", "243.webp", "244.webp", "245.webp", "246.webp", "247.webp", "248.webp", "249.webp", "250.webp", "251.webp", "252.webp", "253.webp", "254.webp", "255.webp", "256.webp", "257.webp", "258.webp", "259.webp", "260.webp", "261.webp", "262.webp", "263.webp", "264.webp", "265.webp", "266.webp", "267.webp", "268.webp", "269.webp", "270.webp", "271.webp", "272.webp", "273.webp", "274.webp", "275.webp", "276.webp", "277.webp", "278.webp", "279.webp", "280.webp", "281.webp", "282.webp", "283.webp", "284.webp", "285.webp", "286.webp", "287.webp", "288.webp", "289.webp", "290.webp", "291.webp", "292.webp", "293.webp", "294.webp", "295.webp", "296.webp", "297.webp", "298.webp", "299.webp", "300.webp", "301.webp", "302.webp", "303.webp", "304.webp", "305.webp", "306.webp", "307.webp", "308.webp", "309.webp", "310.webp", "311.webp", "312.webp", "313.webp", "314.webp", "315.webp", "316.webp", "317.webp", "318.webp", "319.webp", "320.webp", "321.webp", "322.webp", "323.webp", "324.webp", "325.webp", "326.webp", "327.webp", "328.webp", "329.webp", "330.webp", "331.webp", "332.webp", "333.webp", "334.webp", "335.webp", "336.webp", "337.webp", "338.webp", "339.webp", "340.webp", "341.webp", "342.webp", "343.webp", "344.webp", "345.webp", "346.webp", "347.webp", "348.webp", "349.webp", "350.webp", "351.webp", "352.webp", "353.webp", "354.webp", "355.webp", "356.webp", "357.webp", "358.webp", "359.webp", "360.webp", "361.webp", "362.webp", "363.webp", "364.webp", "365.webp", "366.webp", "367.webp", "368.webp", "369.webp", "370.webp", "371.webp", "372.webp", "373.webp", "374.webp", "375.webp", "376.webp", "377.webp", "378.webp", "379.webp", "380.webp", "381.webp", "382.webp", "383.webp", "384.webp", "385.webp", "386.webp", "387.webp", "388.webp", "389.webp", "390.webp", "391.webp", "392.webp", "393.webp", "394.webp", "395.webp", "396.webp", "397.webp", "398.webp", "399.webp", "400.webp", "401.webp", "402.webp", "403.webp", "404.webp", "405.webp", "406.webp", "407.webp", "408.webp", "409.webp", "410.webp", "411.webp", "412.webp", "413.webp", "414.webp", "415.webp", "416.webp", "417.webp", "418.webp", "419.webp", "420.webp", "421.webp", "422.webp", "423.webp", "424.webp", "425.webp", "426.webp", "427.webp", "428.webp", "429.webp", "430.webp", "431.webp", "432.webp", "433.webp", "434.webp", "435.webp", "436.webp", "437.webp", "438.webp", "439.webp", "440.webp", "441.webp", "442.webp", "443.webp", "444.webp", "445.webp", "446.webp", "447.webp", "448.webp", "449.webp", "450.webp", "451.webp", "452.webp", "453.webp", "454.webp", "455.webp", "456.webp", "457.webp", "458.webp", "459.webp", "460.webp", "461.webp", "462.webp", "463.webp", "464.webp", "465.webp", "466.webp", "467.webp", "468.webp", "469.webp", "470.webp", "471.webp", "472.webp", "473.webp", "474.webp", "475.webp", "476.webp", "477.webp", "478.webp", "479.webp", "480.webp", "481.webp", "482.webp", "483.webp", "484.webp", "485.webp", "486.webp", "487.webp", "488.webp", "489.webp", "490.webp", "491.webp", "492.webp", "493.webp", "494.webp", "495.webp", "496.webp", "497.webp", "498.webp", "499.webp", "500.webp", "501.webp", "502.webp", "503.webp", "504.webp", "505.webp", "506.webp", "507.webp", "508.webp", "509.webp", "510.webp", "511.webp", "512.webp", "513.webp", "514.webp", "515.webp", "516.webp", "517.webp", "518.webp", "519.webp", "520.webp", "521.webp", "522.webp", "523.webp", "524.webp", "525.webp", "526.webp", "527.webp", "528.webp", "529.webp", "530.webp", "531.webp", "532.webp", "533.webp", "534.webp", "535.webp", "536.webp", "537.webp", "538.webp", "539.webp", "540.webp"],imgBase:"webp",toc:{"chapters": [{"code": "COVER", "title": "Cover & Title Pages", "start": 1, "end": 4, "sections": []}, {"code": "TOC", "title": "Table of Contents", "start": 5, "end": 7, "sections": []}, {"code": "INTRO", "title": "Introduction", "start": 9, "end": 10, "sections": []}, {"code": "01", "title": "Real Numbers", "start": 11, "end": 16, "sections": [{"code": "1.1", "title": "Number Systems", "start": 12, "end": 14}, {"code": "1.2", "title": "Factors, Multiples and Prime Numbers", "start": 15, "end": 17}, {"code": "1.3", "title": "Decimals", "start": 18, "end": 20}, {"code": "1.4", "title": "Scientific Notation", "start": 21, "end": 26}]}, {"code": "02", "title": "Arithmetic", "start": 27, "end": 50, "sections": [{"code": "2.1", "title": "Proportional Parts - Dividing Quantities in a Given Ratio", "start": 28, "end": 29}, {"code": "2.2", "title": "Percentages", "start": 30, "end": 31}, {"code": "2.3", "title": "Percentage Error and Accumulated Error", "start": 32, "end": 33}, {"code": "2.4", "title": "Income Tax", "start": 34, "end": 36}, {"code": "2.5", "title": "Pay-Related Social Insurance (PRSI) and Universal Social Charge (USC)", "start": 37, "end": 38}, {"code": "2.6", "title": "Value Added Tax (VAT)", "start": 39, "end": 40}, {"code": "2.7", "title": "Percentage Profit and Loss; Discounts", "start": 41, "end": 42}, {"code": "2.8", "title": "Compound Interest and Loans", "start": 43, "end": 44}, {"code": "2.9", "title": "Depreciation", "start": 45, "end": 46}, {"code": "2.10", "title": "Arithmetic for Everyday Life", "start": 47, "end": 49}, {"code": "2.11", "title": "Currency Exchange", "start": 50, "end": 53}]}, {"code": "03", "title": "Algebra I", "start": 54, "end": 72, "sections": [{"code": "3.1", "title": "Expressions", "start": 55, "end": 56}, {"code": "3.2", "title": "Evaluating Expressions", "start": 57, "end": 59}, {"code": "3.3", "title": "Simplifying Expressions", "start": 60, "end": 60}, {"code": "3.4", "title": "Expanding Expressions", "start": 61, "end": 62}, {"code": "3.5", "title": "Factorising Expressions", "start": 63, "end": 65}, {"code": "3.6", "title": "Expressions Involving Fractions", "start": 66, "end": 67}, {"code": "3.7", "title": "Dividing Algebraic Expressions", "start": 68, "end": 68}, {"code": "3.8", "title": "Long Division in Algebra", "start": 68, "end": 68}, {"code": "3.9", "title": "Rearranging Formulae", "start": 69, "end": 74}]}, {"code": "04", "title": "Indices and Surds", "start": 75, "end": 83, "sections": [{"code": "4.1", "title": "Numbers in Index Form", "start": 76, "end": 76}, {"code": "4.2", "title": "Laws 1-4 of Indices", "start": 76, "end": 77}, {"code": "4.3", "title": "Laws 5-9 of Indices", "start": 78, "end": 80}, {"code": "4.4", "title": "Equations with x as an Index", "start": 81, "end": 82}, {"code": "4.5", "title": "Surds", "start": 83, "end": 85}]}, {"code": "05", "title": "Algebra II", "start": 86, "end": 109, "sections": [{"code": "5.1", "title": "Solving Linear Equations", "start": 87, "end": 88}, {"code": "5.2", "title": "Solving Problems Involving Linear Equations", "start": 89, "end": 90}, {"code": "5.3", "title": "Solving Linear Equations Involving Fractions", "start": 91, "end": 91}, {"code": "5.4", "title": "Linear Inequalities", "start": 91, "end": 93}, {"code": "5.5", "title": "Solving Simultaneous Linear Equations", "start": 94, "end": 96}, {"code": "5.6", "title": "Solving Quadratic Equations", "start": 97, "end": 99}, {"code": "5.7", "title": "Solving Quadratic Equations II", "start": 100, "end": 101}, {"code": "5.8", "title": "Solving Problems Using Quadratic Equations", "start": 102, "end": 104}, {"code": "5.9", "title": "Solving Non-Factorisable Quadratic Equations", "start": 105, "end": 105}, {"code": "5.10", "title": "Solving Quadratic Equations Involving Fractions", "start": 106, "end": 106}, {"code": "5.11", "title": "Forming Quadratic Equations", "start": 107, "end": 108}, {"code": "5.12", "title": "Solving Simultaneous Equations: One Linear and One Non-Linear", "start": 109, "end": 113}]}, {"code": "06", "title": "Linear and Quadratic Functions", "start": 114, "end": 139, "sections": [{"code": "6.1", "title": "Introduction", "start": 115, "end": 120}, {"code": "6.2", "title": "Composite Functions", "start": 121, "end": 122}, {"code": "6.3", "title": "Linear Functions", "start": 123, "end": 125}, {"code": "6.4", "title": "Quadratic Functions", "start": 126, "end": 129}, {"code": "6.5", "title": "Real-Life Problems Solved by Quadratic Graphs", "start": 130, "end": 132}, {"code": "6.6", "title": "Transformations of Quadratic Functions", "start": 133, "end": 139}]}, {"code": "07", "title": "Complex Numbers", "start": 140, "end": 155, "sections": [{"code": "7.1", "title": "Introduction", "start": 140, "end": 140}, {"code": "7.2", "title": "Complex Numbers and the Argand Diagram", "start": 141, "end": 142}, {"code": "7.3", "title": "Addition and Subtraction of Complex Numbers", "start": 143, "end": 145}, {"code": "7.4", "title": "Modulus of a Complex Number", "start": 146, "end": 147}, {"code": "7.5", "title": "Multiplying Complex Numbers", "start": 148, "end": 149}, {"code": "7.6", "title": "Conjugate of a Complex Number", "start": 150, "end": 151}, {"code": "7.7", "title": "Dividing Complex Numbers", "start": 152, "end": 153}, {"code": "7.8", "title": "Equality of Complex Numbers", "start": 154, "end": 154}, {"code": "7.9", "title": "Quadratic Equations with Complex Roots", "start": 155, "end": 157}]}, {"code": "08", "title": "Cubic and Exponential Functions", "start": 158, "end": 171, "sections": [{"code": "8.1", "title": "Cubic Functions", "start": 159, "end": 162}, {"code": "8.2", "title": "Exponential Functions", "start": 163, "end": 171}]}, {"code": "09", "title": "Number Patterns", "start": 172, "end": 186, "sections": [{"code": "9.1", "title": "Patterns", "start": 173, "end": 174}, {"code": "9.2", "title": "Arithmetic Sequences", "start": 175, "end": 178}, {"code": "9.3", "title": "The General Term of an Arithmetic Sequence", "start": 179, "end": 181}, {"code": "9.4", "title": "Solving for a and d", "start": 182, "end": 183}, {"code": "9.5", "title": "Arithmetic Series", "start": 184, "end": 188}, {"code": "9.6", "title": "Some Non-Linear Sequences", "start": 189, "end": 196}]}, {"code": "10", "title": "Calculus", "start": 197, "end": 221, "sections": [{"code": "10.1", "title": "Calculus", "start": 197, "end": 197}, {"code": "10.2", "title": "First Derivatives", "start": 198, "end": 199}, {"code": "10.3", "title": "Second Derivatives", "start": 200, "end": 201}, {"code": "10.4", "title": "Slopes and Tangent Lines", "start": 202, "end": 204}, {"code": "10.5", "title": "Increasing and Decreasing Functions", "start": 205, "end": 208}, {"code": "10.6", "title": "Maxima and Minima", "start": 209, "end": 211}, {"code": "10.7", "title": "Maximum and Minimum Problems", "start": 212, "end": 215}, {"code": "10.8", "title": "Rates of Change", "start": 216, "end": 221}]}, {"code": "11", "title": "Applied Measure", "start": 222, "end": 254, "sections": [{"code": "11.1", "title": "Triangles and Quadrilaterals", "start": 223, "end": 226}, {"code": "11.2", "title": "Circles", "start": 227, "end": 230}, {"code": "11.3", "title": "Rectangular Solids", "start": 231, "end": 233}, {"code": "11.4", "title": "Prisms", "start": 234, "end": 236}, {"code": "11.5", "title": "Cylinders", "start": 237, "end": 239}, {"code": "11.6", "title": "Right Circular Cones", "start": 239, "end": 241}, {"code": "11.7", "title": "Spheres", "start": 241, "end": 242}, {"code": "11.8", "title": "Finding a Missing Dimension", "start": 243, "end": 247}, {"code": "11.9", "title": "The Trapezoidal Rule", "start": 248, "end": 254}]}, {"code": "12", "title": "Counting and Arrangements", "start": 256, "end": 267, "sections": [{"code": "12.1", "title": "Listing Outcomes", "start": 256, "end": 259}, {"code": "12.2", "title": "The Fundamental Principle of Counting", "start": 260, "end": 261}, {"code": "12.3", "title": "Arrangements", "start": 262, "end": 267}]}, {"code": "13", "title": "Probability", "start": 268, "end": 304, "sections": [{"code": "13.1", "title": "Introducing Probability", "start": 269, "end": 270}, {"code": "13.2", "title": "Relative Frequency (Experimental Probability)", "start": 271, "end": 275}, {"code": "13.3", "title": "Theoretical Probability", "start": 276, "end": 278}, {"code": "13.4", "title": "Set Theory and Probability", "start": 279, "end": 283}, {"code": "13.5", "title": "Sample Spaces for Successive Events", "start": 284, "end": 288}, {"code": "13.6", "title": "AND/OR: Multiple Events", "start": 289, "end": 292}, {"code": "13.7", "title": "Bernoulli Trials", "start": 293, "end": 296}, {"code": "13.8", "title": "Expected Value", "start": 297, "end": 304}]}, {"code": "14", "title": "Statistics I", "start": 305, "end": 339, "sections": [{"code": "14.1", "title": "Statistics in Today's World", "start": 306, "end": 306}, {"code": "14.2", "title": "Statistical Investigations", "start": 306, "end": 308}, {"code": "14.3", "title": "Collecting Data", "start": 309, "end": 309}, {"code": "14.4", "title": "Frequency Tables", "start": 310, "end": 310}, {"code": "14.5", "title": "Graphing Data: Bar Charts and Pie Charts", "start": 311, "end": 316}, {"code": "14.6", "title": "Graphing Data: Stem-and-Leaf Plots", "start": 317, "end": 320}, {"code": "14.7", "title": "Graphing Data: Histograms", "start": 321, "end": 321}, {"code": "14.8", "title": "Distribution of Data", "start": 322, "end": 325}, {"code": "14.9", "title": "Scatter Graphs and Correlation", "start": 326, "end": 339}]}, {"code": "15", "title": "Statistics II", "start": 340, "end": 369, "sections": [{"code": "15.1", "title": "Measures of Central Tendency: Mean, Mode and Median", "start": 341, "end": 347}, {"code": "15.2", "title": "Deciding Which Average to Use", "start": 348, "end": 349}, {"code": "15.3", "title": "Measures of Variation", "start": 350, "end": 355}, {"code": "15.4", "title": "The Normal Distribution and the Empirical Rule", "start": 356, "end": 359}, {"code": "15.5", "title": "Sampling Variability", "start": 360, "end": 360}, {"code": "15.6", "title": "Hypothesis Testing", "start": 360, "end": 363}, {"code": "15.7", "title": "Misuses of Statistics", "start": 364, "end": 369}]}, {"code": "16", "title": "Geometry", "start": 370, "end": 403, "sections": [{"code": "16.1", "title": "Revision of Concepts, Notation and Axioms", "start": 371, "end": 373}, {"code": "16.2", "title": "Angles and Lines: Theorems 1, 3 & 5", "start": 374, "end": 376}, {"code": "16.3", "title": "Triangles, Angles and Sides: Theorems 2, 4, 6, 7 & 8", "start": 377, "end": 378}, {"code": "16.4", "title": "Parallelograms: Theorems 9 & 10", "start": 379, "end": 381}, {"code": "16.5", "title": "Triangles, Parallel Lines and Ratios: Theorems 11, 12 & 13", "start": 382, "end": 386}, {"code": "16.6", "title": "Theorem of Pythagoras", "start": 387, "end": 388}, {"code": "16.7", "title": "Area of a Triangle and Area of a Parallelogram", "start": 389, "end": 392}, {"code": "16.8", "title": "Circle Theorems and Corollaries", "start": 393, "end": 397}, {"code": "16.9", "title": "Congruent Triangles and Proof", "start": 398, "end": 403}]}, {"code": "17", "title": "Trigonometry", "start": 405, "end": 433, "sections": [{"code": "17.1", "title": "Right-Angled Triangles and the Theorem of Pythagoras", "start": 406, "end": 407}, {"code": "17.2", "title": "Right-Angled Triangles and the Trigonometric Ratios", "start": 408, "end": 410}, {"code": "17.3", "title": "Finding the Length of a Side in a Right-Angled Triangle", "start": 411, "end": 412}, {"code": "17.4", "title": "Using Trigonometry to Solve Practical Problems", "start": 413, "end": 417}, {"code": "17.5", "title": "Area of a Triangle", "start": 418, "end": 419}, {"code": "17.6", "title": "Special Angles 30\u00b0, 45\u00b0 and 60\u00b0", "start": 420, "end": 420}, {"code": "17.7", "title": "The Unit Circle", "start": 420, "end": 420}, {"code": "17.8", "title": "Evaluating Trigonometric Ratios of All Angles", "start": 421, "end": 422}, {"code": "17.9", "title": "The Sine Rule", "start": 423, "end": 425}, {"code": "17.10", "title": "The Cosine Rule", "start": 426, "end": 428}, {"code": "17.11", "title": "Length of an Arc and Area of a Sector", "start": 429, "end": 433}]}, {"code": "18", "title": "Co-ordinate Geometry: The Line", "start": 435, "end": 459, "sections": [{"code": "18.1", "title": "The xy-Plane", "start": 436, "end": 436}, {"code": "18.2", "title": "Distance Between Two Points", "start": 437, "end": 438}, {"code": "18.3", "title": "Midpoint of a Line Segment", "start": 439, "end": 440}, {"code": "18.4", "title": "Slope of a Line", "start": 441, "end": 444}, {"code": "18.5", "title": "The Equation of a Line", "start": 445, "end": 446}, {"code": "18.6", "title": "", "start": 447, "end": 448}, {"code": "18.7", "title": "Finding the Equation of a Line", "start": 449, "end": 450}, {"code": "18.8", "title": "Intersecting Lines", "start": 451, "end": 452}, {"code": "18.9", "title": "Further Equations", "start": 453, "end": 454}, {"code": "18.10", "title": "Area of a Triangle", "start": 455, "end": 459}]}, {"code": "19", "title": "Constructions, Transformations and Enlargements", "start": 461, "end": 493, "sections": [{"code": "19.1", "title": "Junior Cycle Constructions", "start": 462, "end": 470}, {"code": "19.2", "title": "Leaving Certificate Ordinary Level Constructions", "start": 471, "end": 473}, {"code": "19.3", "title": "Leaving Certificate Ordinary Level Constructions II", "start": 474, "end": 477}, {"code": "19.4", "title": "Transformations", "start": 478, "end": 482}, {"code": "19.5", "title": "Enlargements", "start": 483, "end": 487}, {"code": "19.6", "title": "Properties of Enlargements", "start": 487, "end": 493}]}, {"code": "20", "title": "Co-ordinate Geometry: The Circle", "start": 494, "end": 510, "sections": [{"code": "20.1", "title": "Circles with Centre (0,0) and Radius r", "start": 494, "end": 497}, {"code": "20.2", "title": "Lines and Circles", "start": 498, "end": 500}, {"code": "20.3", "title": "Circles with Centre (h,k) and Radius r", "start": 501, "end": 504}, {"code": "20.4", "title": "Intercepts and Points Inside, Outside or On a Circle", "start": 505, "end": 510}]}, {"code": "ANSWERS", "title": "Answers", "start": 511, "end": 563, "sections": [{"code": "A1", "title": "Chapter 1", "start": 511, "end": 512}, {"code": "A2", "title": "Chapter 2", "start": 512, "end": 513}, {"code": "A3", "title": "Chapter 3", "start": 513, "end": 514}, {"code": "A4", "title": "Chapter 4", "start": 514, "end": 514}, {"code": "A5", "title": "Chapter 5", "start": 514, "end": 516}, {"code": "A6", "title": "Chapter 6", "start": 516, "end": 517}, {"code": "A7", "title": "Chapter 7", "start": 517, "end": 518}, {"code": "A8", "title": "Chapter 8", "start": 518, "end": 519}, {"code": "A9", "title": "Chapter 9", "start": 519, "end": 522}, {"code": "A10", "title": "Chapter 10", "start": 522, "end": 523}, {"code": "A11", "title": "Chapter 11", "start": 523, "end": 524}, {"code": "A12", "title": "Chapter 12", "start": 524, "end": 525}, {"code": "A13", "title": "Chapter 13", "start": 525, "end": 528}, {"code": "A14", "title": "Chapter 14", "start": 528, "end": 531}, {"code": "A15", "title": "Chapter 15", "start": 531, "end": 533}, {"code": "A16", "title": "Chapter 16", "start": 533, "end": 534}, {"code": "A17", "title": "Chapter 17", "start": 534, "end": 536}, {"code": "A18", "title": "Chapter 18", "start": 536, "end": 537}, {"code": "A19", "title": "Chapter 19", "start": 537, "end": 538}, {"code": "A20", "title": "Chapter 20", "start": 538, "end": 538}]}, {"code": "BACKCOVER", "title": "End Pages / Credits", "start": 540, "end": 540, "sections": []}]},pageOffset:0,currentPage:0,zoom:1,translateX:0,translateY:0,isPanning:false,startX:0,startY:0,panStartX:0,panStartY:0,currentFitMode:localStorage.getItem("fitMode")||"height",expandedChapters:JSON.parse(localStorage.getItem("expandedChapters")||"{}")};
+}catch(e){
+  config={pages:[],imgBase:"webp",toc:{chapters:[]},pageOffset:0,currentPage:0,zoom:1,translateX:0,translateY:0,isPanning:false,startX:0,startY:0,panStartX:0,panStartY:0,currentFitMode:"height",expandedChapters:{}};
+}
+const $=(id)=>document.getElementById(id);
+const body=document.body,imageContainer=$("image-container"),pageImage=$("page-image"),inkCanvas=$("ink-layer"),pointerEl=$("teacher-pointer"),rulerEl=$("reading-ruler"),rulerTicksEl=$("ruler-ticks"),lightboxEl=$("lightbox"),zoomIndicator=$("zoom-indicator"),smartNavEl=$("smart-nav"),smartNavIconEl=$("smart-nav-icon");
+let activeOverlay=null,pointerOn=false,penMode=false,lightboxFocused=false,toolPosY=180,toolDragging=false,lbDrag=null,lbStart=null,smartNavDrag=null,pointerPos={x:100,y:100},hideZoomTimer=null;
+let lightbox={x:60,y:80,w:380,h:280};
+let inkCtx=null,inkDrawing=false,inkHistory=[];
 
-  let config;
-  try {
-    config = {
-      pages: ["001.webp", "002.webp", "003.webp", "004.webp", "005.webp", "006.webp", "007.webp", "008.webp", "009.webp", "010.webp", "011.webp", "012.webp", "013.webp", "014.webp", "015.webp", "016.webp", "017.webp", "018.webp", "019.webp", "020.webp", "021.webp", "022.webp", "023.webp", "024.webp", "025.webp", "026.webp", "027.webp", "028.webp", "029.webp", "030.webp", "031.webp", "032.webp", "033.webp", "034.webp", "035.webp", "036.webp", "037.webp", "038.webp", "039.webp", "040.webp", "041.webp", "042.webp", "043.webp", "044.webp", "045.webp", "046.webp", "047.webp", "048.webp", "049.webp", "050.webp", "051.webp", "052.webp", "053.webp", "054.webp", "055.webp", "056.webp", "057.webp", "058.webp", "059.webp", "060.webp", "061.webp", "062.webp", "063.webp", "064.webp", "065.webp", "066.webp", "067.webp", "068.webp", "069.webp", "070.webp", "071.webp", "072.webp", "073.webp", "074.webp", "075.webp", "076.webp", "077.webp", "078.webp", "079.webp", "080.webp", "081.webp", "082.webp", "083.webp", "084.webp", "085.webp", "086.webp", "087.webp", "088.webp", "089.webp", "090.webp", "091.webp", "092.webp", "093.webp", "094.webp", "095.webp", "096.webp", "097.webp", "098.webp", "099.webp", "100.webp", "101.webp", "102.webp", "103.webp", "104.webp", "105.webp", "106.webp", "107.webp", "108.webp", "109.webp", "110.webp", "111.webp", "112.webp", "113.webp", "114.webp", "115.webp", "116.webp", "117.webp", "118.webp", "119.webp", "120.webp", "121.webp", "122.webp", "123.webp", "124.webp", "125.webp", "126.webp", "127.webp", "128.webp", "129.webp", "130.webp", "131.webp", "132.webp", "133.webp", "134.webp", "135.webp", "136.webp", "137.webp", "138.webp", "139.webp", "140.webp", "141.webp", "142.webp", "143.webp", "144.webp", "145.webp", "146.webp", "147.webp", "148.webp", "149.webp", "150.webp", "151.webp", "152.webp", "153.webp", "154.webp", "155.webp", "156.webp", "157.webp", "158.webp", "159.webp", "160.webp", "161.webp", "162.webp", "163.webp", "164.webp", "165.webp", "166.webp", "167.webp", "168.webp", "169.webp", "170.webp", "171.webp", "172.webp", "173.webp", "174.webp", "175.webp", "176.webp", "177.webp", "178.webp", "179.webp", "180.webp", "181.webp", "182.webp", "183.webp", "184.webp", "185.webp", "186.webp", "187.webp", "188.webp", "189.webp", "190.webp", "191.webp", "192.webp", "193.webp", "194.webp", "195.webp", "196.webp", "197.webp", "198.webp", "199.webp", "200.webp", "201.webp", "202.webp", "203.webp", "204.webp", "205.webp", "206.webp", "207.webp", "208.webp", "209.webp", "210.webp", "211.webp", "212.webp", "213.webp", "214.webp", "215.webp", "216.webp", "217.webp", "218.webp", "219.webp", "220.webp", "221.webp", "222.webp", "223.webp", "224.webp", "225.webp", "226.webp", "227.webp", "228.webp", "229.webp", "230.webp", "231.webp", "232.webp", "233.webp", "234.webp", "235.webp", "236.webp", "237.webp", "238.webp", "239.webp", "240.webp", "241.webp", "242.webp", "243.webp", "244.webp", "245.webp", "246.webp", "247.webp", "248.webp", "249.webp", "250.webp", "251.webp", "252.webp", "253.webp", "254.webp", "255.webp", "256.webp", "257.webp", "258.webp", "259.webp", "260.webp", "261.webp", "262.webp", "263.webp", "264.webp", "265.webp", "266.webp", "267.webp", "268.webp", "269.webp", "270.webp", "271.webp", "272.webp", "273.webp", "274.webp", "275.webp", "276.webp", "277.webp", "278.webp", "279.webp", "280.webp", "281.webp", "282.webp", "283.webp", "284.webp", "285.webp", "286.webp", "287.webp", "288.webp", "289.webp", "290.webp", "291.webp", "292.webp", "293.webp", "294.webp", "295.webp", "296.webp", "297.webp", "298.webp", "299.webp", "300.webp", "301.webp", "302.webp", "303.webp", "304.webp", "305.webp", "306.webp", "307.webp", "308.webp", "309.webp", "310.webp", "311.webp", "312.webp", "313.webp", "314.webp", "315.webp", "316.webp", "317.webp", "318.webp", "319.webp", "320.webp", "321.webp", "322.webp", "323.webp", "324.webp", "325.webp", "326.webp", "327.webp", "328.webp", "329.webp", "330.webp", "331.webp", "332.webp", "333.webp", "334.webp", "335.webp", "336.webp", "337.webp", "338.webp", "339.webp", "340.webp", "341.webp", "342.webp", "343.webp", "344.webp", "345.webp", "346.webp", "347.webp", "348.webp", "349.webp", "350.webp", "351.webp", "352.webp", "353.webp", "354.webp", "355.webp", "356.webp", "357.webp", "358.webp", "359.webp", "360.webp", "361.webp", "362.webp", "363.webp", "364.webp", "365.webp", "366.webp", "367.webp", "368.webp", "369.webp", "370.webp", "371.webp", "372.webp", "373.webp", "374.webp", "375.webp", "376.webp", "377.webp", "378.webp", "379.webp", "380.webp", "381.webp", "382.webp", "383.webp", "384.webp", "385.webp", "386.webp", "387.webp", "388.webp", "389.webp", "390.webp", "391.webp", "392.webp", "393.webp", "394.webp", "395.webp", "396.webp", "397.webp", "398.webp", "399.webp", "400.webp", "401.webp", "402.webp", "403.webp", "404.webp", "405.webp", "406.webp", "407.webp", "408.webp", "409.webp", "410.webp", "411.webp", "412.webp", "413.webp", "414.webp", "415.webp", "416.webp", "417.webp", "418.webp", "419.webp", "420.webp", "421.webp", "422.webp", "423.webp", "424.webp", "425.webp", "426.webp", "427.webp", "428.webp", "429.webp", "430.webp", "431.webp", "432.webp", "433.webp", "434.webp", "435.webp", "436.webp", "437.webp", "438.webp", "439.webp", "440.webp", "441.webp", "442.webp", "443.webp", "444.webp", "445.webp", "446.webp", "447.webp", "448.webp", "449.webp", "450.webp", "451.webp", "452.webp", "453.webp", "454.webp", "455.webp", "456.webp", "457.webp", "458.webp", "459.webp", "460.webp", "461.webp", "462.webp", "463.webp", "464.webp", "465.webp", "466.webp", "467.webp", "468.webp", "469.webp", "470.webp", "471.webp", "472.webp", "473.webp", "474.webp", "475.webp", "476.webp", "477.webp", "478.webp", "479.webp", "480.webp", "481.webp", "482.webp", "483.webp", "484.webp", "485.webp", "486.webp", "487.webp", "488.webp", "489.webp", "490.webp", "491.webp", "492.webp", "493.webp", "494.webp", "495.webp", "496.webp", "497.webp", "498.webp", "499.webp", "500.webp", "501.webp", "502.webp", "503.webp", "504.webp", "505.webp", "506.webp", "507.webp", "508.webp", "509.webp", "510.webp", "511.webp", "512.webp", "513.webp", "514.webp", "515.webp", "516.webp", "517.webp", "518.webp", "519.webp", "520.webp", "521.webp", "522.webp", "523.webp", "524.webp", "525.webp", "526.webp", "527.webp", "528.webp", "529.webp", "530.webp", "531.webp", "532.webp", "533.webp", "534.webp", "535.webp", "536.webp", "537.webp", "538.webp", "539.webp", "540.webp"],
-      imgBase: "webp",
-      toc: {"chapters": [{"code": "COVER", "title": "Cover & Title Pages", "start": 1, "end": 4, "sections": []}, {"code": "TOC", "title": "Table of Contents", "start": 5, "end": 7, "sections": []}, {"code": "INTRO", "title": "Introduction", "start": 9, "end": 10, "sections": []}, {"code": "01", "title": "Real Numbers", "start": 11, "end": 16, "sections": [{"code": "1.1", "title": "Number Systems", "start": 12, "end": 14}, {"code": "1.2", "title": "Factors, Multiples and Prime Numbers", "start": 15, "end": 17}, {"code": "1.3", "title": "Decimals", "start": 18, "end": 20}, {"code": "1.4", "title": "Scientific Notation", "start": 21, "end": 26}]}, {"code": "02", "title": "Arithmetic", "start": 27, "end": 50, "sections": [{"code": "2.1", "title": "Proportional Parts - Dividing Quantities in a Given Ratio", "start": 28, "end": 29}, {"code": "2.2", "title": "Percentages", "start": 30, "end": 31}, {"code": "2.3", "title": "Percentage Error and Accumulated Error", "start": 32, "end": 33}, {"code": "2.4", "title": "Income Tax", "start": 34, "end": 36}, {"code": "2.5", "title": "Pay-Related Social Insurance (PRSI) and Universal Social Charge (USC)", "start": 37, "end": 38}, {"code": "2.6", "title": "Value Added Tax (VAT)", "start": 39, "end": 40}, {"code": "2.7", "title": "Percentage Profit and Loss; Discounts", "start": 41, "end": 42}, {"code": "2.8", "title": "Compound Interest and Loans", "start": 43, "end": 44}, {"code": "2.9", "title": "Depreciation", "start": 45, "end": 46}, {"code": "2.10", "title": "Arithmetic for Everyday Life", "start": 47, "end": 49}, {"code": "2.11", "title": "Currency Exchange", "start": 50, "end": 53}]}, {"code": "03", "title": "Algebra I", "start": 54, "end": 72, "sections": [{"code": "3.1", "title": "Expressions", "start": 55, "end": 56}, {"code": "3.2", "title": "Evaluating Expressions", "start": 57, "end": 59}, {"code": "3.3", "title": "Simplifying Expressions", "start": 60, "end": 60}, {"code": "3.4", "title": "Expanding Expressions", "start": 61, "end": 62}, {"code": "3.5", "title": "Factorising Expressions", "start": 63, "end": 65}, {"code": "3.6", "title": "Expressions Involving Fractions", "start": 66, "end": 67}, {"code": "3.7", "title": "Dividing Algebraic Expressions", "start": 68, "end": 68}, {"code": "3.8", "title": "Long Division in Algebra", "start": 68, "end": 68}, {"code": "3.9", "title": "Rearranging Formulae", "start": 69, "end": 74}]}, {"code": "04", "title": "Indices and Surds", "start": 75, "end": 83, "sections": [{"code": "4.1", "title": "Numbers in Index Form", "start": 76, "end": 76}, {"code": "4.2", "title": "Laws 1-4 of Indices", "start": 76, "end": 77}, {"code": "4.3", "title": "Laws 5-9 of Indices", "start": 78, "end": 80}, {"code": "4.4", "title": "Equations with x as an Index", "start": 81, "end": 82}, {"code": "4.5", "title": "Surds", "start": 83, "end": 85}]}, {"code": "05", "title": "Algebra II", "start": 86, "end": 109, "sections": [{"code": "5.1", "title": "Solving Linear Equations", "start": 87, "end": 88}, {"code": "5.2", "title": "Solving Problems Involving Linear Equations", "start": 89, "end": 90}, {"code": "5.3", "title": "Solving Linear Equations Involving Fractions", "start": 91, "end": 91}, {"code": "5.4", "title": "Linear Inequalities", "start": 91, "end": 93}, {"code": "5.5", "title": "Solving Simultaneous Linear Equations", "start": 94, "end": 96}, {"code": "5.6", "title": "Solving Quadratic Equations", "start": 97, "end": 99}, {"code": "5.7", "title": "Solving Quadratic Equations II", "start": 100, "end": 101}, {"code": "5.8", "title": "Solving Problems Using Quadratic Equations", "start": 102, "end": 104}, {"code": "5.9", "title": "Solving Non-Factorisable Quadratic Equations", "start": 105, "end": 105}, {"code": "5.10", "title": "Solving Quadratic Equations Involving Fractions", "start": 106, "end": 106}, {"code": "5.11", "title": "Forming Quadratic Equations", "start": 107, "end": 108}, {"code": "5.12", "title": "Solving Simultaneous Equations: One Linear and One Non-Linear", "start": 109, "end": 113}]}, {"code": "06", "title": "Linear and Quadratic Functions", "start": 114, "end": 139, "sections": [{"code": "6.1", "title": "Introduction", "start": 115, "end": 120}, {"code": "6.2", "title": "Composite Functions", "start": 121, "end": 122}, {"code": "6.3", "title": "Linear Functions", "start": 123, "end": 125}, {"code": "6.4", "title": "Quadratic Functions", "start": 126, "end": 129}, {"code": "6.5", "title": "Real-Life Problems Solved by Quadratic Graphs", "start": 130, "end": 132}, {"code": "6.6", "title": "Transformations of Quadratic Functions", "start": 133, "end": 139}]}, {"code": "07", "title": "Complex Numbers", "start": 140, "end": 155, "sections": [{"code": "7.1", "title": "Introduction", "start": 140, "end": 140}, {"code": "7.2", "title": "Complex Numbers and the Argand Diagram", "start": 141, "end": 142}, {"code": "7.3", "title": "Addition and Subtraction of Complex Numbers", "start": 143, "end": 145}, {"code": "7.4", "title": "Modulus of a Complex Number", "start": 146, "end": 147}, {"code": "7.5", "title": "Multiplying Complex Numbers", "start": 148, "end": 149}, {"code": "7.6", "title": "Conjugate of a Complex Number", "start": 150, "end": 151}, {"code": "7.7", "title": "Dividing Complex Numbers", "start": 152, "end": 153}, {"code": "7.8", "title": "Equality of Complex Numbers", "start": 154, "end": 154}, {"code": "7.9", "title": "Quadratic Equations with Complex Roots", "start": 155, "end": 157}]}, {"code": "08", "title": "Cubic and Exponential Functions", "start": 158, "end": 171, "sections": [{"code": "8.1", "title": "Cubic Functions", "start": 159, "end": 162}, {"code": "8.2", "title": "Exponential Functions", "start": 163, "end": 171}]}, {"code": "09", "title": "Number Patterns", "start": 172, "end": 186, "sections": [{"code": "9.1", "title": "Patterns", "start": 173, "end": 174}, {"code": "9.2", "title": "Arithmetic Sequences", "start": 175, "end": 178}, {"code": "9.3", "title": "The General Term of an Arithmetic Sequence", "start": 179, "end": 181}, {"code": "9.4", "title": "Solving for a and d", "start": 182, "end": 183}, {"code": "9.5", "title": "Arithmetic Series", "start": 184, "end": 188}, {"code": "9.6", "title": "Some Non-Linear Sequences", "start": 189, "end": 196}]}, {"code": "10", "title": "Calculus", "start": 197, "end": 221, "sections": [{"code": "10.1", "title": "Calculus", "start": 197, "end": 197}, {"code": "10.2", "title": "First Derivatives", "start": 198, "end": 199}, {"code": "10.3", "title": "Second Derivatives", "start": 200, "end": 201}, {"code": "10.4", "title": "Slopes and Tangent Lines", "start": 202, "end": 204}, {"code": "10.5", "title": "Increasing and Decreasing Functions", "start": 205, "end": 208}, {"code": "10.6", "title": "Maxima and Minima", "start": 209, "end": 211}, {"code": "10.7", "title": "Maximum and Minimum Problems", "start": 212, "end": 215}, {"code": "10.8", "title": "Rates of Change", "start": 216, "end": 221}]}, {"code": "11", "title": "Applied Measure", "start": 222, "end": 254, "sections": [{"code": "11.1", "title": "Triangles and Quadrilaterals", "start": 223, "end": 226}, {"code": "11.2", "title": "Circles", "start": 227, "end": 230}, {"code": "11.3", "title": "Rectangular Solids", "start": 231, "end": 233}, {"code": "11.4", "title": "Prisms", "start": 234, "end": 236}, {"code": "11.5", "title": "Cylinders", "start": 237, "end": 239}, {"code": "11.6", "title": "Right Circular Cones", "start": 239, "end": 241}, {"code": "11.7", "title": "Spheres", "start": 241, "end": 242}, {"code": "11.8", "title": "Finding a Missing Dimension", "start": 243, "end": 247}, {"code": "11.9", "title": "The Trapezoidal Rule", "start": 248, "end": 254}]}, {"code": "12", "title": "Counting and Arrangements", "start": 256, "end": 267, "sections": [{"code": "12.1", "title": "Listing Outcomes", "start": 256, "end": 259}, {"code": "12.2", "title": "The Fundamental Principle of Counting", "start": 260, "end": 261}, {"code": "12.3", "title": "Arrangements", "start": 262, "end": 267}]}, {"code": "13", "title": "Probability", "start": 268, "end": 304, "sections": [{"code": "13.1", "title": "Introducing Probability", "start": 269, "end": 270}, {"code": "13.2", "title": "Relative Frequency (Experimental Probability)", "start": 271, "end": 275}, {"code": "13.3", "title": "Theoretical Probability", "start": 276, "end": 278}, {"code": "13.4", "title": "Set Theory and Probability", "start": 279, "end": 283}, {"code": "13.5", "title": "Sample Spaces for Successive Events", "start": 284, "end": 288}, {"code": "13.6", "title": "AND/OR: Multiple Events", "start": 289, "end": 292}, {"code": "13.7", "title": "Bernoulli Trials", "start": 293, "end": 296}, {"code": "13.8", "title": "Expected Value", "start": 297, "end": 304}]}, {"code": "14", "title": "Statistics I", "start": 305, "end": 339, "sections": [{"code": "14.1", "title": "Statistics in Today's World", "start": 306, "end": 306}, {"code": "14.2", "title": "Statistical Investigations", "start": 306, "end": 308}, {"code": "14.3", "title": "Collecting Data", "start": 309, "end": 309}, {"code": "14.4", "title": "Frequency Tables", "start": 310, "end": 310}, {"code": "14.5", "title": "Graphing Data: Bar Charts and Pie Charts", "start": 311, "end": 316}, {"code": "14.6", "title": "Graphing Data: Stem-and-Leaf Plots", "start": 317, "end": 320}, {"code": "14.7", "title": "Graphing Data: Histograms", "start": 321, "end": 321}, {"code": "14.8", "title": "Distribution of Data", "start": 322, "end": 325}, {"code": "14.9", "title": "Scatter Graphs and Correlation", "start": 326, "end": 339}]}, {"code": "15", "title": "Statistics II", "start": 340, "end": 369, "sections": [{"code": "15.1", "title": "Measures of Central Tendency: Mean, Mode and Median", "start": 341, "end": 347}, {"code": "15.2", "title": "Deciding Which Average to Use", "start": 348, "end": 349}, {"code": "15.3", "title": "Measures of Variation", "start": 350, "end": 355}, {"code": "15.4", "title": "The Normal Distribution and the Empirical Rule", "start": 356, "end": 359}, {"code": "15.5", "title": "Sampling Variability", "start": 360, "end": 360}, {"code": "15.6", "title": "Hypothesis Testing", "start": 360, "end": 363}, {"code": "15.7", "title": "Misuses of Statistics", "start": 364, "end": 369}]}, {"code": "16", "title": "Geometry", "start": 370, "end": 403, "sections": [{"code": "16.1", "title": "Revision of Concepts, Notation and Axioms", "start": 371, "end": 373}, {"code": "16.2", "title": "Angles and Lines: Theorems 1, 3 & 5", "start": 374, "end": 376}, {"code": "16.3", "title": "Triangles, Angles and Sides: Theorems 2, 4, 6, 7 & 8", "start": 377, "end": 378}, {"code": "16.4", "title": "Parallelograms: Theorems 9 & 10", "start": 379, "end": 381}, {"code": "16.5", "title": "Triangles, Parallel Lines and Ratios: Theorems 11, 12 & 13", "start": 382, "end": 386}, {"code": "16.6", "title": "Theorem of Pythagoras", "start": 387, "end": 388}, {"code": "16.7", "title": "Area of a Triangle and Area of a Parallelogram", "start": 389, "end": 392}, {"code": "16.8", "title": "Circle Theorems and Corollaries", "start": 393, "end": 397}, {"code": "16.9", "title": "Congruent Triangles and Proof", "start": 398, "end": 403}]}, {"code": "17", "title": "Trigonometry", "start": 405, "end": 433, "sections": [{"code": "17.1", "title": "Right-Angled Triangles and the Theorem of Pythagoras", "start": 406, "end": 407}, {"code": "17.2", "title": "Right-Angled Triangles and the Trigonometric Ratios", "start": 408, "end": 410}, {"code": "17.3", "title": "Finding the Length of a Side in a Right-Angled Triangle", "start": 411, "end": 412}, {"code": "17.4", "title": "Using Trigonometry to Solve Practical Problems", "start": 413, "end": 417}, {"code": "17.5", "title": "Area of a Triangle", "start": 418, "end": 419}, {"code": "17.6", "title": "Special Angles 30\u00b0, 45\u00b0 and 60\u00b0", "start": 420, "end": 420}, {"code": "17.7", "title": "The Unit Circle", "start": 420, "end": 420}, {"code": "17.8", "title": "Evaluating Trigonometric Ratios of All Angles", "start": 421, "end": 422}, {"code": "17.9", "title": "The Sine Rule", "start": 423, "end": 425}, {"code": "17.10", "title": "The Cosine Rule", "start": 426, "end": 428}, {"code": "17.11", "title": "Length of an Arc and Area of a Sector", "start": 429, "end": 433}]}, {"code": "18", "title": "Co-ordinate Geometry: The Line", "start": 435, "end": 459, "sections": [{"code": "18.1", "title": "The xy-Plane", "start": 436, "end": 436}, {"code": "18.2", "title": "Distance Between Two Points", "start": 437, "end": 438}, {"code": "18.3", "title": "Midpoint of a Line Segment", "start": 439, "end": 440}, {"code": "18.4", "title": "Slope of a Line", "start": 441, "end": 444}, {"code": "18.5", "title": "The Equation of a Line", "start": 445, "end": 446}, {"code": "18.6", "title": "", "start": 447, "end": 448}, {"code": "18.7", "title": "Finding the Equation of a Line", "start": 449, "end": 450}, {"code": "18.8", "title": "Intersecting Lines", "start": 451, "end": 452}, {"code": "18.9", "title": "Further Equations", "start": 453, "end": 454}, {"code": "18.10", "title": "Area of a Triangle", "start": 455, "end": 459}]}, {"code": "19", "title": "Constructions, Transformations and Enlargements", "start": 461, "end": 493, "sections": [{"code": "19.1", "title": "Junior Cycle Constructions", "start": 462, "end": 470}, {"code": "19.2", "title": "Leaving Certificate Ordinary Level Constructions", "start": 471, "end": 473}, {"code": "19.3", "title": "Leaving Certificate Ordinary Level Constructions II", "start": 474, "end": 477}, {"code": "19.4", "title": "Transformations", "start": 478, "end": 482}, {"code": "19.5", "title": "Enlargements", "start": 483, "end": 487}, {"code": "19.6", "title": "Properties of Enlargements", "start": 487, "end": 493}]}, {"code": "20", "title": "Co-ordinate Geometry: The Circle", "start": 494, "end": 510, "sections": [{"code": "20.1", "title": "Circles with Centre (0,0) and Radius r", "start": 494, "end": 497}, {"code": "20.2", "title": "Lines and Circles", "start": 498, "end": 500}, {"code": "20.3", "title": "Circles with Centre (h,k) and Radius r", "start": 501, "end": 504}, {"code": "20.4", "title": "Intercepts and Points Inside, Outside or On a Circle", "start": 505, "end": 510}]}, {"code": "ANSWERS", "title": "Answers", "start": 511, "end": 563, "sections": [{"code": "A1", "title": "Chapter 1", "start": 511, "end": 512}, {"code": "A2", "title": "Chapter 2", "start": 512, "end": 513}, {"code": "A3", "title": "Chapter 3", "start": 513, "end": 514}, {"code": "A4", "title": "Chapter 4", "start": 514, "end": 514}, {"code": "A5", "title": "Chapter 5", "start": 514, "end": 516}, {"code": "A6", "title": "Chapter 6", "start": 516, "end": 517}, {"code": "A7", "title": "Chapter 7", "start": 517, "end": 518}, {"code": "A8", "title": "Chapter 8", "start": 518, "end": 519}, {"code": "A9", "title": "Chapter 9", "start": 519, "end": 522}, {"code": "A10", "title": "Chapter 10", "start": 522, "end": 523}, {"code": "A11", "title": "Chapter 11", "start": 523, "end": 524}, {"code": "A12", "title": "Chapter 12", "start": 524, "end": 525}, {"code": "A13", "title": "Chapter 13", "start": 525, "end": 528}, {"code": "A14", "title": "Chapter 14", "start": 528, "end": 531}, {"code": "A15", "title": "Chapter 15", "start": 531, "end": 533}, {"code": "A16", "title": "Chapter 16", "start": 533, "end": 534}, {"code": "A17", "title": "Chapter 17", "start": 534, "end": 536}, {"code": "A18", "title": "Chapter 18", "start": 536, "end": 537}, {"code": "A19", "title": "Chapter 19", "start": 537, "end": 538}, {"code": "A20", "title": "Chapter 20", "start": 538, "end": 538}]}, {"code": "BACKCOVER", "title": "End Pages / Credits", "start": 540, "end": 540, "sections": []}]},
-      pageOffset: 0,
-      currentPage: 0,
-      zoom: 1,
-      translateX: 0,
-      translateY: 0,
-      isPanning: false,
-      startX: 0,
-      startY: 0,
-      panStartX: 0,
-      panStartY: 0,
-      currentFitMode: localStorage.getItem("fitMode") || "height",
-      expandedChapters: JSON.parse(localStorage.getItem("expandedChapters") || "{}")
-    };
-  } catch (e) {
-    config = {
-      pages: [], imgBase: "webp", toc: { chapters: [] }, pageOffset: 0, currentPage: 0,
-      zoom: 1, translateX: 0, translateY: 0, isPanning: false, startX: 0, startY: 0,
-      panStartX: 0, panStartY: 0, currentFitMode: "height", expandedChapters: {}
-    };
-  }
+function clamp(v,a,b){return Math.max(a,Math.min(b,v))}
+function escapeHtml(s){return String(s).replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;").replaceAll("'","&#39;")}
+function showZoomIndicator(){zoomIndicator.textContent=Math.round(config.zoom*100)+"%";zoomIndicator.style.display="block";clearTimeout(hideZoomTimer);hideZoomTimer=setTimeout(()=>zoomIndicator.style.display="none",900)}
+function updateTransform(){pageImage.style.transform=`translate(${config.translateX}px, ${config.translateY}px) scale(${config.zoom})`;inkCanvas.style.transform=`translate(${config.translateX}px, ${config.translateY}px) scale(${config.zoom})`;showZoomIndicator();ensureSmartNavVisible()}
+function setFitMode(mode){config.currentFitMode=mode;imageContainer.classList.remove("fit-height","fit-width");imageContainer.classList.add(mode==="width"?"fit-width":"fit-height");$("fit-height").classList.toggle("active",mode==="height");$("fit-width").classList.toggle("active",mode==="width");config.zoom=1;config.translateX=0;config.translateY=0;updateTransform();localStorage.setItem("fitMode",mode)}
+function loadPage(index){if(index<0||index>=config.pages.length)return;config.currentPage=index;pageImage.src=`${config.imgBase}/${config.pages[index]}`;$("current-page").textContent=String(index+1-config.pageOffset);imageContainer.scrollTop=0;imageContainer.scrollLeft=0;config.zoom=1;config.translateX=0;config.translateY=0;updateTransform();clearInk();updateActiveTOC();updateUrl()}
+function updateUrl(){const visiblePage=config.currentPage+1-config.pageOffset;const url=new URL(window.location.href);url.hash=`page=${visiblePage}`;history.replaceState(null,"",url.toString())}
+function copyLink(){navigator.clipboard.writeText(window.location.href).catch(()=>{})}
+function toggleTOC(force){const show=typeof force==="boolean"?force:body.classList.contains("toc-hidden");body.classList.toggle("toc-hidden",!show);localStorage.setItem("tocVisible",show?"true":"false")}
+function loadPageAndHideTOC(index){loadPage(index);toggleTOC(false)}
+function renderTOC(){const container=$("toc-content");const chapters=config.toc&&config.toc.chapters?config.toc.chapters:[];if(!chapters.length){container.innerHTML='<div class="toc-no-data">No contents</div>';return}
+let html="";chapters.forEach((ch,i)=>{const expanded=config.expandedChapters[i]===true;html+=`<div class="toc-chapter ${expanded?"expanded":""}" data-index="${i}"><div class="toc-chapter-header"><span class="chapter-expand">▶</span><div class="chapter-number">${escapeHtml(ch.code||"")}</div><div class="toc-chapter-title" data-start="${(ch.start||1)-1}">${escapeHtml(ch.title||"")}</div></div><div class="toc-sections">${(ch.sections||[]).map(sec=>`<div class="toc-section" data-start="${(sec.start||1)-1}"><div class="section-number">${escapeHtml(sec.code||"")}</div><div>${escapeHtml(sec.title||"")}</div></div>`).join("")}</div></div>`});container.innerHTML=html;
+container.querySelectorAll(".toc-chapter-header").forEach(el=>el.addEventListener("click",ev=>{const chapter=el.closest(".toc-chapter");const index=Number(chapter.dataset.index);const titleEl=el.querySelector(".toc-chapter-title");const start=Number(titleEl.dataset.start);if(ev.target.classList.contains("chapter-expand")||ev.target.classList.contains("chapter-number")){chapter.classList.toggle("expanded");config.expandedChapters[index]=chapter.classList.contains("expanded");localStorage.setItem("expandedChapters",JSON.stringify(config.expandedChapters));return}if(!Number.isNaN(start))loadPageAndHideTOC(start)}));
+container.querySelectorAll(".toc-section").forEach(el=>el.addEventListener("click",()=>{const start=Number(el.dataset.start);if(!Number.isNaN(start))loadPageAndHideTOC(start)}))}
+function updateActiveTOC(){document.querySelectorAll(".toc-section").forEach(el=>el.classList.remove("active"));let best=null,bestDiff=Infinity;document.querySelectorAll(".toc-section").forEach(el=>{const start=Number(el.dataset.start);if(!Number.isNaN(start)&&config.currentPage>=start&&config.currentPage-start<bestDiff){best=el;bestDiff=config.currentPage-start}});if(best)best.classList.add("active")}
+function showPageInput(){const old=$("current-page");const current=old.textContent;const input=document.createElement("input");input.type="number";input.min="1";input.max=String(Math.max(1,config.pages.length-config.pageOffset));input.value=current;input.className="page-input-inline";
+const commit=()=>{const entered=parseInt(input.value,10);input.replaceWith(old);if(!Number.isNaN(entered)){const internal=entered-1+config.pageOffset;loadPage(internal)}else{$("current-page").textContent=current}};
+input.addEventListener("keydown",e=>{if(e.key==="Enter")commit();else if(e.key==="Escape")input.replaceWith(old)});input.addEventListener("blur",commit);old.replaceWith(input);input.focus();input.select()}
+function scrollPage(direction){const step=Math.max(120,Math.round(imageContainer.clientHeight/3));imageContainer.scrollBy({top:direction*step,behavior:"smooth"})}
+function toggleFullscreen(){if(!document.fullscreenElement){document.documentElement.requestFullscreen&&document.documentElement.requestFullscreen()}else{document.exitFullscreen&&document.exitFullscreen()}}
+function setPointer(on){pointerOn=!!on;pointerEl.classList.toggle("active",pointerOn);$("pointer-btn").classList.toggle("active",pointerOn);if(pointerOn){pointerEl.style.display="block";positionPointer(pointerPos.x,pointerPos.y)}}
+function positionPointer(clientX,clientY){pointerPos={x:clientX,y:clientY};if(!pointerOn)return;const rect=imageContainer.getBoundingClientRect();pointerEl.style.left=(clientX-rect.left+imageContainer.scrollLeft)+"px";pointerEl.style.top=(clientY-rect.top+imageContainer.scrollTop)+"px"}
+function buildRulerTicks(){let html="";const maxPx=2400;for(let mm=0;mm*3.78<=maxPx;mm++){const x=(mm*3.78).toFixed(1);if(mm%10===0){html+=`<div class="ruler-tick cm" style="left:${x}px"></div><div class="ruler-tick-label" style="left:${x}px">${mm/10}</div>`}else if(mm%5===0){html+=`<div class="ruler-tick half" style="left:${x}px"></div>`}else{html+=`<div class="ruler-tick mm" style="left:${x}px"></div>`}}rulerTicksEl.innerHTML=html}
+function positionRuler(y){toolPosY=y;rulerEl.style.top=(y-27)+"px"}
+function setRuler(on){if(on){if(activeOverlay==="lightbox"){$("tool-lightbox").classList.remove("active");lightboxEl.classList.remove("active");focusLightbox(false)}activeOverlay="ruler";rulerEl.classList.add("active");$("tool-ruler").classList.add("active");positionRuler(toolPosY)}else{if(activeOverlay==="ruler")activeOverlay=null;rulerEl.classList.remove("active");$("tool-ruler").classList.remove("active")}}
+function initLightbox(){const w=Math.round(imageContainer.clientWidth*.68),h=Math.round(imageContainer.clientHeight*.36);lightbox.w=Math.max(180,w);lightbox.h=Math.max(120,h);lightbox.x=Math.round((imageContainer.clientWidth-lightbox.w)/2);lightbox.y=Math.round(imageContainer.scrollTop+imageContainer.clientHeight*.22);positionLightbox()}
+function positionLightbox(){lightboxEl.style.left=lightbox.x+"px";lightboxEl.style.top=lightbox.y+"px";lightboxEl.style.width=lightbox.w+"px";lightboxEl.style.height=lightbox.h+"px"}
+function focusLightbox(on){lightboxFocused=!!on;lightboxEl.classList.toggle("focused",lightboxFocused)}
+function setLightbox(on){if(on){setRuler(false);if(!lightboxEl.classList.contains("active"))initLightbox();activeOverlay="lightbox";lightboxEl.classList.add("active");$("tool-lightbox").classList.add("active");focusLightbox(true);positionLightbox()}else if(activeOverlay==="lightbox"||lightboxEl.classList.contains("active")){if(activeOverlay==="lightbox")activeOverlay=null;lightboxEl.classList.remove("active");$("tool-lightbox").classList.remove("active");focusLightbox(false)}}
+function sizeInkCanvasToImage(){const rect=pageImage.getBoundingClientRect(),containerRect=imageContainer.getBoundingClientRect();const left=rect.left-containerRect.left+imageContainer.scrollLeft,top=rect.top-containerRect.top+imageContainer.scrollTop,width=rect.width,height=rect.height;inkCanvas.style.left=left+"px";inkCanvas.style.top=top+"px";inkCanvas.style.width=width+"px";inkCanvas.style.height=height+"px";const ratio=window.devicePixelRatio||1;inkCanvas.width=Math.max(1,Math.round(width*ratio));inkCanvas.height=Math.max(1,Math.round(height*ratio));inkCtx=inkCanvas.getContext("2d");inkCtx.setTransform(ratio,0,0,ratio,0,0);inkCtx.lineCap="round";inkCtx.lineJoin="round";inkCtx.strokeStyle="#cc1f4a";inkCtx.lineWidth=3}
+function redrawInk(){if(!inkCtx)return;inkCtx.clearRect(0,0,inkCanvas.width,inkCanvas.height);for(const stroke of inkHistory){inkCtx.strokeStyle=stroke.color;inkCtx.lineWidth=stroke.width;inkCtx.beginPath();stroke.points.forEach((pt,i)=>{if(i===0)inkCtx.moveTo(pt.x,pt.y);else inkCtx.lineTo(pt.x,pt.y)});inkCtx.stroke()}}
+function localPointFromClient(clientX,clientY,el){const rect=el.getBoundingClientRect();return{x:clientX-rect.left,y:clientY-rect.top}}
+function setPenMode(on){penMode=!!on;inkCanvas.classList.toggle("active",penMode);$("tool-pen").classList.toggle("active",penMode);if(penMode)sizeInkCanvasToImage()}
+function clearInk(){inkHistory=[];if(inkCtx)inkCtx.clearRect(0,0,inkCanvas.width,inkCanvas.height)}
+function undoInk(){if(!inkHistory.length)return;inkHistory.pop();redrawInk()}
 
-  const $ = (id) => document.getElementById(id);
-  const body = document.body;
-  const imageContainer = $("image-container");
-  const pageImage = $("page-image");
-  const inkCanvas = $("ink-layer");
-  const pointerEl = $("teacher-pointer");
-  const rulerEl = $("reading-ruler");
-  const rulerTicksEl = $("ruler-ticks");
-  const lightboxEl = $("lightbox");
-  const zoomIndicator = $("zoom-indicator");
-  const smartNavEl = $("smart-nav");
-  const smartNavIconEl = $("smart-nav-icon");
-
-  let activeOverlay = null;
-  let pointerOn = false;
-  let penMode = false;
-  let lightboxFocused = false;
-  let toolPosY = 180;
-  let toolDragging = false;
-  let lbDrag = null;
-  let lbStart = null;
-  let smartNavDrag = null;
-  let pointerPos = { x: 100, y: 100 };
-  let hideZoomTimer = null;
-  let lightbox = { x: 60, y: 80, w: 380, h: 280 };
-  let inkCtx = null;
-  let inkDrawing = false;
-  let inkHistory = [];
-
-  function clamp(v, a, b) { return Math.max(a, Math.min(b, v)); }
-  function escapeHtml(s) {
-    return String(s).replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;")
-      .replaceAll('"', "&quot;").replaceAll("'", "&#39;");
+function ensureSmartNavVisible(){
+  const w = smartNavEl.offsetWidth || 56;
+  const h = smartNavEl.offsetHeight || 56;
+  let left = parseFloat(smartNavEl.dataset.left || "");
+  let top = parseFloat(smartNavEl.dataset.top || "");
+  if (Number.isNaN(left) || Number.isNaN(top)) {
+    left = window.innerWidth - w - 14;
+    top = window.innerHeight - h - 24;
   }
-  function showZoomIndicator() {
-    zoomIndicator.textContent = Math.round(config.zoom * 100) + "%";
-    zoomIndicator.style.display = "block";
-    clearTimeout(hideZoomTimer);
-    hideZoomTimer = setTimeout(() => { zoomIndicator.style.display = "none"; }, 900);
-  }
-  function updateTransform() {
-    pageImage.style.transform = `translate(${config.translateX}px, ${config.translateY}px) scale(${config.zoom})`;
-    inkCanvas.style.transform = `translate(${config.translateX}px, ${config.translateY}px) scale(${config.zoom})`;
-    showZoomIndicator();
-  }
-  function setFitMode(mode) {
-    config.currentFitMode = mode;
-    imageContainer.classList.remove("fit-height", "fit-width");
-    imageContainer.classList.add(mode === "width" ? "fit-width" : "fit-height");
-    $("fit-height").classList.toggle("active", mode === "height");
-    $("fit-width").classList.toggle("active", mode === "width");
-    config.zoom = 1; config.translateX = 0; config.translateY = 0; updateTransform();
-    localStorage.setItem("fitMode", mode);
-  }
-  function updateUrl() {
-    const visiblePage = config.currentPage + 1 - config.pageOffset;
-    const url = new URL(window.location.href);
-    url.hash = `page=${visiblePage}`;
-    history.replaceState(null, "", url.toString());
-  }
-  function clearInk() { inkHistory = []; if (inkCtx) inkCtx.clearRect(0, 0, inkCanvas.width, inkCanvas.height); }
-  function loadPage(index) {
-    if (index < 0 || index >= config.pages.length) return;
-    config.currentPage = index;
-    pageImage.src = `${config.imgBase}/${config.pages[index]}`;
-    $("current-page").textContent = String(index + 1 - config.pageOffset);
-    imageContainer.scrollTop = 0; imageContainer.scrollLeft = 0;
-    config.zoom = 1; config.translateX = 0; config.translateY = 0; updateTransform();
-    clearInk(); updateActiveTOC(); updateUrl();
-  }
-  function copyLink() { navigator.clipboard.writeText(window.location.href).catch(() => {}); }
-  function toggleTOC(force) {
-    const show = typeof force === "boolean" ? force : body.classList.contains("toc-hidden");
-    body.classList.toggle("toc-hidden", !show);
-    localStorage.setItem("tocVisible", show ? "true" : "false");
-  }
-  function loadPageAndHideTOC(index) { loadPage(index); toggleTOC(false); }
-
-  function renderTOC() {
-    const container = $("toc-content");
-    const chapters = config.toc && config.toc.chapters ? config.toc.chapters : [];
-    if (!chapters.length) { container.innerHTML = '<div class="toc-no-data">No contents</div>'; return; }
-    let html = "";
-    chapters.forEach((ch, i) => {
-      const expanded = config.expandedChapters[i] === true;
-      html += `
-        <div class="toc-chapter ${expanded ? "expanded" : ""}" data-index="${i}">
-          <div class="toc-chapter-header">
-            <span class="chapter-expand">▶</span>
-            <div class="chapter-number">${escapeHtml(ch.code || "")}</div>
-            <div class="toc-chapter-title" data-start="${(ch.start || 1) - 1}">${escapeHtml(ch.title || "")}</div>
-          </div>
-          <div class="toc-sections">
-            ${(ch.sections || []).map(sec => `
-              <div class="toc-section" data-start="${(sec.start || 1) - 1}">
-                <div class="section-number">${escapeHtml(sec.code || "")}</div>
-                <div>${escapeHtml(sec.title || "")}</div>
-              </div>`).join("")}
-          </div>
-        </div>`;
-    });
-    container.innerHTML = html;
-    container.querySelectorAll(".toc-chapter-header").forEach((el) => {
-      el.addEventListener("click", (ev) => {
-        const chapter = el.closest(".toc-chapter");
-        const index = Number(chapter.dataset.index);
-        const titleEl = el.querySelector(".toc-chapter-title");
-        const start = Number(titleEl.dataset.start);
-        if (ev.target.classList.contains("chapter-expand") || ev.target.classList.contains("chapter-number")) {
-          chapter.classList.toggle("expanded");
-          config.expandedChapters[index] = chapter.classList.contains("expanded");
-          localStorage.setItem("expandedChapters", JSON.stringify(config.expandedChapters));
-          return;
-        }
-        if (!Number.isNaN(start)) loadPageAndHideTOC(start);
-      });
-    });
-    container.querySelectorAll(".toc-section").forEach((el) => {
-      el.addEventListener("click", () => {
-        const start = Number(el.dataset.start);
-        if (!Number.isNaN(start)) loadPageAndHideTOC(start);
-      });
-    });
-  }
-
-  function updateActiveTOC() {
-    document.querySelectorAll(".toc-section").forEach((el) => el.classList.remove("active"));
-    let best = null, bestDiff = Infinity;
-    document.querySelectorAll(".toc-section").forEach((el) => {
-      const start = Number(el.dataset.start);
-      if (!Number.isNaN(start) && config.currentPage >= start && config.currentPage - start < bestDiff) {
-        best = el; bestDiff = config.currentPage - start;
-      }
-    });
-    if (best) best.classList.add("active");
-  }
-
-  function showPageInput() {
-    const old = $("current-page");
-    const current = old.textContent;
-    const input = document.createElement("input");
-    input.type = "number"; input.min = "1";
-    input.max = String(Math.max(1, config.pages.length - config.pageOffset));
-    input.value = current; input.className = "page-input-inline";
-    const parent = old.parentNode;
-    parent.replaceChild(input, old);
-    function finish(commit) {
-      const span = document.createElement("span");
-      span.id = "current-page"; span.title = "Go to page"; span.textContent = current;
-      span.onclick = showPageInput;
-      parent.replaceChild(span, input);
-      if (commit) {
-        const entered = parseInt(input.value, 10);
-        if (!Number.isNaN(entered)) loadPage(entered - 1 + config.pageOffset);
-      }
-    }
-    input.addEventListener("keydown", (e) => { if (e.key === "Enter") finish(true); else if (e.key === "Escape") finish(false); });
-    input.addEventListener("blur", () => finish(true));
-    input.focus(); input.select();
-  }
-
-  function scrollPage(direction) {
-    const step = Math.max(120, Math.round(imageContainer.clientHeight / 3));
-    imageContainer.scrollBy({ top: direction * step, behavior: "smooth" });
-  }
-  function toggleFullscreen() { if (!document.fullscreenElement) document.documentElement.requestFullscreen?.(); else document.exitFullscreen?.(); }
-
-  function setPointer(on) { pointerOn = !!on; pointerEl.classList.toggle("active", pointerOn); $("pointer-btn").classList.toggle("active", pointerOn); if (pointerOn) positionPointer(pointerPos.x, pointerPos.y); }
-  function positionPointer(clientX, clientY) {
-    pointerPos = { x: clientX, y: clientY };
-    if (!pointerOn) return;
-    const rect = imageContainer.getBoundingClientRect();
-    pointerEl.style.left = (clientX - rect.left + imageContainer.scrollLeft) + "px";
-    pointerEl.style.top = (clientY - rect.top + imageContainer.scrollTop) + "px";
-  }
-
-  function buildRulerTicks() {
-    let html = ""; const maxPx = 2400;
-    for (let mm = 0; mm * 3.78 <= maxPx; mm++) {
-      const x = (mm * 3.78).toFixed(1);
-      if (mm % 10 === 0) { html += `<div class="ruler-tick cm" style="left:${x}px"></div><div class="ruler-tick-label" style="left:${x}px">${mm/10}</div>`; }
-      else if (mm % 5 === 0) { html += `<div class="ruler-tick half" style="left:${x}px"></div>`; }
-      else { html += `<div class="ruler-tick mm" style="left:${x}px"></div>`; }
-    }
-    rulerTicksEl.innerHTML = html;
-  }
-  function positionRuler(y) { toolPosY = y; rulerEl.style.top = (y - 27) + "px"; }
-  function setRuler(on) {
-    if (on) { activeOverlay = "ruler"; rulerEl.classList.add("active"); $("tool-ruler").classList.add("active"); positionRuler(toolPosY); }
-    else if (activeOverlay === "ruler") { activeOverlay = null; rulerEl.classList.remove("active"); $("tool-ruler").classList.remove("active"); }
-  }
-
-  function initLightbox() {
-    const w = Math.round(imageContainer.clientWidth * 0.68), h = Math.round(imageContainer.clientHeight * 0.36);
-    lightbox.w = Math.max(180, w); lightbox.h = Math.max(120, h);
-    lightbox.x = Math.round((imageContainer.clientWidth - lightbox.w) / 2);
-    lightbox.y = Math.round(imageContainer.scrollTop + imageContainer.clientHeight * 0.22);
-    positionLightbox();
-  }
-  function positionLightbox() {
-    lightboxEl.style.left = lightbox.x + "px"; lightboxEl.style.top = lightbox.y + "px";
-    lightboxEl.style.width = lightbox.w + "px"; lightboxEl.style.height = lightbox.h + "px";
-  }
-  function focusLightbox(on) { lightboxFocused = !!on; lightboxEl.classList.toggle("focused", lightboxFocused); }
-  function setLightbox(on) {
-    if (on) {
-      if (!lightboxEl.classList.contains("active")) initLightbox();
-      activeOverlay = "lightbox"; lightboxEl.classList.add("active"); $("tool-lightbox").classList.add("active"); focusLightbox(true); positionLightbox();
-    } else if (activeOverlay === "lightbox" || lightboxEl.classList.contains("active")) {
-      if (activeOverlay === "lightbox") activeOverlay = null;
-      lightboxEl.classList.remove("active"); $("tool-lightbox").classList.remove("active"); focusLightbox(false);
-    }
-  }
-
-  function sizeInkCanvasToImage() {
-    const rect = pageImage.getBoundingClientRect(), containerRect = imageContainer.getBoundingClientRect();
-    const left = rect.left - containerRect.left + imageContainer.scrollLeft;
-    const top = rect.top - containerRect.top + imageContainer.scrollTop;
-    const width = rect.width, height = rect.height;
-    inkCanvas.style.left = left + "px"; inkCanvas.style.top = top + "px";
-    inkCanvas.style.width = width + "px"; inkCanvas.style.height = height + "px";
-    const ratio = window.devicePixelRatio || 1;
-    inkCanvas.width = Math.max(1, Math.round(width * ratio));
-    inkCanvas.height = Math.max(1, Math.round(height * ratio));
-    inkCtx = inkCanvas.getContext("2d");
-    inkCtx.setTransform(ratio, 0, 0, ratio, 0, 0);
-    inkCtx.lineCap = "round"; inkCtx.lineJoin = "round"; inkCtx.strokeStyle = "#cc1f4a"; inkCtx.lineWidth = 3;
-  }
-  function redrawInk() {
-    if (!inkCtx) return;
-    inkCtx.clearRect(0, 0, inkCanvas.width, inkCanvas.height);
-    for (const stroke of inkHistory) {
-      inkCtx.strokeStyle = stroke.color; inkCtx.lineWidth = stroke.width; inkCtx.beginPath();
-      stroke.points.forEach((pt, i) => { if (i === 0) inkCtx.moveTo(pt.x, pt.y); else inkCtx.lineTo(pt.x, pt.y); });
-      inkCtx.stroke();
-    }
-  }
-  function localPointFromClient(clientX, clientY) {
-    const rect = inkCanvas.getBoundingClientRect(); return { x: clientX - rect.left, y: clientY - rect.top };
-  }
-  function setPenMode(on) { penMode = !!on; inkCanvas.classList.toggle("active", penMode); $("tool-pen").classList.toggle("active", penMode); if (penMode) { sizeInkCanvasToImage(); redrawInk(); } }
-  function undoInk() { if (!inkHistory.length) return; inkHistory.pop(); redrawInk(); }
-
-  function detectSmartNavMode() {
-    const rect = smartNavEl.getBoundingClientRect();
-    const cx = rect.left + rect.width / 2, cy = rect.top + rect.height / 2;
-    const dTop = cy, dBottom = window.innerHeight - cy, dLeft = cx, dRight = window.innerWidth - cx;
-    const m = Math.min(dTop, dBottom, dLeft, dRight);
-    if (m === dTop) return "up"; if (m === dBottom) return "down"; if (m === dLeft) return "left"; return "right";
-  }
-  function updateSmartNav() {
-    const mode = detectSmartNavMode(); smartNavEl.dataset.mode = mode;
-    smartNavIconEl.textContent = mode === "up" ? "↑" : mode === "down" ? "↓" : mode === "left" ? "‹" : "›";
-    smartNavEl.title = mode === "up" ? "Scroll up" : mode === "down" ? "Scroll down" : mode === "left" ? "Previous page" : "Next page";
-  }
-  function actSmartNav() {
-    const mode = smartNavEl.dataset.mode || "down";
-    if (mode === "up") scrollPage(-1); else if (mode === "down") scrollPage(1); else if (mode === "left") loadPage(config.currentPage - 1); else loadPage(config.currentPage + 1);
-  }
-
-  function initFromHash() {
-    const m = (window.location.hash || "").match(/page=(\d+)/); if (!m) return;
-    const visiblePage = parseInt(m[1], 10); if (Number.isNaN(visiblePage)) return;
-    const internalIndex = visiblePage - 1 + config.pageOffset;
-    if (internalIndex >= 0 && internalIndex < config.pages.length) config.currentPage = internalIndex;
-  }
-  function initPageCount() { $("total-pages").textContent = String(Math.max(0, config.pages.length - config.pageOffset)); }
-  function restoreUiState() { if (localStorage.getItem("tocVisible") === "true") toggleTOC(true); setFitMode(config.currentFitMode); }
-  function tryStartPan(clientX, clientY, target) {
-    const onCanvas = (target === pageImage || target === imageContainer), onLightbox = !!target.closest(".lightbox");
-    if (penMode) return false;
-    if (config.zoom > 1 && onCanvas && !onLightbox) {
-      config.isPanning = true; config.startX = clientX; config.startY = clientY; config.panStartX = config.translateX; config.panStartY = config.translateY; return true;
-    }
-    return false;
-  }
-  function moveLightboxByKey(dx, dy) { lightbox.x += dx; lightbox.y += dy; positionLightbox(); }
-
-  function bindEvents() {
-    $("toc-toggle-fixed").onclick = () => toggleTOC();
-    $("toc-btn").onclick = () => toggleTOC();
-    $("toc-close").onclick = () => toggleTOC(false);
-    $("fit-height").onclick = () => setFitMode("height");
-    $("fit-width").onclick = () => setFitMode("width");
-    $("zoom-in").onclick = () => { config.zoom = Math.min(4, config.zoom + 0.15); updateTransform(); };
-    $("zoom-out").onclick = () => { config.zoom = Math.max(0.25, config.zoom - 0.15); updateTransform(); };
-    $("copy-link").onclick = copyLink;
-    $("fullscreen").onclick = toggleFullscreen;
-    $("print-btn").onclick = () => window.print();
-    $("pointer-btn").onclick = () => setPointer(!pointerOn);
-    $("tool-ruler").onclick = () => { if (rulerEl.classList.contains("active")) setRuler(false); else setRuler(true); };
-    $("tool-lightbox").onclick = () => { if (lightboxEl.classList.contains("active")) setLightbox(false); else setLightbox(true); };
-    $("tool-pen").onclick = () => setPenMode(!penMode);
-    $("tool-clear-ink").onclick = clearInk;
-    $("tool-undo").onclick = undoInk;
-    $("current-page").onclick = showPageInput;
-
-    imageContainer.addEventListener("mousemove", (e) => positionPointer(e.clientX, e.clientY));
-    imageContainer.addEventListener("mouseleave", () => { if (pointerOn) pointerEl.style.display = "none"; });
-    imageContainer.addEventListener("mouseenter", () => { if (pointerOn) pointerEl.style.display = "block"; });
-    imageContainer.addEventListener("scroll", () => { positionPointer(pointerPos.x, pointerPos.y); if (rulerEl.classList.contains("active")) positionRuler(toolPosY); });
-
-    imageContainer.addEventListener("mousedown", (e) => {
-      if (e.target === pageImage || e.target === imageContainer) focusLightbox(false);
-      if (activeOverlay === "ruler" && e.target !== inkCanvas && !e.target.closest(".lightbox") && !penMode) {
-        toolDragging = true;
-        toolPosY = e.clientY - imageContainer.getBoundingClientRect().top + imageContainer.scrollTop;
-        positionRuler(toolPosY); return;
-      }
-      if (tryStartPan(e.clientX, e.clientY, e.target)) e.preventDefault();
-    });
-
-    window.addEventListener("mousemove", (e) => {
-      if (toolDragging && rulerEl.classList.contains("active")) {
-        toolPosY = e.clientY - imageContainer.getBoundingClientRect().top + imageContainer.scrollTop;
-        positionRuler(toolPosY);
-      }
-      if (config.isPanning) {
-        config.translateX = config.panStartX + (e.clientX - config.startX);
-        config.translateY = config.panStartY + (e.clientY - config.startY);
-        updateTransform();
-      }
-      if (lbDrag && lbStart) {
-        const dx = e.clientX - lbStart.x, dy = e.clientY - lbStart.y, minSize = 60;
-        if (lbDrag === "move") { lightbox.x = lbStart.boxX + dx; lightbox.y = lbStart.boxY + dy; }
-        else if (lbDrag === "tl") { lightbox.x = lbStart.boxX + dx; lightbox.y = lbStart.boxY + dy; lightbox.w = Math.max(minSize, lbStart.boxW - dx); lightbox.h = Math.max(minSize, lbStart.boxH - dy); }
-        else if (lbDrag === "tr") { lightbox.y = lbStart.boxY + dy; lightbox.w = Math.max(minSize, lbStart.boxW + dx); lightbox.h = Math.max(minSize, lbStart.boxH - dy); }
-        else if (lbDrag === "bl") { lightbox.x = lbStart.boxX + dx; lightbox.w = Math.max(minSize, lbStart.boxW - dx); lightbox.h = Math.max(minSize, lbStart.boxH + dy); }
-        else if (lbDrag === "br") { lightbox.w = Math.max(minSize, lbStart.boxW + dx); lightbox.h = Math.max(minSize, lbStart.boxH + dy); }
-        positionLightbox();
-      }
-      if (smartNavDrag) {
-        const dx = e.clientX - smartNavDrag.startX, dy = e.clientY - smartNavDrag.startY;
-        if (Math.abs(dx) > 4 || Math.abs(dy) > 4) smartNavDrag.moved = true;
-        const w = smartNavEl.offsetWidth, h = smartNavEl.offsetHeight;
-        const left = clamp(smartNavDrag.left + dx, 8, window.innerWidth - w - 8);
-        const top = clamp(smartNavDrag.top + dy, 8, window.innerHeight - h - 8);
-        smartNavEl.style.left = (left + w / 2) + "px"; smartNavEl.style.top = (top + h / 2) + "px"; updateSmartNav();
-      }
-    });
-
-    window.addEventListener("mouseup", () => {
-      toolDragging = false; config.isPanning = false; lbDrag = null; lbStart = null;
-      if (smartNavDrag) { const moved = smartNavDrag.moved; smartNavDrag = null; smartNavEl.classList.remove("dragging"); if (!moved) actSmartNav(); }
-    });
-
-    lightboxEl.addEventListener("mousedown", (e) => {
-      e.preventDefault(); e.stopPropagation(); focusLightbox(true);
-      const handle = e.target.closest(".lb-handle"); lbDrag = handle ? handle.dataset.corner : "move";
-      lbStart = { x: e.clientX, y: e.clientY, boxX: lightbox.x, boxY: lightbox.y, boxW: lightbox.w, boxH: lightbox.h };
-    });
-
-    smartNavEl.addEventListener("mousedown", (e) => {
-      e.preventDefault(); e.stopPropagation(); const rect = smartNavEl.getBoundingClientRect();
-      smartNavDrag = { startX: e.clientX, startY: e.clientY, left: rect.left, top: rect.top, moved: false };
-      smartNavEl.classList.add("dragging");
-    });
-
-    imageContainer.addEventListener("wheel", (e) => {
-      if (e.ctrlKey) { e.preventDefault(); const delta = e.deltaY < 0 ? 0.08 : -0.08; config.zoom = clamp(config.zoom + delta, 0.25, 4); updateTransform(); }
-    }, { passive: false });
-
-    window.addEventListener("keydown", (e) => {
-      if (document.activeElement && document.activeElement.tagName === "INPUT") return;
-      if (e.key === "ArrowUp") {
-        e.preventDefault(); if (lightboxFocused && lightboxEl.classList.contains("active")) moveLightboxByKey(0, -18); else if (rulerEl.classList.contains("active")) positionRuler(toolPosY - 18); else scrollPage(-1);
-      } else if (e.key === "ArrowDown") {
-        e.preventDefault(); if (lightboxFocused && lightboxEl.classList.contains("active")) moveLightboxByKey(0, 18); else if (rulerEl.classList.contains("active")) positionRuler(toolPosY + 18); else scrollPage(1);
-      } else if (e.key === "ArrowLeft") {
-        e.preventDefault(); if (lightboxFocused && lightboxEl.classList.contains("active")) moveLightboxByKey(-18, 0); else loadPage(config.currentPage - 1);
-      } else if (e.key === "ArrowRight") {
-        e.preventDefault(); if (lightboxFocused && lightboxEl.classList.contains("active")) moveLightboxByKey(18, 0); else loadPage(config.currentPage + 1);
-      } else if (e.key.toLowerCase() === "t") toggleTOC();
-      else if (e.key.toLowerCase() === "p") setPointer(!pointerOn);
-      else if (e.key.toLowerCase() === "r") { if (rulerEl.classList.contains("active")) setRuler(false); else setRuler(true); }
-      else if (e.key.toLowerCase() === "l") { if (lightboxEl.classList.contains("active")) setLightbox(false); else setLightbox(true); }
-    });
-
-    pageImage.addEventListener("load", () => { sizeInkCanvasToImage(); redrawInk(); if (lightboxEl.classList.contains("active")) positionLightbox(); if (pointerOn) positionPointer(pointerPos.x, pointerPos.y); });
-
-    inkCanvas.addEventListener("pointerdown", (e) => {
-      if (!penMode) return; e.preventDefault(); sizeInkCanvasToImage();
-      const pt = localPointFromClient(e.clientX, e.clientY); const stroke = { color: "#cc1f4a", width: 3, points: [pt] };
-      inkHistory.push(stroke); inkDrawing = true; redrawInk(); inkCanvas.setPointerCapture?.(e.pointerId);
-    });
-    inkCanvas.addEventListener("pointermove", (e) => { if (!penMode || !inkDrawing || !inkHistory.length) return; const pt = localPointFromClient(e.clientX, e.clientY); inkHistory[inkHistory.length - 1].points.push(pt); redrawInk(); });
-    inkCanvas.addEventListener("pointerup", () => { inkDrawing = false; });
-    inkCanvas.addEventListener("pointercancel", () => { inkDrawing = false; });
-
-    window.addEventListener("resize", () => { sizeInkCanvasToImage(); redrawInk(); updateSmartNav(); if (lightboxEl.classList.contains("active")) positionLightbox(); });
-  }
-
-  function init() {
-    buildRulerTicks();
-    initFromHash();
-    initPageCount();
-    renderTOC();
-    restoreUiState();
-    bindEvents();
-    loadPage(config.currentPage);
-    if (config.toc && config.toc.chapters && config.toc.chapters.length) setTimeout(() => toggleTOC(true), 80);
+  left = clamp(left, 8, window.innerWidth - w - 8);
+  top = clamp(top, 50, window.innerHeight - h - 8);
+  smartNavEl.dataset.left = String(left);
+  smartNavEl.dataset.top = String(top);
+  smartNavEl.style.left = (left + w / 2) + "px";
+  smartNavEl.style.top = (top + h / 2) + "px";
+}
+function setSmartNavVisible(on){
+  smartNavEl.classList.toggle("hidden", !on);
+  $("smart-nav-toggle").classList.toggle("active", on);
+  localStorage.setItem("smartNavVisible", on ? "true" : "false");
+  if (on) {
+    ensureSmartNavVisible();
     updateSmartNav();
   }
-
-  init();
+}
+function detectSmartNavMode(){const rect=smartNavEl.getBoundingClientRect(),cx=rect.left+rect.width/2,cy=rect.top+rect.height/2;const dTop=cy,dBottom=window.innerHeight-cy,dLeft=cx,dRight=window.innerWidth-cx,m=Math.min(dTop,dBottom,dLeft,dRight);if(m===dTop)return"up";if(m===dBottom)return"down";if(m===dLeft)return"left";return"right"}
+function updateSmartNav(){if(smartNavEl.classList.contains("hidden")) return; const mode=detectSmartNavMode();smartNavEl.dataset.mode=mode;smartNavIconEl.textContent=mode==="up"?"↑":mode==="down"?"↓":mode==="left"?"‹":"›";smartNavEl.title=mode==="up"?"Scroll up":mode==="down"?"Scroll down":mode==="left"?"Previous page":"Next page"}
+function actSmartNav(){const mode=smartNavEl.dataset.mode||"down";if(mode==="up")scrollPage(-1);else if(mode==="down")scrollPage(1);else if(mode==="left")loadPage(config.currentPage-1);else if(mode==="right")loadPage(config.currentPage+1)}
+function initFromHash(){const m=(window.location.hash||"").match(/page=(\d+)/);if(!m)return;const visiblePage=parseInt(m[1],10);if(Number.isNaN(visiblePage))return;const internalIndex=visiblePage-1+config.pageOffset;if(internalIndex>=0&&internalIndex<config.pages.length)config.currentPage=internalIndex}
+function initPageCount(){$("total-pages").textContent=String(Math.max(0,config.pages.length-config.pageOffset))}
+function restoreUiState(){if(localStorage.getItem("tocVisible")==="true")toggleTOC(true);setFitMode(config.currentFitMode);setSmartNavVisible(localStorage.getItem("smartNavVisible")!=="false")}
+function tryStartPan(clientX,clientY,target){const onCanvas=(target===pageImage||target===imageContainer),onLightbox=!!target.closest(".lightbox");if(penMode)return false;if(config.zoom>1&&onCanvas&&!onLightbox){config.isPanning=true;config.startX=clientX;config.startY=clientY;config.panStartX=config.translateX;config.panStartY=config.translateY;return true}return false}
+function moveLightboxByKey(dx,dy){lightbox.x+=dx;lightbox.y+=dy;positionLightbox()}
+function openPrintDialog(){const max=Math.max(1,config.pages.length-config.pageOffset);$("print-from").value=String(config.currentPage+1-config.pageOffset);$("print-to").value=String(config.currentPage+1-config.pageOffset);$("print-from").max=String(max);$("print-to").max=String(max);$("print-range-dialog").classList.add("open")}
+function closePrintDialog(){$("print-range-dialog").classList.remove("open")}
+function printRange(){const from=parseInt($("print-from").value,10),to=parseInt($("print-to").value,10),max=Math.max(1,config.pages.length-config.pageOffset);if(Number.isNaN(from)||Number.isNaN(to)||from<1||to<1||from>max||to>max||from>to){alert("Enter a valid page range.");return}const bookName=decodeURIComponent(document.title.replace(" - Viewer",""));const startInternal=from-1+config.pageOffset,endInternal=to-1+config.pageOffset;let htmlPages="";for(let i=startInternal;i<=endInternal;i++){const src=`${config.imgBase}/${config.pages[i]}`;htmlPages+=`<img src="${src}" style="width:100%;page-break-after:always;display:block;">`}const w=window.open("","_blank");w.document.write(`<!DOCTYPE html><html><head><title>${bookName} pages ${from}-${to}</title><style>body{margin:0}img{width:100%;display:block}img:last-child{page-break-after:auto}</style></head><body>${htmlPages}</body></html>`);w.document.close();w.focus();setTimeout(()=>w.print(),300);closePrintDialog()}
+function bindEvents(){
+$("toc-btn").onclick=()=>toggleTOC();$("toc-close").onclick=()=>toggleTOC(false);
+$("fit-height").onclick=()=>setFitMode("height");$("fit-width").onclick=()=>setFitMode("width");
+$("zoom-in").onclick=()=>{config.zoom=Math.min(4,config.zoom+.15);updateTransform()};$("zoom-out").onclick=()=>{config.zoom=Math.max(.25,config.zoom-.15);updateTransform()};
+$("copy-link").onclick=copyLink;$("fullscreen").onclick=toggleFullscreen;$("print-range-btn").onclick=openPrintDialog;$("print-cancel").onclick=closePrintDialog;$("print-do").onclick=printRange;
+$("pointer-btn").onclick=()=>setPointer(!pointerOn);
+$("tool-ruler").onclick=()=>{if(rulerEl.classList.contains("active"))setRuler(false);else setRuler(true)};
+$("tool-lightbox").onclick=()=>{if(lightboxEl.classList.contains("active"))setLightbox(false);else setLightbox(true)};
+$("tool-pen").onclick=()=>setPenMode(!penMode);
+$("tool-clear-ink").onclick=clearInk;$("tool-undo").onclick=undoInk;$("current-page").onclick=showPageInput;
+$("smart-nav-toggle").onclick=()=>setSmartNavVisible(smartNavEl.classList.contains("hidden"));
+imageContainer.addEventListener("mousemove",e=>positionPointer(e.clientX,e.clientY));
+imageContainer.addEventListener("mouseleave",()=>{if(pointerOn)pointerEl.style.display="none"});
+imageContainer.addEventListener("mouseenter",()=>{if(pointerOn)pointerEl.style.display="block"});
+imageContainer.addEventListener("scroll",()=>{positionPointer(pointerPos.x,pointerPos.y);if(rulerEl.classList.contains("active"))positionRuler(toolPosY)});
+imageContainer.addEventListener("mousedown",e=>{if(e.target===pageImage||e.target===imageContainer)focusLightbox(false);if(activeOverlay==="ruler"&&e.target!==inkCanvas&&!e.target.closest(".lightbox")&&!penMode){toolDragging=true;toolPosY=e.clientY-imageContainer.getBoundingClientRect().top+imageContainer.scrollTop;positionRuler(toolPosY);return}if(tryStartPan(e.clientX,e.clientY,e.target))e.preventDefault()});
+window.addEventListener("mousemove",e=>{if(toolDragging&&rulerEl.classList.contains("active")){toolPosY=e.clientY-imageContainer.getBoundingClientRect().top+imageContainer.scrollTop;positionRuler(toolPosY)}if(config.isPanning){config.translateX=config.panStartX+(e.clientX-config.startX);config.translateY=config.panStartY+(e.clientY-config.startY);updateTransform()}if(lbDrag&&lbStart){const dx=e.clientX-lbStart.x,dy=e.clientY-lbStart.y,minSize=60;if(lbDrag==="move"){lightbox.x=lbStart.boxX+dx;lightbox.y=lbStart.boxY+dy}else if(lbDrag==="tl"){lightbox.x=lbStart.boxX+dx;lightbox.y=lbStart.boxY+dy;lightbox.w=Math.max(minSize,lbStart.boxW-dx);lightbox.h=Math.max(minSize,lbStart.boxH-dy)}else if(lbDrag==="tr"){lightbox.y=lbStart.boxY+dy;lightbox.w=Math.max(minSize,lbStart.boxW+dx);lightbox.h=Math.max(minSize,lbStart.boxH-dy)}else if(lbDrag==="bl"){lightbox.x=lbStart.boxX+dx;lightbox.w=Math.max(minSize,lbStart.boxW-dx);lightbox.h=Math.max(minSize,lbStart.boxH+dy)}else if(lbDrag==="br"){lightbox.w=Math.max(minSize,lbStart.boxW+dx);lightbox.h=Math.max(minSize,lbStart.boxH+dy)}positionLightbox()}if(smartNavDrag){const dx=e.clientX-smartNavDrag.startX,dy=e.clientY-smartNavDrag.startY;if(Math.abs(dx)>4||Math.abs(dy)>4)smartNavDrag.moved=true;const w=smartNavEl.offsetWidth,h=smartNavEl.offsetHeight,left=clamp(smartNavDrag.left+dx,8,window.innerWidth-w-8),top=clamp(smartNavDrag.top+dy,50,window.innerHeight-h-8);smartNavEl.dataset.left=String(left);smartNavEl.dataset.top=String(top);smartNavEl.style.left=(left+w/2)+"px";smartNavEl.style.top=(top+h/2)+"px";updateSmartNav()}});
+window.addEventListener("mouseup",()=>{toolDragging=false;config.isPanning=false;lbDrag=null;lbStart=null;if(smartNavDrag){const moved=smartNavDrag.moved;smartNavDrag=null;smartNavEl.classList.remove("dragging");if(!moved)actSmartNav()}});
+lightboxEl.addEventListener("mousedown",e=>{e.preventDefault();e.stopPropagation();focusLightbox(true);const handle=e.target.closest(".lb-handle");lbDrag=handle?handle.dataset.corner:"move";lbStart={x:e.clientX,y:e.clientY,boxX:lightbox.x,boxY:lightbox.y,boxW:lightbox.w,boxH:lightbox.h}});
+smartNavEl.addEventListener("mousedown",e=>{if(smartNavEl.classList.contains("hidden")) return; e.preventDefault();e.stopPropagation();const rect=smartNavEl.getBoundingClientRect();smartNavDrag={startX:e.clientX,startY:e.clientY,left:rect.left,top:rect.top,moved:false};smartNavEl.classList.add("dragging")});
+imageContainer.addEventListener("wheel",e=>{if(e.ctrlKey){e.preventDefault();const delta=e.deltaY<0?.08:-.08;config.zoom=clamp(config.zoom+delta,.25,4);updateTransform()}},{passive:false});
+window.addEventListener("keydown",e=>{if(document.activeElement&&document.activeElement.tagName==="INPUT")return;if(e.key==="ArrowUp"){e.preventDefault();if(lightboxFocused&&lightboxEl.classList.contains("active"))moveLightboxByKey(0,-18);else if(rulerEl.classList.contains("active"))positionRuler(toolPosY-18);else scrollPage(-1)}else if(e.key==="ArrowDown"){e.preventDefault();if(lightboxFocused&&lightboxEl.classList.contains("active"))moveLightboxByKey(0,18);else if(rulerEl.classList.contains("active"))positionRuler(toolPosY+18);else scrollPage(1)}else if(e.key==="ArrowLeft"){e.preventDefault();if(lightboxFocused&&lightboxEl.classList.contains("active"))moveLightboxByKey(-18,0);else loadPage(config.currentPage-1)}else if(e.key==="ArrowRight"){e.preventDefault();if(lightboxFocused&&lightboxEl.classList.contains("active"))moveLightboxByKey(18,0);else loadPage(config.currentPage+1)}else if(e.key.toLowerCase()==="t"){toggleTOC()}else if(e.key.toLowerCase()==="p"){setPointer(!pointerOn)}else if(e.key.toLowerCase()==="r"){if(rulerEl.classList.contains("active"))setRuler(false);else setRuler(true)}else if(e.key.toLowerCase()==="l"){if(lightboxEl.classList.contains("active"))setLightbox(false);else setLightbox(true)}else if(e.key.toLowerCase()==="n"){setSmartNavVisible(smartNavEl.classList.contains("hidden"))}else if(e.key==="Escape"){closePrintDialog()}});
+pageImage.addEventListener("load",()=>{sizeInkCanvasToImage();redrawInk();if(lightboxEl.classList.contains("active"))positionLightbox();if(pointerOn)positionPointer(pointerPos.x,pointerPos.y);ensureSmartNavVisible();updateSmartNav()});
+inkCanvas.addEventListener("pointerdown",e=>{if(!penMode)return;e.preventDefault();sizeInkCanvasToImage();const pt=localPointFromClient(e.clientX,e.clientY,inkCanvas);const stroke={color:"#cc1f4a",width:3,points:[pt]};inkHistory.push(stroke);inkDrawing=true;redrawInk();inkCanvas.setPointerCapture&&inkCanvas.setPointerCapture(e.pointerId)});
+inkCanvas.addEventListener("pointermove",e=>{if(!penMode||!inkDrawing||!inkHistory.length)return;const pt=localPointFromClient(e.clientX,e.clientY,inkCanvas);inkHistory[inkHistory.length-1].points.push(pt);redrawInk()});
+inkCanvas.addEventListener("pointerup",()=>{inkDrawing=false});inkCanvas.addEventListener("pointercancel",()=>{inkDrawing=false});
+window.addEventListener("resize",()=>{sizeInkCanvasToImage();redrawInk();ensureSmartNavVisible();updateSmartNav();if(lightboxEl.classList.contains("active"))positionLightbox()});
+$("print-range-dialog").addEventListener("click",e=>{if(e.target.id==="print-range-dialog")closePrintDialog()});
+}
+function init(){buildRulerTicks();initFromHash();initPageCount();renderTOC();restoreUiState();bindEvents();ensureSmartNavVisible();loadPage(config.currentPage);if(config.toc&&config.toc.chapters&&config.toc.chapters.length){setTimeout(()=>toggleTOC(true),80)}updateSmartNav()}
+init();
 })();
 </script>
 </body>
