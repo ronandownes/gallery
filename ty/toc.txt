@@ -1,0 +1,14 @@
+OFFSET|6
+CHAPTER|COVER|Cover & Title Pages|start=1|end=4
+CHAPTER|TOC|Table of Contents|start=5|end=5
+CHAPTER|INTRO|Introduction|start=6|end=6
+CHAPTER|01|Getting the Basics Right|start=7|end=18
+CHAPTER|02|Evaluating and Manipulating|start=19|end=30
+CHAPTER|03|Simultaneous Equations and Graphs|start=31|end=45
+CHAPTER|04|Quadratic Equations, Inequalities and Graphs|start=46|end=58
+CHAPTER|05|Co-ordinate Geometry: The Line|start=59|end=68
+CHAPTER|06|Co-ordinate Geometry: The Circle|start=69|end=79
+CHAPTER|07|Trigonometry|start=80|end=97
+CHAPTER|08|Indices|start=98|end=111
+CHAPTER|09|Probability|start=112|end=118
+CHAPTER|ANSWERS|Answers|start=119|end=124
