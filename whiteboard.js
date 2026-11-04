@@ -410,6 +410,8 @@ layer.style.top=toolbar.offsetHeight+"px";
 layer.style.height="calc(100% - "+toolbar.offsetHeight+"px)";
 sizeInk();
 
+// Legacy dynamic recorder for textbook viewers without a permanent recording control.
+if(!document.getElementById("gallery-record-voice")){
 // Share screen and explicitly mix microphone input into the recorded video.
 const recBtn=document.createElement("button");
 recBtn.id="gallery-record-voice";recBtn.className="toolbar-btn gallery-record-btn";
@@ -468,5 +470,6 @@ recBtn.onclick=async()=>{
   },500);
  }catch(e){cleanup();recorder=null;alert("Recording not started. "+e.message+"\nYou can still record Gallery with Snagit and Record Microphone enabled.")}
 };
+}
 })();
 
