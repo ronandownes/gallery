@@ -85,9 +85,7 @@ body.toc-hidden .toc-sidebar { margin-left: -320px; }
   width: 60px; padding: 3px 4px; text-align: center;
   border: 1px solid #7f5cff; border-radius: 4px; background: #181818; color: #fff;
 }
-.tiny-links { display: flex; gap: 8px; align-items: center; margin-left: 6px; }
-.tiny-links a { font-size: 10px; color: #bfbfbf; text-decoration: none; }
-.tiny-links a:hover { color: #fff; text-decoration: underline; }
+.calculator-launch{margin-left:5px;font-size:12px;font-weight:600;white-space:nowrap}
 
 .image-container {
   position: relative; flex: 1; overflow: auto; background: #1a1a1a; touch-action: none;
@@ -189,6 +187,31 @@ body.toc-hidden .toc-sidebar { margin-left: -320px; }
 .page-nav button:active{background:transparent;color:#555}
 .page-nav button:disabled{opacity:.24;cursor:default}
 
+/* Compact, in-page calculator — the book remains open behind it */
+.calculator-panel{
+ position:fixed;z-index:2500;top:52px;right:12px;
+ width:min(478px,calc(100vw - 24px));
+ height:min(690px,calc(100dvh - 64px));
+ min-width:min(330px,calc(100vw - 24px));min-height:290px;
+ display:flex;flex-direction:column;overflow:hidden;resize:both;
+ border:1px solid #555;border-radius:11px;background:#f2f2f2;
+ box-shadow:0 10px 36px rgba(0,0,0,.4);
+}
+.calculator-panel[hidden]{display:none}
+.calculator-panel-header{
+ display:flex;align-items:center;gap:9px;justify-content:space-between;
+ height:38px;min-height:38px;padding:0 8px 0 13px;
+ background:#252525;color:#e9e9e9;cursor:move;touch-action:none;
+ font-size:13px;font-weight:600;user-select:none;
+}
+.calculator-panel-header button{
+ min-width:30px;min-height:29px;border:1px solid #515151;border-radius:5px;
+ background:#303030;color:#fff;font-size:19px;cursor:pointer;
+}
+.calculator-panel-header button:hover{background:#484848}
+.calculator-panel iframe{flex:1;display:block;min-height:0;width:100%;border:0;background:#efefef}
+@media(max-width:520px){.calculator-panel{right:6px;top:49px;width:calc(100vw - 12px);height:min(680px,calc(100dvh - 58px));min-width:0}}
+
 /* Print dialog */
 .print-range-dialog {
   position: fixed; inset: 0; display: none; align-items: center; justify-content: center;
@@ -215,7 +238,7 @@ body.toc-hidden .toc-sidebar { margin-left: -320px; }
 .print-actions button.primary { background: #7f5cff; border-color: #9b87ff; }
 
 @media print {
-  .toc-sidebar,.controls,.smart-nav,.teacher-pointer,#ink-layer,.reading-ruler,.lightbox,.zoom-indicator,.print-range-dialog {
+  .toc-sidebar,.controls,.smart-nav,.teacher-pointer,#ink-layer,.reading-ruler,.lightbox,.zoom-indicator,.print-range-dialog,.calculator-panel {
     display:none!important;
   }
   html,body{overflow:visible!important;background:#fff!important}
@@ -229,7 +252,7 @@ body.toc-hidden .toc-sidebar { margin-left: -320px; }
   .toolbar-btn{min-width:28px;height:28px}
   .page-nav{padding:0 5px}
   .page-nav button{width:42px;height:58px;font-size:40px}
-  .tiny-links{display:none}
+  .calculator-launch{font-size:12px;padding:0 6px}
 }
 </style>
 </head>
@@ -251,10 +274,7 @@ body.toc-hidden .toc-sidebar { margin-left: -320px; }
       <button class="toolbar-btn" id="zoom-in" title="Zoom in">+</button>
       <span class="sep"></span>
       <span class="page-info"><span id="current-page" title="Go to page">1</span><span>/</span><span id="total-pages">0</span></span>
-      <div class="tiny-links">
-        <a href="https://www.geogebra.org/calculator" target="_blank" rel="noopener noreferrer">GG Calc</a>
-        <a href="https://www.geogebra.org/geometry" target="_blank" rel="noopener noreferrer">GG Geometry</a>
-      </div>
+      <button class="toolbar-btn calculator-launch" type="button" id="calculator-toggle" title="Open your calculator inside the gallery" aria-controls="calculator-panel" aria-expanded="false">Calc</button>
     </div>
     <div class="controls-right">
       <button class="toolbar-btn" id="pointer-btn" title="Pointer">➤</button>
@@ -294,6 +314,14 @@ body.toc-hidden .toc-sidebar { margin-left: -320px; }
     <button type="button" id="nav-right" aria-label="Next page" title="Next page">›</button>
   </nav>
 </div>
+
+<aside class="calculator-panel" id="calculator-panel" hidden aria-label="Calculator">
+  <div class="calculator-panel-header" id="calculator-drag-bar">
+    <span>Scientific Calculator</span>
+    <button id="calculator-close" type="button" title="Close calculator" aria-label="Close calculator">×</button>
+  </div>
+  <iframe id="calculator-frame" title="Maths scientific calculator" loading="lazy" referrerpolicy="strict-origin-when-cross-origin"></iframe>
+</aside>
 
 <div class="print-range-dialog" id="print-range-dialog">
   <div class="print-card">
@@ -410,6 +438,71 @@ function moveLightboxByKey(dx,dy){lightbox.x+=dx;lightbox.y+=dy;positionLightbox
 function openPrintDialog(){const max=Math.max(1,config.pages.length-config.pageOffset);$("print-from").value=String(config.currentPage+1-config.pageOffset);$("print-to").value=String(config.currentPage+1-config.pageOffset);$("print-from").max=String(max);$("print-to").max=String(max);$("print-range-dialog").classList.add("open")}
 function closePrintDialog(){$("print-range-dialog").classList.remove("open")}
 function printRange(){const from=parseInt($("print-from").value,10),to=parseInt($("print-to").value,10),max=Math.max(1,config.pages.length-config.pageOffset);if(Number.isNaN(from)||Number.isNaN(to)||from<1||to<1||from>max||to>max||from>to){alert("Enter a valid page range.");return}const bookName=decodeURIComponent(document.title.replace(" - Viewer",""));const startInternal=from-1+config.pageOffset,endInternal=to-1+config.pageOffset;let htmlPages="";for(let i=startInternal;i<=endInternal;i++){const src=`${config.imgBase}/${config.pages[i]}`;htmlPages+=`<img src="${src}" style="width:100%;page-break-after:always;display:block;">`}const w=window.open("","_blank");w.document.write(`<!DOCTYPE html><html><head><title>${bookName} pages ${from}-${to}</title><style>body{margin:0}img{width:100%;display:block}img:last-child{page-break-after:auto}</style></head><body>${htmlPages}</body></html>`);w.document.close();w.focus();setTimeout(()=>w.print(),300);closePrintDialog()}
+// Load the user's calculator within a compact panel; do not alter the standalone app.
+function initCalculatorPanel(){
+ const panel=$("calculator-panel"),frame=$("calculator-frame"),launch=$("calculator-toggle");
+ const dragBar=$("calculator-drag-bar");
+ let drag=null,scaledDoc=null;
+ function showCalculator(on){
+  panel.hidden=!on;
+  launch.classList.toggle("active",on);
+  launch.setAttribute("aria-expanded",on?"true":"false");
+  if(on&&!frame.getAttribute("src"))frame.src="https://ronandownes.github.io/calculator/";
+  if(on)fitCalculator();
+ }
+ function fitCalculator(){
+  if(!scaledDoc||panel.hidden)return;
+  try{
+   const doc=frame.contentDocument;
+   if(doc!==scaledDoc)return;
+   doc.documentElement.style.zoom="1";
+   const height=Math.max(doc.documentElement.scrollHeight,doc.body.scrollHeight);
+   const factor=Math.min(1,Math.max(.72,(frame.clientHeight-12)/Math.max(1,height)));
+   doc.documentElement.style.zoom=String(factor);
+  }catch(e){/* Native iframe scrolling remains available. */}
+ }
+ frame.addEventListener("load",()=>{
+  try{
+   const doc=frame.contentDocument;
+   if(!doc)return; // Fallback: the standalone website is still displayed in the iframe.
+   const style=doc.createElement("style");
+   style.id="gallery-compact-embed";
+   style.textContent=`
+    html{overflow-x:hidden!important}
+    body{padding:6px 5px 10px!important;overflow-x:hidden!important}
+    .layout{display:block!important;max-width:540px!important;margin:0 auto!important}
+    .calculator{width:100%!important;max-width:540px!important;min-width:0!important}
+    .side{display:none!important}
+    .theme-switch{margin:0 auto 5px!important;padding:4px 5px!important}
+   `;
+   doc.head.appendChild(style);
+   scaledDoc=doc;
+   fitCalculator();
+  }catch(e){/* If framing access is restricted, preserve the working calculator. */}
+ });
+ launch.addEventListener("click",()=>showCalculator(panel.hidden));
+ $("calculator-close").addEventListener("click",()=>showCalculator(false));
+ window.addEventListener("keydown",e=>{if(e.key==="Escape"&&!panel.hidden)showCalculator(false)});
+ dragBar.addEventListener("pointerdown",e=>{
+  if(e.target.closest("button"))return;
+  const rect=panel.getBoundingClientRect();
+  drag={pointerId:e.pointerId,offsetX:e.clientX-rect.left,offsetY:e.clientY-rect.top};
+  dragBar.setPointerCapture(e.pointerId);e.preventDefault();
+ });
+ dragBar.addEventListener("pointermove",e=>{
+  if(!drag||e.pointerId!==drag.pointerId)return;
+  const x=clamp(e.clientX-drag.offsetX,0,Math.max(0,window.innerWidth-panel.offsetWidth));
+  const y=clamp(e.clientY-drag.offsetY,0,Math.max(0,window.innerHeight-panel.offsetHeight));
+  panel.style.left=x+"px";panel.style.top=y+"px";panel.style.right="auto";
+ });
+ const stopDrag=e=>{if(drag&&e.pointerId===drag.pointerId)drag=null};
+ dragBar.addEventListener("pointerup",stopDrag);
+ dragBar.addEventListener("pointercancel",stopDrag);
+ dragBar.addEventListener("lostpointercapture",stopDrag);
+ if("ResizeObserver" in window)new ResizeObserver(()=>fitCalculator()).observe(frame);
+ window.addEventListener("resize",()=>fitCalculator());
+}
+
 function bindEvents(){
 $("toc-btn").onclick=()=>toggleTOC();$("toc-close").onclick=()=>toggleTOC(false);
 $("fit-height").onclick=()=>setFitMode("height");$("fit-width").onclick=()=>setFitMode("width");
@@ -548,7 +641,7 @@ inkCanvas.addEventListener("pointerup",()=>{inkDrawing=false});inkCanvas.addEven
 window.addEventListener("resize",()=>{sizeInkCanvasToImage();redrawInk();ensureSmartNavVisible();updateSmartNav();if(lightboxEl.classList.contains("active"))positionLightbox()});
 $("print-range-dialog").addEventListener("click",e=>{if(e.target.id==="print-range-dialog")closePrintDialog()});
 }
-function init(){buildRulerTicks();initFromHash();initPageCount();renderTOC();restoreUiState();bindEvents();ensureSmartNavVisible();loadPage(config.currentPage);if(config.toc&&config.toc.chapters&&config.toc.chapters.length){setTimeout(()=>toggleTOC(true),80)}updateSmartNav()}
+function init(){initCalculatorPanel();buildRulerTicks();initFromHash();initPageCount();renderTOC();restoreUiState();bindEvents();ensureSmartNavVisible();loadPage(config.currentPage);if(config.toc&&config.toc.chapters&&config.toc.chapters.length){setTimeout(()=>toggleTOC(true),80)}updateSmartNav()}
 init();
 })();
 </script>
