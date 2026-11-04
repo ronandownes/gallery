@@ -50,3 +50,185 @@ new ResizeObserver(()=>{if(current==="workspace")resize(work)}).observe(panel);
 pen.addEventListener("click",()=>queueMicrotask(()=>{if(current==="workspace"||current==="white"){work.style.pointerEvents="auto";board.style.pointerEvents="auto"}}));
 updateView();
 })();
+
+
+/* Gallery focus annotation and optional voice recording. All pen events are
+   captured above the spotlight but anchored to textbook-image coordinates. */
+(function(){
+"use strict";
+const viewer=document.querySelector(".viewer");
+const image=document.getElementById("page-image");
+const area=document.getElementById("image-container");
+const toolbar=document.querySelector(".controls");
+const menu=document.querySelector(".controls-right");
+const pen=document.getElementById("tool-pen");
+const spotlight=document.getElementById("lightbox");
+if(!viewer||!image||!area||!toolbar||!menu||!pen)return;
+
+const layer=document.createElement("canvas");
+layer.id="gallery-focus-ink";
+layer.setAttribute("aria-hidden","true");
+viewer.append(layer);
+const context=layer.getContext("2d");
+const pages=new Map();
+let pageKey=(document.getElementById("current-page")?.textContent||"1").trim();
+let active=null;
+const pageStrokes=()=>{if(!pages.has(pageKey))pages.set(pageKey,[]);return pages.get(pageKey)};
+const isBook=()=>!document.body.classList.contains("gallery-whiteboard-on")&&!document.body.classList.contains("gallery-workspace-on");
+const penEnabled=()=>pen.classList.contains("active")&&isBook();
+const imageRect=()=>image.getBoundingClientRect();
+const bounds=()=>area.getBoundingClientRect();
+const inkColour=(x,y)=>{
+ const base=window.galleryPenColour||"#1a1a1a";
+ const inside=spotlight?.classList.contains("active")&&
+  x>=spotlight.getBoundingClientRect().left&&x<=spotlight.getBoundingClientRect().right&&
+  y>=spotlight.getBoundingClientRect().top&&y<=spotlight.getBoundingClientRect().bottom;
+ if(spotlight?.classList.contains("active")&&!inside){
+  const c=base.toLowerCase();
+  if(c==="#1a1a1a"||c==="#111111")return "#ffffff";
+  if(c==="#205da9"||c==="#1462ca")return "#94caff";
+  if(c==="#e63329"||c==="#d32929")return "#ff9c94";
+  if(c==="#3fae49"||c==="#168348")return "#abf7ad";
+ }
+ return base;
+};
+function coords(x,y){
+ const r=imageRect();
+ return {x:(x-r.left)/Math.max(1,r.width),y:(y-r.top)/Math.max(1,r.height)};
+}
+function sizeInk(){
+ const r=layer.getBoundingClientRect(),d=window.devicePixelRatio||1;
+ const w=Math.max(1,Math.round(r.width*d)),h=Math.max(1,Math.round(r.height*d));
+ if(layer.width!==w||layer.height!==h){layer.width=w;layer.height=h}
+ redraw();
+}
+function redraw(){
+ const cr=layer.getBoundingClientRect(),im=imageRect(),d=layer.width/Math.max(1,cr.width);
+ context.setTransform(1,0,0,1,0,0);
+ context.clearRect(0,0,layer.width,layer.height);
+ context.setTransform(d,0,0,d,0,0);
+ context.lineCap="round";context.lineJoin="round";
+ const rx=im.left-cr.left,ry=im.top-cr.top;
+ for(const s of pageStrokes()){
+  if(!s.points.length)continue;
+  context.strokeStyle=s.colour;context.fillStyle=s.colour;
+  context.lineWidth=Math.max(1.2,s.width*im.width);
+  context.beginPath();
+  s.points.forEach((p,i)=>{const x=rx+p.x*im.width,y=ry+p.y*im.height;i?context.lineTo(x,y):context.moveTo(x,y)});
+  if(s.points.length===1){
+   const p=s.points[0];context.arc(rx+p.x*im.width,ry+p.y*im.height,context.lineWidth/2,0,Math.PI*2);context.fill();
+  }else context.stroke();
+ }
+}
+function eraseAt(p){
+ const cr=imageRect(),rad=20/Math.max(1,cr.width);
+ const strokes=pageStrokes();
+ for(let i=strokes.length-1;i>=0;i--){
+  if(strokes[i].points.some(q=>Math.hypot(q.x-p.x,q.y-p.y)<rad)){strokes.splice(i,1)}
+ }
+ redraw();
+}
+function within(e){const r=bounds();return e.clientX>=r.left&&e.clientX<r.right&&e.clientY>=r.top&&e.clientY<r.bottom}
+function usingEraser(e){
+ const manual=document.getElementById("gallery-erase-toggle")?.getAttribute("aria-pressed")==="true";
+ return manual||e.pointerType==="pen"&&(e.button===5||(e.buttons&32)!==0);
+}
+document.addEventListener("pointerdown",e=>{
+ if(e.pointerType==="touch"||!penEnabled()||!within(e))return;
+ if(e.target.closest(".calculator-panel,button,input,select"))return;
+ e.preventDefault();e.stopImmediatePropagation();
+ const p=coords(e.clientX,e.clientY),eraser=usingEraser(e);
+ active={id:e.pointerId,eraser};
+ if(eraser)eraseAt(p);
+ else{
+  const width=3/Math.max(1,imageRect().width);
+  const stroke={colour:inkColour(e.clientX,e.clientY),width,points:[p]};
+  pageStrokes().push(stroke);active.stroke=stroke;redraw();
+ }
+},true);
+document.addEventListener("pointermove",e=>{
+ if(!active||active.id!==e.pointerId)return;
+ e.preventDefault();e.stopImmediatePropagation();
+ const p=coords(e.clientX,e.clientY);
+ if(active.eraser)eraseAt(p);
+ else{active.stroke.points.push(p);redraw()}
+},true);
+const finish=e=>{if(active?.id===e.pointerId)active=null};
+document.addEventListener("pointerup",finish,true);
+document.addEventListener("pointercancel",finish,true);
+const page=document.getElementById("current-page");
+if(page)new MutationObserver(()=>{
+ const n=(page.textContent||"1").trim();
+ if(n!==pageKey){pageKey=n;active=null;redraw()}
+}).observe(page,{childList:true,characterData:true,subtree:true});
+area.addEventListener("scroll",()=>{redraw()},{passive:true});
+image.addEventListener("load",()=>requestAnimationFrame(redraw));
+window.addEventListener("resize",sizeInk);
+if(window.ResizeObserver)new ResizeObserver(()=>{
+ layer.style.top=toolbar.offsetHeight+"px";
+ layer.style.height="calc(100% - "+toolbar.offsetHeight+"px)";
+ sizeInk();
+}).observe(toolbar);
+layer.style.top=toolbar.offsetHeight+"px";
+layer.style.height="calc(100% - "+toolbar.offsetHeight+"px)";
+sizeInk();
+
+// Share screen and explicitly mix microphone input into the recorded video.
+const recBtn=document.createElement("button");
+recBtn.id="gallery-record-voice";recBtn.className="toolbar-btn gallery-record-btn";
+recBtn.type="button";recBtn.textContent="● Record + Mic";recBtn.title="Record a browser tab, window or screen with microphone narration";
+const timer=document.createElement("span");timer.className="gallery-record-timer";timer.hidden=true;timer.textContent="00:00";
+menu.append(recBtn,timer);
+let recorder=null,videoSource=null,micSource=null,clock=null,t0=0,blobs=[],busy=false;
+function cleanup(){
+ if(clock){clearInterval(clock);clock=null}
+ if(videoSource){videoSource.getTracks().forEach(t=>t.stop());videoSource=null}
+ if(micSource){micSource.getTracks().forEach(t=>t.stop());micSource=null}
+ recBtn.disabled=false;recBtn.classList.remove("gallery-recording");
+ recBtn.textContent="● Record + Mic";timer.hidden=true;busy=false;
+}
+function save(){
+ if(!blobs.length)return;
+ const type=blobs[0].type||"video/webm";
+ const blob=new Blob(blobs,{type});
+ if(!blob.size)return;
+ const url=URL.createObjectURL(blob);
+ const a=document.createElement("a");a.href=url;
+ a.download="Gallery-Lesson-"+new Date().toISOString().replace(/[:.]/g,"-")+".webm";
+ document.body.append(a);a.click();a.remove();
+ setTimeout(()=>URL.revokeObjectURL(url),60000);
+}
+function endRecording(){
+ if(recorder&&recorder.state!=="inactive"){recorder.stop()}
+ else cleanup();
+}
+recBtn.onclick=async()=>{
+ if(recorder&&recorder.state==="recording"){endRecording();return}
+ if(busy)return;
+ busy=true;recBtn.disabled=true;
+ try{
+  if(!navigator.mediaDevices?.getDisplayMedia||!navigator.mediaDevices?.getUserMedia||!window.MediaRecorder)
+    throw Error("This browser does not support screen and microphone recording.");
+  videoSource=await navigator.mediaDevices.getDisplayMedia({video:true,audio:false,preferCurrentTab:true});
+  try{
+   micSource=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true,noiseSuppression:true},video:false});
+  }catch(e){throw Error("Microphone permission is required: "+e.message)}
+  const tracks=[...videoSource.getVideoTracks(),...micSource.getAudioTracks()];
+  const output=new MediaStream(tracks);
+  const mime=["video/webm;codecs=vp9,opus","video/webm;codecs=vp8,opus","video/webm"].find(m=>MediaRecorder.isTypeSupported(m));
+  recorder=new MediaRecorder(output,mime?{mimeType:mime}:undefined);
+  blobs=[];
+  recorder.ondataavailable=e=>{if(e.data.size)blobs.push(e.data)};
+  recorder.onstop=()=>{save();cleanup();recorder=null};
+  recorder.onerror=()=>{cleanup();recorder=null};
+  videoSource.getVideoTracks()[0].addEventListener("ended",()=>{if(recorder&&recorder.state==="recording")endRecording()},{once:true});
+  recorder.start(500);
+  recBtn.disabled=false;recBtn.classList.add("gallery-recording");recBtn.textContent="■ Stop & Save";
+  timer.hidden=false;t0=Date.now();
+  clock=setInterval(()=>{
+   const s=Math.floor((Date.now()-t0)/1000);
+   timer.textContent=String(Math.floor(s/60)).padStart(2,"0")+":"+String(s%60).padStart(2,"0");
+  },500);
+ }catch(e){cleanup();recorder=null;alert("Recording not started. "+e.message+"\nYou can still record Gallery with Snagit and Record Microphone enabled.")}
+};
+})();
