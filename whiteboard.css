@@ -64,3 +64,12 @@ body.gallery-workspace-on.gallery-workspace-stacked .gallery-workspace-drag{
 
 #gallery-seam-ink{position:absolute;top:42px;left:0;width:100%;height:calc(100% - 42px);pointer-events:none;z-index:2060}
 @media(max-width:800px){#gallery-seam-ink{top:var(--gallery-toolbar-height,42px);height:calc(100% - var(--gallery-toolbar-height,42px))}}
+
+
+/* Keep all teaching controls visible on small Surface displays. */
+.controls{height:auto!important;min-height:42px;flex-wrap:wrap;row-gap:4px;padding:5px 8px}
+.controls-left,.controls-right{flex-wrap:wrap;min-width:0;row-gap:4px}
+.controls-right{margin-left:auto}
+.controls .toolbar-btn{flex-shrink:0}
+.gallery-book-zoom{white-space:nowrap}
+@media(max-width:1080px){.gallery-book-zoom input{width:65px}}
