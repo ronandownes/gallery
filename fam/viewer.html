@@ -256,7 +256,7 @@ body.toc-hidden .toc-sidebar { margin-left: -320px; }
   .calculator-launch{font-size:12px;padding:0 6px}
 }
 </style>
-<link rel="stylesheet" href="../whiteboard.css?v=20261104-all-books">
+<link rel="stylesheet" href="../whiteboard.css?v=20261104-two-recorders">
 </head>
 <body class="toc-hidden">
 <div class="toc-sidebar">
@@ -278,8 +278,9 @@ body.toc-hidden .toc-sidebar { margin-left: -320px; }
       <span class="page-info"><span id="current-page" title="Go to page">1</span><span>/</span><span id="total-pages">0</span></span>
       <button class="toolbar-btn calculator-launch" type="button" id="calculator-toggle" title="Open your calculator inside the gallery" aria-controls="calculator-panel" aria-expanded="false">Cal</button>
       <button class="toolbar-btn gallery-record-btn" id="gallery-record-voice" type="button" title="Record the screen with microphone narration">● Record</button>
-      <button class="toolbar-btn gallery-silent-btn" id="gallery-record-silent" type="button" aria-label="Silent recording: microphone off" title="Silent recording (microphone off)" aria-pressed="false">🔇</button>
+      <button class="toolbar-btn gallery-silent-btn" id="gallery-record-silent" type="button" aria-label="Start silent screen recording without microphone" title="Silent recording: no microphone or audio captured" aria-pressed="false">● Silent Record</button>
       <span class="gallery-record-timer" id="gallery-record-timer" role="timer" hidden>00:00</span>
+      <span class="gallery-mic-meter" id="gallery-mic-meter" role="meter" aria-label="Live microphone level" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" title="Microphone level" hidden><span id="gallery-mic-fill"></span></span>
     </div>
     <div class="controls-right">
       <button class="toolbar-btn" id="pointer-btn" title="Pointer">➤</button>
@@ -669,7 +670,7 @@ function init(){initCalculatorPanel();buildRulerTicks();initFromHash();initPageC
 init();
 })();
 </script>
-<script src="../recorder.js?v=20261104-silent-favicon"></script>
-<script src="../whiteboard.js?v=20261104-all-books"></script>
+<script src="../recorder.js?v=20261104-two-recorders"></script>
+<script src="../whiteboard.js?v=20261104-no-more"></script>
 </body>
 </html>
