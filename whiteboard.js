@@ -100,6 +100,13 @@ function showMode(mode){
  current=mode;
  if(mode==="workspace")stacked=wantTop;
  updateView();
+ // A short top pane needs a full-width book page, not the old fit-height thumbnail.
+ // The image-coordinate anchor below restores the same textbook question afterwards.
+ if(mode==="workspace"&&wantTop){
+  $("fit-width")?.click();
+  bookZoomSlider.value="100";
+  bookZoomControl.querySelector("output").textContent="100%";
+ }
  if(mode!=="white")requestAnimationFrame(()=>requestAnimationFrame(()=>{
   const b=$("page-image").getBoundingClientRect(),a=container.getBoundingClientRect();
   container.scrollTop+=b.top+ay*b.height-(a.top+a.height/2);
