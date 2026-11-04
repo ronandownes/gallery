@@ -376,7 +376,7 @@ function setPenMode(on){penMode=!!on;inkCanvas.classList.toggle("active",penMode
 function clearInk(){inkHistory=[];if(inkCtx)inkCtx.clearRect(0,0,inkCanvas.width,inkCanvas.height)}
 function undoInk(){if(!inkHistory.length)return;inkHistory.pop();redrawInk()}
 
-function ensureSmartNavVisible(){/* Fixed navigator needs no dynamic position. */}
+function ensureSmartNavVisible(){updateSmartNav()}
 function setSmartNavVisible(on){
  smartNavEl.classList.toggle("hidden",!on);
  $("smart-nav-toggle").classList.toggle("active",on);
