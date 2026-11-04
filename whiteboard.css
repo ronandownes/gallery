@@ -123,3 +123,6 @@ body.gallery-whiteboard-on .gallery-workspace{display:none!important}
  .controls #gallery-record-silent{font-size:12px!important}
  .controls .toolbar-btn{font-size:10.5px!important}
 }
+
+/* Keep the More menu above the textbook, pen overlay and page arrows. */
+.controls{z-index:4000!important}
