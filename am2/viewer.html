@@ -276,6 +276,8 @@ body.toc-hidden .toc-sidebar { margin-left: -320px; }
       <span class="sep"></span>
       <span class="page-info"><span id="current-page" title="Go to page">1</span><span>/</span><span id="total-pages">0</span></span>
       <button class="toolbar-btn calculator-launch" type="button" id="calculator-toggle" title="Open your calculator inside the gallery" aria-controls="calculator-panel" aria-expanded="false">Calc</button>
+      <button class="toolbar-btn gallery-record-btn" id="gallery-record-voice" type="button" title="Record the selected screen or tab with microphone narration" aria-label="Start screen and microphone recording">● Record + Mic</button>
+      <span class="gallery-record-timer" id="gallery-record-timer" role="timer" hidden>00:00</span>
     </div>
     <div class="controls-right">
       <button class="toolbar-btn" id="pointer-btn" title="Pointer">➤</button>
@@ -649,6 +651,7 @@ function init(){initCalculatorPanel();buildRulerTicks();initFromHash();initPageC
 init();
 })();
 </script>
-<script src="../whiteboard.js?v=20261104-clear-all-v2"></script>
+<script src="../recorder.js?v=20261104-permanent"></script>
+<script src="../whiteboard.js?v=20261104-record-guard"></script>
 </body>
 </html>
