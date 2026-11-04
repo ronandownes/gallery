@@ -73,3 +73,13 @@ body.gallery-workspace-on.gallery-workspace-stacked .gallery-workspace-drag{
 .controls .toolbar-btn{flex-shrink:0}
 .gallery-book-zoom{white-space:nowrap}
 @media(max-width:1080px){.gallery-book-zoom input{width:65px}}
+
+/* Gallery modes: Book, Left, Top, Whiteboard. Ink is always available. */
+#tool-pen,#tool-ruler,#smart-nav-toggle{display:none!important}
+#ink-layer{display:none!important;pointer-events:none!important}
+#gallery-whiteboard{position:absolute;left:0;right:0;bottom:0;top:42px;width:100%;height:calc(100% - 42px);background:#fff;display:none;z-index:2200;touch-action:none}
+body.gallery-whiteboard-on #gallery-whiteboard{display:block}
+body.gallery-whiteboard-on .image-container{background:#fff}
+body.gallery-whiteboard-on .page-nav{display:none!important}
+body.gallery-whiteboard-on #gallery-seam-ink,body.gallery-whiteboard-on #gallery-focus-ink{display:none!important}
+body.gallery-whiteboard-on .gallery-workspace{display:none!important}
