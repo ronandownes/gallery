@@ -169,16 +169,24 @@ body.toc-hidden .toc-sidebar { margin-left: -320px; }
 .lb-handle.bl { bottom: -8px; left: -8px; cursor: sw-resize; }
 .lb-handle.br { bottom: -8px; right: -8px; cursor: se-resize; }
 
-/* Fixed, touch-friendly direction controls */
-.nav-pad {position:fixed;right:14px;bottom:14px;display:grid;grid-template-columns:repeat(3,44px);grid-template-rows:repeat(3,44px);gap:3px;z-index:2100;user-select:none}
-.nav-pad.hidden{display:none}
-.nav-pad button{border:1px solid rgba(255,255,255,.5);border-radius:10px;background:rgba(245,245,245,.94);color:#222;box-shadow:0 3px 12px rgba(0,0,0,.28);font-size:25px;font-weight:650;cursor:pointer;touch-action:manipulation}
-.nav-pad button:active{background:#cfc4ff}
-.nav-pad button:disabled{opacity:.35;cursor:default}
-#nav-up{grid-column:2;grid-row:1}
-#nav-left{grid-column:1;grid-row:2}
-#nav-right{grid-column:3;grid-row:2}
-#nav-down{grid-column:2;grid-row:3}
+/* Two page arrows, vertically centred in the viewing area */
+.page-nav{
+ position:absolute;left:0;right:0;top:42px;bottom:0;
+ display:flex;align-items:center;justify-content:space-between;
+ padding:0 8px;pointer-events:none;z-index:2100;
+}
+.page-nav.hidden{display:none}
+.page-nav button{
+ width:48px;height:64px;flex:none;
+ border:1px solid rgba(255,255,255,.24);border-radius:10px;
+ background:rgba(25,25,25,.72);color:white;
+ box-shadow:0 3px 12px rgba(0,0,0,.24);
+ font-size:34px;line-height:1;cursor:pointer;touch-action:manipulation;
+ pointer-events:auto;
+}
+.page-nav button:hover,.page-nav button:focus-visible{background:rgba(55,55,55,.90)}
+.page-nav button:active{background:#7254d3}
+.page-nav button:disabled{opacity:.24;cursor:default}
 
 /* Print dialog */
 .print-range-dialog {
@@ -218,8 +226,8 @@ body.toc-hidden .toc-sidebar { margin-left: -320px; }
   .toc-sidebar{width:270px}
   body.toc-hidden .toc-sidebar{margin-left:-270px}
   .toolbar-btn{min-width:28px;height:28px}
-  .nav-pad{right:8px;bottom:8px;grid-template-columns:repeat(3,40px);grid-template-rows:repeat(3,40px);gap:2px}
-  .nav-pad button{font-size:23px}
+  .page-nav{padding:0 5px}
+  .page-nav button{width:42px;height:58px;font-size:30px}
   .tiny-links{display:none}
 }
 </style>
@@ -255,7 +263,7 @@ body.toc-hidden .toc-sidebar { margin-left: -320px; }
       <button class="toolbar-btn" id="tool-undo" title="Undo ink">↶</button>
       <button class="toolbar-btn" id="tool-clear-ink" title="Clear ink">⌫</button>
       <span class="sep"></span>
-      <button class="toolbar-btn" id="smart-nav-toggle" title="Show or hide smart navigator">⇄</button>
+      <button class="toolbar-btn" id="smart-nav-toggle" title="Show or hide page arrows" aria-label="Show or hide page arrows">‹ ›</button>
       <button class="toolbar-btn" id="copy-link" title="Copy link">📎</button>
       <button class="toolbar-btn" id="print-range-btn" title="Print range">🖨</button>
       <button class="toolbar-btn" id="fullscreen" title="Fullscreen">⛶</button>
@@ -280,13 +288,10 @@ body.toc-hidden .toc-sidebar { margin-left: -320px; }
 
     <div class="zoom-indicator" id="zoom-indicator"></div>
   </div>
-</div>
-
-<div class="nav-pad smart-nav" id="smart-nav" role="group" aria-label="Page navigation">
- <button type="button" id="nav-up" aria-label="Scroll up" title="Scroll up">↑</button>
- <button type="button" id="nav-left" aria-label="Previous page" title="Previous page">←</button>
- <button type="button" id="nav-right" aria-label="Next page" title="Next page">→</button>
- <button type="button" id="nav-down" aria-label="Scroll down" title="Scroll down">↓</button>
+  <nav class="page-nav smart-nav" id="smart-nav" aria-label="Book page navigation">
+    <button type="button" id="nav-left" aria-label="Previous page" title="Previous page">‹</button>
+    <button type="button" id="nav-right" aria-label="Next page" title="Next page">›</button>
+  </nav>
 </div>
 
 <div class="print-range-dialog" id="print-range-dialog">
@@ -386,9 +391,6 @@ function setSmartNavVisible(on){
 function updateSmartNav(){
  $("nav-left").disabled=config.currentPage<=0;
  $("nav-right").disabled=config.currentPage>=config.pages.length-1;
- const vertical=config.zoom>1.001||imageContainer.scrollHeight>imageContainer.clientHeight+2;
- $("nav-up").disabled=!vertical;
- $("nav-down").disabled=!vertical;
 }
 function initFromHash(){const m=(window.location.hash||"").match(/page=(\d+)/);if(!m)return;const visiblePage=parseInt(m[1],10);if(Number.isNaN(visiblePage))return;const internalIndex=visiblePage-1+config.pageOffset;if(internalIndex>=0&&internalIndex<config.pages.length)config.currentPage=internalIndex}
 function initPageCount(){$("total-pages").textContent=String(Math.max(0,config.pages.length-config.pageOffset))}
@@ -430,8 +432,6 @@ window.addEventListener("mousemove",e=>{if(toolDragging&&rulerEl.classList.conta
 }if(lbDrag&&lbStart){const dx=e.clientX-lbStart.x,dy=e.clientY-lbStart.y,minSize=60;if(lbDrag==="move"){lightbox.x=lbStart.boxX+dx;lightbox.y=lbStart.boxY+dy}else if(lbDrag==="tl"){lightbox.x=lbStart.boxX+dx;lightbox.y=lbStart.boxY+dy;lightbox.w=Math.max(minSize,lbStart.boxW-dx);lightbox.h=Math.max(minSize,lbStart.boxH-dy)}else if(lbDrag==="tr"){lightbox.y=lbStart.boxY+dy;lightbox.w=Math.max(minSize,lbStart.boxW+dx);lightbox.h=Math.max(minSize,lbStart.boxH-dy)}else if(lbDrag==="bl"){lightbox.x=lbStart.boxX+dx;lightbox.w=Math.max(minSize,lbStart.boxW-dx);lightbox.h=Math.max(minSize,lbStart.boxH+dy)}else if(lbDrag==="br"){lightbox.w=Math.max(minSize,lbStart.boxW+dx);lightbox.h=Math.max(minSize,lbStart.boxH+dy)}positionLightbox()}});
 window.addEventListener("mouseup",()=>{toolDragging=false;config.isPanning=false;lbDrag=null;lbStart=null;});
 lightboxEl.addEventListener("mousedown",e=>{e.preventDefault();e.stopPropagation();focusLightbox(true);const handle=e.target.closest(".lb-handle");lbDrag=handle?handle.dataset.corner:"move";lbStart={x:e.clientX,y:e.clientY,boxX:lightbox.x,boxY:lightbox.y,boxW:lightbox.w,boxH:lightbox.h}});
-$("nav-up").onclick=()=>scrollPage(-1);
-$("nav-down").onclick=()=>scrollPage(1);
 $("nav-left").onclick=()=>loadPage(config.currentPage-1);
 $("nav-right").onclick=()=>loadPage(config.currentPage+1);
 imageContainer.addEventListener("wheel",e=>{if(e.ctrlKey){e.preventDefault();setZoomAround(config.zoom+(e.deltaY<0?.08:-.08),e.clientX,e.clientY)}},{passive:false});
