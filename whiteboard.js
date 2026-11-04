@@ -28,6 +28,35 @@ bookZoomSlider.addEventListener("input",()=>{
  window.gallerySetBookZoom?.(z);
  bookZoomControl.querySelector("output").textContent=Math.round(z*100)+"%";
 });
+// Move secondary controls into a compact accessible overflow menu.
+const moreButton=button("gallery-more-toggle","⋯","More teaching controls");
+const morePanel=document.createElement("div");
+morePanel.id="gallery-more-panel";morePanel.className="gallery-more-panel";morePanel.hidden=true;
+const toolbarRoot=tools.closest(".controls");
+toolbarRoot.append(morePanel);
+tools.append(moreButton);
+for(const id of ["fit-height","fit-width","tool-undo","copy-link","print-range-btn","fullscreen"]){
+ const el=$(id);if(el)morePanel.append(el);
+}
+morePanel.append(bookZoomControl);
+moreButton.setAttribute("aria-expanded","false");
+moreButton.onclick=()=>{
+ const open=morePanel.hidden;
+ morePanel.hidden=!open;moreButton.setAttribute("aria-expanded",String(open));
+ moreButton.classList.toggle("active",open);
+};
+document.addEventListener("pointerdown",e=>{
+ if(!morePanel.hidden&&!morePanel.contains(e.target)&&e.target!==moreButton){
+  morePanel.hidden=true;moreButton.setAttribute("aria-expanded","false");moreButton.classList.remove("active");
+ }
+});
+document.addEventListener("keydown",e=>{
+ if(e.key==="Escape"){morePanel.hidden=true;moreButton.setAttribute("aria-expanded","false");moreButton.classList.remove("active")}
+});
+// Favicon for every textbook viewer that loads the shared Gallery tools.
+if(!document.querySelector('link[rel="icon"]')){
+ const ico=document.createElement("link");ico.rel="icon";ico.type="image/svg+xml";ico.href="../favicon.svg?v=4dots";document.head.append(ico);
+}
 const panel=document.createElement("section");panel.className="gallery-workspace";panel.setAttribute("aria-label","Teaching writing surface");
 panel.innerHTML='<div class="gallery-workspace-drag" title="Drag to resize writing area"></div><div class="gallery-workspace-title"><strong>Writing surface</strong><div class="gallery-zoom-controls"><label for="gallery-zoom">Zoom</label><input id="gallery-zoom" type="range" min="25" max="400" value="100" step="5"><span id="gallery-zoom-value">100%</span></div></div><canvas id="gallery-workspace-canvas" aria-label="Whiteboard"></canvas>';
 viewer.append(panel);
