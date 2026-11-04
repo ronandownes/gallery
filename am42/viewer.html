@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <title>am42 - Viewer</title>
+<link rel="icon" type="image/svg+xml" href="../favicon.svg?v=4dots">
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
 html, body { height: 100%; overflow: hidden; }
@@ -255,7 +256,7 @@ body.toc-hidden .toc-sidebar { margin-left: -320px; }
   .calculator-launch{font-size:12px;padding:0 6px}
 }
 </style>
-<link rel="stylesheet" href="../whiteboard.css">
+<link rel="stylesheet" href="../whiteboard.css?v=20261104-all-books">
 </head>
 <body class="toc-hidden">
 <div class="toc-sidebar">
@@ -275,7 +276,10 @@ body.toc-hidden .toc-sidebar { margin-left: -320px; }
       <button class="toolbar-btn" id="zoom-in" title="Zoom in">+</button>
       <span class="sep"></span>
       <span class="page-info"><span id="current-page" title="Go to page">1</span><span>/</span><span id="total-pages">0</span></span>
-      <button class="toolbar-btn calculator-launch" type="button" id="calculator-toggle" title="Open your calculator inside the gallery" aria-controls="calculator-panel" aria-expanded="false">Calc</button>
+      <button class="toolbar-btn calculator-launch" type="button" id="calculator-toggle" title="Open your calculator inside the gallery" aria-controls="calculator-panel" aria-expanded="false">Cal</button>
+      <button class="toolbar-btn gallery-record-btn" id="gallery-record-voice" type="button" title="Record the screen with microphone narration">● Record</button>
+      <button class="toolbar-btn gallery-silent-btn" id="gallery-record-silent" type="button" aria-label="Silent recording: microphone off" title="Silent recording (microphone off)" aria-pressed="false">🔇</button>
+      <span class="gallery-record-timer" id="gallery-record-timer" role="timer" hidden>00:00</span>
     </div>
     <div class="controls-right">
       <button class="toolbar-btn" id="pointer-btn" title="Pointer">➤</button>
@@ -357,6 +361,24 @@ function clamp(v,a,b){return Math.max(a,Math.min(b,v))}
 function escapeHtml(s){return String(s).replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;").replaceAll("'","&#39;")}
 function showZoomIndicator(){zoomIndicator.textContent=Math.round(config.zoom*100)+"%";zoomIndicator.style.display="block";clearTimeout(hideZoomTimer);hideZoomTimer=setTimeout(()=>zoomIndicator.style.display="none",900)}
 function updateTransform(){pageImage.style.transform=`translate(${config.translateX}px, ${config.translateY}px) scale(${config.zoom})`;inkCanvas.style.transform=`translate(${config.translateX}px, ${config.translateY}px) scale(${config.zoom})`;showZoomIndicator();ensureSmartNavVisible()}
+window.gallerySetBookZoom=(zoom)=>{const r=imageContainer.getBoundingClientRect();setZoomAround(zoom,r.left+r.width/2,r.top+r.height/2)};
+window.galleryGetBookZoom=()=>config.zoom;
+window.gallerySetBookPixelWidth=(pixels,preferWidth)=>{
+ if(preferWidth){
+  config.currentFitMode="width";
+  imageContainer.classList.remove("fit-height");imageContainer.classList.add("fit-width");
+  $("fit-height").classList.remove("active");$("fit-width").classList.add("active");
+ }
+ const baseWidth=pageImage.getBoundingClientRect().width/Math.max(.001,config.zoom);
+ config.zoom=clamp(pixels/Math.max(1,baseWidth),.25,8);
+ config.translateX=0;config.translateY=0;updateTransform();
+};
+window.galleryAlignBookPoint=(ax,ay,targetX,targetY)=>{
+ const rect=pageImage.getBoundingClientRect();
+ config.translateX+=targetX-(rect.left+ax*rect.width);
+ config.translateY+=targetY-(rect.top+ay*rect.height);
+ updateTransform();
+};
 function setFitMode(mode){config.currentFitMode=mode;imageContainer.classList.remove("fit-height","fit-width");imageContainer.classList.add(mode==="width"?"fit-width":"fit-height");$("fit-height").classList.toggle("active",mode==="height");$("fit-width").classList.toggle("active",mode==="width");config.zoom=1;config.translateX=0;config.translateY=0;updateTransform();localStorage.setItem("fitMode",mode)}
 function loadPage(index){if(index<0||index>=config.pages.length)return;config.currentPage=index;pageImage.src=`${config.imgBase}/${config.pages[index]}`;$("current-page").textContent=String(index+1-config.pageOffset);imageContainer.scrollTop=0;imageContainer.scrollLeft=0;config.zoom=1;config.translateX=0;config.translateY=0;updateTransform();clearInk();updateActiveTOC();updateUrl()}
 function updateUrl(){const visiblePage=config.currentPage+1-config.pageOffset;const url=new URL(window.location.href);url.hash=`page=${visiblePage}`;history.replaceState(null,"",url.toString())}
@@ -378,7 +400,7 @@ function panImage(dx,dy){
  if(dx||dy){config.translateX+=dx;config.translateY+=dy;updateTransform()}
 }
 function setZoomAround(z,x,y){
- z=clamp(z,.25,4);
+ z=clamp(z,.25,8);
  if(z===config.zoom)return;
  const r=pageImage.getBoundingClientRect(),cx=r.left+r.width/2-config.translateX,cy=r.top+r.height/2-config.translateY;
  const ratio=z/config.zoom;
@@ -409,6 +431,7 @@ function redrawInk(){if(!inkCtx)return;inkCtx.clearRect(0,0,inkCanvas.width,inkC
 function localPointFromClient(clientX,clientY,el){const rect=el.getBoundingClientRect();return{x:clientX-rect.left,y:clientY-rect.top}}
 function setPenMode(on){penMode=!!on;inkCanvas.classList.toggle("active",penMode);$("tool-pen").classList.toggle("active",penMode);if(penMode)sizeInkCanvasToImage()}
 function clearInk(){inkHistory=[];if(inkCtx)inkCtx.clearRect(0,0,inkCanvas.width,inkCanvas.height)}
+window.galleryClearNativeInk=clearInk;
 function undoInk(){if(!inkHistory.length)return;inkHistory.pop();redrawInk()}
 
 function ensureSmartNavVisible(){updateSmartNav()}
@@ -424,7 +447,7 @@ function updateSmartNav(){
 }
 function initFromHash(){const m=(window.location.hash||"").match(/page=(\d+)/);if(!m)return;const visiblePage=parseInt(m[1],10);if(Number.isNaN(visiblePage))return;const internalIndex=visiblePage-1+config.pageOffset;if(internalIndex>=0&&internalIndex<config.pages.length)config.currentPage=internalIndex}
 function initPageCount(){$("total-pages").textContent=String(Math.max(0,config.pages.length-config.pageOffset))}
-function restoreUiState(){if(localStorage.getItem("tocVisible")==="true")toggleTOC(true);setFitMode(config.currentFitMode);setSmartNavVisible(localStorage.getItem("smartNavVisible")!=="false")}
+function restoreUiState(){toggleTOC(false);setFitMode(config.currentFitMode);setSmartNavVisible(true)}
 function tryStartPan(clientX,clientY,target){
  if(penMode||!(target===pageImage||target===imageContainer))return false;
  if(config.zoom>1.001||imageContainer.scrollHeight>imageContainer.clientHeight+2){
@@ -642,10 +665,11 @@ inkCanvas.addEventListener("pointerup",()=>{inkDrawing=false});inkCanvas.addEven
 window.addEventListener("resize",()=>{sizeInkCanvasToImage();redrawInk();ensureSmartNavVisible();updateSmartNav();if(lightboxEl.classList.contains("active"))positionLightbox()});
 $("print-range-dialog").addEventListener("click",e=>{if(e.target.id==="print-range-dialog")closePrintDialog()});
 }
-function init(){initCalculatorPanel();buildRulerTicks();initFromHash();initPageCount();renderTOC();restoreUiState();bindEvents();ensureSmartNavVisible();loadPage(config.currentPage);if(config.toc&&config.toc.chapters&&config.toc.chapters.length){setTimeout(()=>toggleTOC(true),80)}updateSmartNav()}
+function init(){initCalculatorPanel();buildRulerTicks();initFromHash();initPageCount();renderTOC();restoreUiState();bindEvents();ensureSmartNavVisible();loadPage(config.currentPage);updateSmartNav()}
 init();
 })();
 </script>
-<script src="../whiteboard.js"></script>
+<script src="../recorder.js?v=20261104-silent-favicon"></script>
+<script src="../whiteboard.js?v=20261104-all-books"></script>
 </body>
 </html>
