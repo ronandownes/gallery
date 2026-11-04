@@ -102,12 +102,47 @@ workspaceButton.onclick=()=>startLayout(false);
 layoutButton.onclick=()=>startLayout(true);
 whiteButton.onclick=()=>{current=current==="white"?"book":"white";updateView()};
 eraseButton.onclick=()=>{erase=!erase;eraseButton.classList.toggle("active",erase);eraseButton.setAttribute("aria-pressed",String(erase))};
-clearButton.onclick=()=>{
- // Always reset both sides, independently of the current layout.
- for(const c of all){data.get(c).strokes=[];data.get(c).active=null;paint(c)}
- window.galleryClearBookInk?.();window.gallerySeamInk?.clearAll?.();
- $("tool-clear-ink")?.click();
-};
+// One clear action resets EVERY drawing store, regardless of Book Left / Book Top.
+let clearingAll=false;
+const nativeClearButton=$("tool-clear-ink");
+function clearAllTeachingInk(){
+ if(clearingAll)return;
+ clearingAll=true;
+ try {
+  // Top / left: the modern image-anchored pen strokes and bridging strokes.
+  window.galleryClearBookInk?.();
+  window.gallerySeamInk?.clearAll?.();
+  // Bottom / right and independent whiteboard: reset both drawing stores.
+  for(const c of all){
+   const v=data.get(c);
+   v.strokes.length=0;v.active=null;
+   const g=c.getContext("2d");
+   g.setTransform(1,0,0,1,0,0);
+   g.clearRect(0,0,c.width,c.height);
+   paint(c);
+  }
+  // The original textbook viewer also has a separate older pen canvas.
+  // Reset its backing array, not merely its visible pixels.
+  if(typeof window.galleryClearNativeInk==="function"){
+   window.galleryClearNativeInk();
+  }else if(nativeClearButton){
+   // Other Gallery viewers get the same behaviour without needing an update.
+   nativeClearButton.click();
+  }
+  // Redraw cleared overlays once at the end to avoid stale ink reappearing.
+  window.galleryClearBookInk?.();
+  window.gallerySeamInk?.clearAll?.();
+ }finally{clearingAll=false}
+}
+clearButton.onclick=clearAllTeachingInk;
+if(nativeClearButton){
+ nativeClearButton.addEventListener("click",e=>{
+  if(clearingAll)return; // Programmatic click: let the viewer's native clear run.
+  e.preventDefault();e.stopImmediatePropagation();
+  clearAllTeachingInk();
+ },true);
+}
+window.galleryClearAllTeachingInk=clearAllTeachingInk;
 function syncZoom(c){if(c===work){$("gallery-zoom").value=String(Math.round(data.get(c).zoom*100));$("gallery-zoom-value").textContent=Math.round(data.get(c).zoom*100)+"%"}}
 $("gallery-zoom").addEventListener("input",e=>{const v=data.get(work),z=Number(e.target.value)/100,cx=work.clientWidth/2,cy=work.clientHeight/2;v.offsetX=cx-(cx-v.offsetX)*z/v.zoom;v.offsetY=cy-(cy-v.offsetY)*z/v.zoom;v.zoom=z;syncZoom(work);paint(work)});
 const drag=panel.querySelector(".gallery-workspace-drag");let dragOrigin=null;
