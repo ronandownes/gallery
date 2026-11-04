@@ -17,8 +17,17 @@ const layoutButton=button("gallery-book-top","Top","Book top, whiteboard below")
 const whiteButton=button("gallery-white-toggle","Whiteboard","Replace page with blank writing surface");
 const clearButton=button("gallery-workspace-clear","Clear work","Clear writing surface");
 const tools=document.querySelector(".controls-right")||pen.parentElement;
-tools.prepend(bookButton,workspaceButton,layoutButton,whiteButton,clearButton);
+tools.prepend(bookButton,layoutButton,workspaceButton,whiteButton,clearButton);
 pen.classList.add("active");
+// Page arrows remain permanently visible, regardless of older saved settings.
+const alwaysArrows=$("smart-nav");
+if(alwaysArrows){
+ alwaysArrows.classList.remove("hidden");
+ if(window.MutationObserver)new MutationObserver(()=>{
+  if(alwaysArrows.classList.contains("hidden"))alwaysArrows.classList.remove("hidden");
+ }).observe(alwaysArrows,{attributes:true,attributeFilter:["class"]});
+}
+
 const bookZoomControl=document.createElement("label");bookZoomControl.className="gallery-book-zoom";
 bookZoomControl.innerHTML='<span>Book</span><input type="range" min="50" max="800" step="25" value="100" aria-label="Book zoom"><output>100%</output>';
 tools.append(bookZoomControl);
