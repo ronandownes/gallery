@@ -66,7 +66,7 @@ function layoutWorkspace(){
  document.body.classList.toggle("gallery-workspace-stacked",on&&stacked);
  if(!on){
   container.style.marginRight="";container.style.flex="";container.style.height="";
-  if(nav){nav.style.right="";nav.style.top="";nav.style.bottom=""}
+  if(nav){nav.style.right="";nav.style.top=(document.querySelector(".controls")?.offsetHeight||42)+"px";nav.style.bottom=""}
   return;
  }
  const top=document.querySelector(".controls")?.offsetHeight||42;
@@ -129,7 +129,7 @@ const stopDrag=()=>{dragOrigin=null};
 drag.onpointerup=stopDrag;drag.onpointercancel=stopDrag;drag.onlostpointercapture=stopDrag;
 new ResizeObserver(()=>{if(current==="workspace")resize(work);if(current==="white")resize(board)}).observe(container);
 new ResizeObserver(()=>{if(current==="workspace")resize(work)}).observe(panel);
-new ResizeObserver(()=>{if(current==="workspace")layoutWorkspace()}).observe(document.querySelector(".controls"));
+new ResizeObserver(()=>{layoutWorkspace()}).observe(document.querySelector(".controls"));
 window.addEventListener("resize",()=>{if(current==="workspace")layoutWorkspace()});
 
 /* Seamless Surface Pen path across the book and whiteboard. The whole stroke is
