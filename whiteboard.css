@@ -83,3 +83,8 @@ body.gallery-whiteboard-on .image-container{background:#fff}
 body.gallery-whiteboard-on .page-nav{display:none!important}
 body.gallery-whiteboard-on #gallery-seam-ink,body.gallery-whiteboard-on #gallery-focus-ink{display:none!important}
 body.gallery-whiteboard-on .gallery-workspace{display:none!important}
+
+/* Compact recorder: microphone narration is default; 🔇 opts into video-only capture. */
+.gallery-silent-btn{min-width:28px!important;padding:0 4px!important;font-size:14px;line-height:1}
+.gallery-silent-btn.active{background:#3c4756!important;color:#fff!important;border-color:#3c4756!important}
+.controls .gallery-record-btn{padding:0 7px}
