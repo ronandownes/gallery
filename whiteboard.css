@@ -61,3 +61,6 @@ body.gallery-workspace-on.gallery-workspace-stacked .gallery-workspace-drag{
 .gallery-book-zoom[hidden]{display:none!important}
 .gallery-book-zoom input{width:92px;max-width:17vw;accent-color:#205da9}
 .gallery-book-zoom output{min-width:36px;font-variant-numeric:tabular-nums}
+
+#gallery-seam-ink{position:absolute;top:42px;left:0;width:100%;height:calc(100% - 42px);pointer-events:none;z-index:2060}
+@media(max-width:800px){#gallery-seam-ink{top:var(--gallery-toolbar-height,42px);height:calc(100% - var(--gallery-toolbar-height,42px))}}
