@@ -47,17 +47,12 @@ body.gallery-workspace-on #gallery-whiteboard{display:none!important}
 @media(max-width:800px){#gallery-focus-ink{top:75px;height:calc(100% - 75px)}}
 
 
-/* Question to whiteboard: crop the selected textbook question and write below. */
+
 .lightbox.active{box-shadow:0 0 0 4000px rgba(0,0,0,.90)!important}
-.gallery-question-stage{position:absolute;top:42px;right:0;bottom:0;left:0;display:none;flex-direction:column;background:#e9edf2;z-index:2300}
-.gallery-question-stage.open{display:flex}
-.gallery-question-bar{display:flex;align-items:center;flex-wrap:wrap;gap:8px;padding:7px 11px;border-bottom:1px solid #d4dae3;background:#fff;flex:none}
-.gallery-question-bar strong{font-size:13px;margin-right:auto}
-.gallery-question-bar button{border:1px solid #cbd5e1;border-radius:5px;background:#fff;padding:6px 10px;color:#253447;cursor:pointer}
-.gallery-question-bar button:hover{background:#edf3fa}
-.gallery-question-scroll{overflow:auto;flex:1;min-height:0;overscroll-behavior:contain}
-.gallery-question-sheet{position:relative;width:min(100%,1240px);min-height:2600px;margin:0 auto;background:#fff;box-shadow:0 2px 8px #1b25301c}
-.gallery-question-clip{display:block;width:auto;height:auto;max-width:94%;max-height:650px;margin:0 auto;padding-top:24px;box-sizing:content-box}
-.gallery-question-ink{position:absolute;inset:0;width:100%;height:100%;touch-action:pan-x pan-y;cursor:crosshair}
-.gallery-question-sheet{padding-bottom:50px}
-@media(max-width:800px){.gallery-question-stage{top:var(--gallery-top,75px)}}
+
+/* A vertical workspace keeps the textbook above the Surface Pen writing area. */
+body.gallery-workspace-on.gallery-workspace-stacked .image-container{margin-right:0!important;min-height:0}
+body.gallery-workspace-on.gallery-workspace-stacked .gallery-workspace{border-left:0;border-top:2px solid #b9c5d2;min-width:0}
+body.gallery-workspace-on.gallery-workspace-stacked .gallery-workspace-drag{
+ left:0;right:0;top:-7px;bottom:auto;width:100%;height:14px;cursor:row-resize
+}
