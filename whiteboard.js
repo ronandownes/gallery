@@ -6,18 +6,19 @@ window.galleryPenColour="#1a1a1a";
 const colours=document.createElement("div");colours.className="gallery-pen-palette";colours.setAttribute("aria-label","Pen colours");
 for(const [name,c] of [["Black","#1a1a1a"],["Blue","#205da9"],["Red","#e63329"],["Green","#3fae49"]]){
  const b=document.createElement("button");b.className="gallery-pen-swatch";b.type="button";b.style.setProperty("--ink",c);b.title=name;b.setAttribute("aria-label",name+" pen");b.setAttribute("aria-pressed",String(name==="Black"));
- b.onclick=()=>{window.galleryPenColour=c;colours.querySelectorAll("button").forEach(x=>x.setAttribute("aria-pressed",String(x===b)));if(!pen.classList.contains("active"))pen.click()};
+ b.onclick=()=>{window.galleryPenColour=c;colours.querySelectorAll("button").forEach(x=>x.setAttribute("aria-pressed",String(x===b)));pen.classList.add("active")};
  colours.append(b);
 }
 pen.after(colours);
 const button=(id,label,title)=>{const b=document.createElement("button");b.id=id;b.type="button";b.className="toolbar-btn gallery-tool-short";b.textContent=label;b.title=title;return b};
-const workspaceButton=button("gallery-book-left","Book Left","Textbook on the left; working on the right");
-const layoutButton=button("gallery-book-top","Book Top","Textbook above; whiteboard below");layoutButton.setAttribute("aria-pressed","false");
+const bookButton=button("gallery-book-only","Book","Show the textbook");
+const workspaceButton=button("gallery-book-left","Left","Book left, whiteboard right");
+const layoutButton=button("gallery-book-top","Top","Book top, whiteboard below");
 const whiteButton=button("gallery-white-toggle","Whiteboard","Replace page with blank writing surface");
-const eraseButton=button("gallery-erase-toggle","Eraser","Toggle pen-tip eraser");
 const clearButton=button("gallery-workspace-clear","Clear work","Clear writing surface");
 const tools=document.querySelector(".controls-right")||pen.parentElement;
-tools.prepend(workspaceButton,layoutButton,whiteButton,eraseButton,clearButton);
+tools.prepend(bookButton,workspaceButton,layoutButton,whiteButton,clearButton);
+pen.classList.add("active");
 const bookZoomControl=document.createElement("label");bookZoomControl.className="gallery-book-zoom";
 bookZoomControl.innerHTML='<span>Book</span><input type="range" min="50" max="800" step="25" value="100" aria-label="Book zoom"><output>100%</output>';
 tools.append(bookZoomControl);
@@ -30,16 +31,15 @@ bookZoomSlider.addEventListener("input",()=>{
 const panel=document.createElement("section");panel.className="gallery-workspace";panel.setAttribute("aria-label","Teaching writing surface");
 panel.innerHTML='<div class="gallery-workspace-drag" title="Drag to resize writing area"></div><div class="gallery-workspace-title"><strong>Writing surface</strong><div class="gallery-zoom-controls"><label for="gallery-zoom">Zoom</label><input id="gallery-zoom" type="range" min="25" max="400" value="100" step="5"><span id="gallery-zoom-value">100%</span></div></div><canvas id="gallery-workspace-canvas" aria-label="Whiteboard"></canvas>';
 viewer.append(panel);
-const board=document.createElement("canvas");board.id="gallery-whiteboard";container.append(board);
-const work=panel.querySelector("canvas"),all=[board,work],data=new Map(all.map(c=>[c,{strokes:[],active:null,mode:"draw",zoom:1,offsetX:0,offsetY:0,pointers:new Map(),gesture:null}]));let current="book",erase=false,stacked=false,sideRatio=.58,topRatio=.42;
+const board=document.createElement("canvas");board.id="gallery-whiteboard";viewer.append(board);
+const work=panel.querySelector("canvas"),all=[board,work],data=new Map(all.map(c=>[c,{strokes:[],active:null,mode:"draw",zoom:1,offsetX:0,offsetY:0,pointers:new Map(),gesture:null}]));let current="book",stacked=false,sideRatio=.58,topRatio=.42;
 function resize(c){const d=Math.max(1,devicePixelRatio||1),r=c.getBoundingClientRect();if(r.width<1||r.height<1)return;c.width=Math.round(r.width*d);c.height=Math.round(r.height*d);paint(c)}
 function paint(c){const v=data.get(c),g=c.getContext("2d"),d=c.width/Math.max(1,c.clientWidth);g.clearRect(0,0,c.width,c.height);g.setTransform(d,0,0,d,0,0);g.lineCap="round";g.lineJoin="round";g.save();g.translate(v.offsetX,v.offsetY);g.scale(v.zoom,v.zoom);
 for(const s of v.strokes){if(!s.points.length)continue;g.strokeStyle=s.colour;g.fillStyle=s.colour;g.lineWidth=s.width;g.beginPath();s.points.forEach((p,i)=>i?g.lineTo(p.x,p.y):g.moveTo(p.x,p.y));if(s.points.length===1){g.arc(s.points[0].x,s.points[0].y,Math.max(1,s.width/2),0,Math.PI*2);g.fill()}else g.stroke()}g.restore();window.gallerySeamInk?.redraw?.()}
 function position(c,e){const r=c.getBoundingClientRect(),v=data.get(c);return{x:(e.clientX-r.left-v.offsetX)/v.zoom,y:(e.clientY-r.top-v.offsetY)/v.zoom}}
 function removeAt(c,p){const v=data.get(c),radius=14/v.zoom;v.strokes=v.strokes.filter(s=>!s.points.some(q=>Math.hypot(q.x-p.x,q.y-p.y)<radius));paint(c)}
 function down(c,e){const v=data.get(c);if(e.pointerType==="touch"){v.pointers.set(e.pointerId,{x:e.clientX,y:e.clientY});if(v.pointers.size===2){const p=[...v.pointers.values()],dist=Math.hypot(p[0].x-p[1].x,p[0].y-p[1].y);v.gesture={dist,zoom:v.zoom,offX:v.offsetX,offY:v.offsetY,cx:(p[0].x+p[1].x)/2,cy:(p[0].y+p[1].y)/2}}c.setPointerCapture(e.pointerId);return}
-if(!pen.classList.contains("active"))pen.click();
-e.preventDefault();const p=position(c,e),isErase=erase||(e.pointerType==="pen"&&(e.button===5||(e.buttons&32)!==0));
+e.preventDefault();const p=position(c,e),isErase=e.pointerType==="pen"&&(e.button===5||(e.buttons&32)!==0);
 v.active={id:e.pointerId,erase:isErase};c.setPointerCapture(e.pointerId);
 if(isErase)removeAt(c,p);else{const s={colour:window.galleryPenColour,width:3,points:[p]};v.strokes.push(s);v.active.stroke=s;paint(c)}}
 function move(c,e){const v=data.get(c);if(e.pointerType==="touch"&&v.pointers.has(e.pointerId)){const old=v.pointers.get(e.pointerId);v.pointers.set(e.pointerId,{x:e.clientX,y:e.clientY});if(v.pointers.size===2&&v.gesture){const ps=[...v.pointers.values()],dist=Math.hypot(ps[0].x-ps[1].x,ps[0].y-ps[1].y),z=Math.min(4,Math.max(.25,v.gesture.zoom*dist/Math.max(1,v.gesture.dist)));const r=c.getBoundingClientRect(),cx=(ps[0].x+ps[1].x)/2-r.left,cy=(ps[0].y+ps[1].y)/2-r.top,ox=v.gesture.cx-r.left,oy=v.gesture.cy-r.top;v.offsetX=cx-(ox-v.gesture.offX)*z/v.gesture.zoom;v.offsetY=cy-(oy-v.gesture.offY)*z/v.gesture.zoom;v.zoom=z;syncZoom(c);paint(c)}else if(v.pointers.size===1){v.offsetX+=e.clientX-old.x;v.offsetY+=e.clientY-old.y;paint(c)}return}
@@ -51,9 +51,13 @@ function updateView(){
  const on=current==="workspace";
  document.body.classList.toggle("gallery-workspace-on",on);
  document.body.classList.toggle("gallery-whiteboard-on",current==="white");
+ bookButton.classList.toggle("active",current==="book");
  workspaceButton.classList.toggle("active",on&&!stacked);bookZoomControl.hidden=!on;
  layoutButton.classList.toggle("active",on&&stacked);
+ bookButton.setAttribute("aria-pressed",String(current==="book"));
  workspaceButton.setAttribute("aria-pressed",String(on&&!stacked));
+ layoutButton.setAttribute("aria-pressed",String(on&&stacked));
+ whiteButton.setAttribute("aria-pressed",String(current==="white"));
  whiteButton.classList.toggle("active",current==="white");
  layoutWorkspace();
  if(current==="white")requestAnimationFrame(()=>resize(board));
@@ -87,21 +91,25 @@ function layoutWorkspace(){
  requestAnimationFrame(()=>resize(work));
  requestAnimationFrame(()=>window.gallerySeamInk?.redraw?.());
 }
-function startLayout(top){
- const already=current==="workspace"&&stacked===top;
- current=already?"book":"workspace";stacked=top;
+let wantTop=false;
+function showMode(mode){
+ if(mode===current&&!(mode==="workspace"&&stacked!==wantTop))return;
+ const im=$("page-image").getBoundingClientRect(),cr=container.getBoundingClientRect();
+ const ax=(cr.left+cr.width/2-im.left)/Math.max(1,im.width);
+ const ay=(cr.top+cr.height/2-im.top)/Math.max(1,im.height);
+ current=mode;
+ if(mode==="workspace")stacked=wantTop;
  updateView();
- if(!already&&top){
-  // In a shallow top pane, fit *width*, not height. Preserve relative scroll position.
-  const scrollFraction=(container.scrollTop+container.clientHeight/2)/Math.max(1,container.scrollHeight);
-  $("fit-width")?.click();
-  requestAnimationFrame(()=>{container.scrollTop=Math.max(0,scrollFraction*container.scrollHeight-container.clientHeight/2);});
- }
+ if(mode!=="white")requestAnimationFrame(()=>requestAnimationFrame(()=>{
+  const b=$("page-image").getBoundingClientRect(),a=container.getBoundingClientRect();
+  container.scrollTop+=b.top+ay*b.height-(a.top+a.height/2);
+  container.scrollLeft+=b.left+ax*b.width-(a.left+a.width/2);
+ }));
 }
-workspaceButton.onclick=()=>startLayout(false);
-layoutButton.onclick=()=>startLayout(true);
-whiteButton.onclick=()=>{current=current==="white"?"book":"white";updateView()};
-eraseButton.onclick=()=>{erase=!erase;eraseButton.classList.toggle("active",erase);eraseButton.setAttribute("aria-pressed",String(erase))};
+bookButton.onclick=()=>showMode("book");
+workspaceButton.onclick=()=>{wantTop=false;showMode("workspace")};
+layoutButton.onclick=()=>{wantTop=true;showMode("workspace")};
+whiteButton.onclick=()=>showMode("white");
 // One clear action resets EVERY drawing store, regardless of Book Left / Book Top.
 let clearingAll=false;
 const nativeClearButton=$("tool-clear-ink");
@@ -164,13 +172,19 @@ const stopDrag=()=>{dragOrigin=null};
 drag.onpointerup=stopDrag;drag.onpointercancel=stopDrag;drag.onlostpointercapture=stopDrag;
 new ResizeObserver(()=>{if(current==="workspace")resize(work);if(current==="white")resize(board)}).observe(container);
 new ResizeObserver(()=>{if(current==="workspace")resize(work)}).observe(panel);
-new ResizeObserver(()=>{layoutWorkspace()}).observe(document.querySelector(".controls"));
+new ResizeObserver(()=>{
+ const top=document.querySelector(".controls")?.offsetHeight||42;
+ board.style.top=top+"px";board.style.height="calc(100% - "+top+"px)";
+ layoutWorkspace();
+ if(current==="white")resize(board);
+}).observe(document.querySelector(".controls"));
 window.addEventListener("resize",()=>{if(current==="workspace")layoutWorkspace()});
 
 /* Seamless Surface Pen path across the book and whiteboard. The whole stroke is
    captured once at document capture phase and rendered above both panes.
    Positions in the textbook use image coordinates; positions on the whiteboard
    use whiteboard world coordinates, so zoom/pan can re-project annotations. */
+const toolbar=document.querySelector(".controls");
 const seamCanvas=document.createElement("canvas");
 seamCanvas.id="gallery-seam-ink";seamCanvas.setAttribute("aria-hidden","true");
 viewer.append(seamCanvas);
@@ -179,7 +193,7 @@ adjustSeamTop();
 if(window.ResizeObserver)new ResizeObserver(adjustSeamTop).observe(toolbar);
 const seamContext=seamCanvas.getContext("2d");
 const seamStrokes=[];let seamActive=null;
-const pageImage=$("page-image"),toolbar=document.querySelector(".controls"),pageNumber=$("current-page");
+const pageImage=$("page-image"),pageNumber=$("current-page");
 const pageId=()=>pageNumber?.textContent?.trim()||"1";
 function seamResize(){
  const rect=seamCanvas.getBoundingClientRect(),d=Math.min(2,window.devicePixelRatio||1);
@@ -236,6 +250,9 @@ function seamPaint(){
  }
 }
 function seamErase(e){
+ const zone=seamKind(e.clientX,e.clientY);
+ if(zone==="book")window.galleryEraseBookInkAtClient?.(e.clientX,e.clientY);
+ if(zone==="work")removeAt(work,position(work,e));
  const p={x:e.clientX-seamCanvas.getBoundingClientRect().left,y:e.clientY-seamCanvas.getBoundingClientRect().top};
  for(let i=seamStrokes.length-1;i>=0;i--){
   if(seamStrokes[i].points.some(q=>{if(q.k==="book"&&seamStrokes[i].page!==pageId())return false;
@@ -244,7 +261,7 @@ function seamErase(e){
  seamPaint();
 }
 function seamEraser(e){
- return erase||e.pointerType==="pen"&&(e.button===5||(e.buttons&32)!==0);
+ return e.pointerType==="pen"&&(e.button===5||(e.buttons&32)!==0);
 }
 document.addEventListener("pointerdown",e=>{
  if(current!=="workspace"||e.pointerType==="touch"||!(e.pointerType==="pen"||(e.pointerType==="mouse"&&pen.classList.contains("active"))))return;
@@ -364,10 +381,10 @@ function eraseAt(p){
  }
  redraw();
 }
+window.galleryEraseBookInkAtClient=(x,y)=>eraseAt(coords(x,y));
 function within(e){if(document.querySelector(".gallery-question-stage.open")?.contains(e.target))return false;const r=bounds();return e.clientX>=r.left&&e.clientX<r.right&&e.clientY>=r.top&&e.clientY<r.bottom}
 function usingEraser(e){
- const manual=document.getElementById("gallery-erase-toggle")?.getAttribute("aria-pressed")==="true";
- return manual||e.pointerType==="pen"&&(e.button===5||(e.buttons&32)!==0);
+ return e.pointerType==="pen"&&(e.button===5||(e.buttons&32)!==0);
 }
 document.addEventListener("pointerdown",e=>{
  if(e.pointerType==="touch"||!penEnabled(e)||!within(e))return;
