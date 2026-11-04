@@ -126,3 +126,6 @@ body.gallery-whiteboard-on .gallery-workspace{display:none!important}
 
 /* Keep the More menu above the textbook, pen overlay and page arrows. */
 .controls{z-index:4000!important}
+
+/* Retire the old ruler overlay, including accidental keyboard activation. */
+.reading-ruler,.reading-ruler.active{display:none!important}
