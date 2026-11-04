@@ -255,7 +255,7 @@ body.toc-hidden .toc-sidebar { margin-left: -320px; }
   .calculator-launch{font-size:12px;padding:0 6px}
 }
 </style>
-<link rel="stylesheet" href="../whiteboard.css?v=20261104-surface-layout">
+<link rel="stylesheet" href="../whiteboard.css?v=20261104-clear-all-v2">
 </head>
 <body class="toc-hidden">
 <div class="toc-sidebar">
@@ -410,6 +410,8 @@ function redrawInk(){if(!inkCtx)return;inkCtx.clearRect(0,0,inkCanvas.width,inkC
 function localPointFromClient(clientX,clientY,el){const rect=el.getBoundingClientRect();return{x:clientX-rect.left,y:clientY-rect.top}}
 function setPenMode(on){penMode=!!on;inkCanvas.classList.toggle("active",penMode);$("tool-pen").classList.toggle("active",penMode);if(penMode)sizeInkCanvasToImage()}
 function clearInk(){inkHistory=[];if(inkCtx)inkCtx.clearRect(0,0,inkCanvas.width,inkCanvas.height)}
+// Shared Gallery teaching controls can clear the original ink backing store too.
+window.galleryClearNativeInk=clearInk;
 function undoInk(){if(!inkHistory.length)return;inkHistory.pop();redrawInk()}
 
 function ensureSmartNavVisible(){updateSmartNav()}
@@ -647,6 +649,6 @@ function init(){initCalculatorPanel();buildRulerTicks();initFromHash();initPageC
 init();
 })();
 </script>
-<script src="../whiteboard.js?v=20261104-surface-layout"></script>
+<script src="../whiteboard.js?v=20261104-clear-all-v2"></script>
 </body>
 </html>
