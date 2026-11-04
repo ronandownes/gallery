@@ -255,7 +255,7 @@ body.toc-hidden .toc-sidebar { margin-left: -320px; }
   .calculator-launch{font-size:12px;padding:0 6px}
 }
 </style>
-<link rel="stylesheet" href="../whiteboard.css?v=20261104-clear-all-v2">
+<link rel="stylesheet" href="../whiteboard.css?v=20261104-four-modes">
 </head>
 <body class="toc-hidden">
 <div class="toc-sidebar">
@@ -418,9 +418,9 @@ function undoInk(){if(!inkHistory.length)return;inkHistory.pop();redrawInk()}
 
 function ensureSmartNavVisible(){updateSmartNav()}
 function setSmartNavVisible(on){
- smartNavEl.classList.toggle("hidden",!on);
- $("smart-nav-toggle").classList.toggle("active",on);
- localStorage.setItem("smartNavVisible",on?"true":"false");
+ smartNavEl.classList.remove("hidden");
+ $("smart-nav-toggle").classList.add("active");
+ localStorage.setItem("smartNavVisible","true");
  updateSmartNav();
 }
 function updateSmartNav(){
@@ -429,7 +429,7 @@ function updateSmartNav(){
 }
 function initFromHash(){const m=(window.location.hash||"").match(/page=(\d+)/);if(!m)return;const visiblePage=parseInt(m[1],10);if(Number.isNaN(visiblePage))return;const internalIndex=visiblePage-1+config.pageOffset;if(internalIndex>=0&&internalIndex<config.pages.length)config.currentPage=internalIndex}
 function initPageCount(){$("total-pages").textContent=String(Math.max(0,config.pages.length-config.pageOffset))}
-function restoreUiState(){if(localStorage.getItem("tocVisible")==="true")toggleTOC(true);setFitMode(config.currentFitMode);setSmartNavVisible(localStorage.getItem("smartNavVisible")!=="false")}
+function restoreUiState(){toggleTOC(false);setFitMode(config.currentFitMode);setSmartNavVisible(true)}
 function tryStartPan(clientX,clientY,target){
  if(penMode||!(target===pageImage||target===imageContainer))return false;
  if(config.zoom>1.001||imageContainer.scrollHeight>imageContainer.clientHeight+2){
@@ -647,11 +647,11 @@ inkCanvas.addEventListener("pointerup",()=>{inkDrawing=false});inkCanvas.addEven
 window.addEventListener("resize",()=>{sizeInkCanvasToImage();redrawInk();ensureSmartNavVisible();updateSmartNav();if(lightboxEl.classList.contains("active"))positionLightbox()});
 $("print-range-dialog").addEventListener("click",e=>{if(e.target.id==="print-range-dialog")closePrintDialog()});
 }
-function init(){initCalculatorPanel();buildRulerTicks();initFromHash();initPageCount();renderTOC();restoreUiState();bindEvents();ensureSmartNavVisible();loadPage(config.currentPage);if(config.toc&&config.toc.chapters&&config.toc.chapters.length){setTimeout(()=>toggleTOC(true),80)}updateSmartNav()}
+function init(){initCalculatorPanel();buildRulerTicks();initFromHash();initPageCount();renderTOC();restoreUiState();bindEvents();ensureSmartNavVisible();loadPage(config.currentPage);updateSmartNav()}
 init();
 })();
 </script>
 <script src="../recorder.js?v=20261104-permanent"></script>
-<script src="../whiteboard.js?v=20261104-record-guard"></script>
+<script src="../whiteboard.js?v=20261104-four-modes"></script>
 </body>
 </html>
