@@ -255,7 +255,7 @@ body.toc-hidden .toc-sidebar { margin-left: -320px; }
   .calculator-launch{font-size:12px;padding:0 6px}
 }
 </style>
-<link rel="stylesheet" href="../whiteboard.css?v=20261104-top-side">
+<link rel="stylesheet" href="../whiteboard.css?v=20261104-direct-layout">
 </head>
 <body class="toc-hidden">
 <div class="toc-sidebar">
@@ -357,6 +357,7 @@ function clamp(v,a,b){return Math.max(a,Math.min(b,v))}
 function escapeHtml(s){return String(s).replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;").replaceAll("'","&#39;")}
 function showZoomIndicator(){zoomIndicator.textContent=Math.round(config.zoom*100)+"%";zoomIndicator.style.display="block";clearTimeout(hideZoomTimer);hideZoomTimer=setTimeout(()=>zoomIndicator.style.display="none",900)}
 function updateTransform(){pageImage.style.transform=`translate(${config.translateX}px, ${config.translateY}px) scale(${config.zoom})`;inkCanvas.style.transform=`translate(${config.translateX}px, ${config.translateY}px) scale(${config.zoom})`;showZoomIndicator();ensureSmartNavVisible()}
+window.gallerySetBookZoom=(zoom)=>{const r=imageContainer.getBoundingClientRect();setZoomAround(zoom,r.left+r.width/2,r.top+r.height/2)};
 function setFitMode(mode){config.currentFitMode=mode;imageContainer.classList.remove("fit-height","fit-width");imageContainer.classList.add(mode==="width"?"fit-width":"fit-height");$("fit-height").classList.toggle("active",mode==="height");$("fit-width").classList.toggle("active",mode==="width");config.zoom=1;config.translateX=0;config.translateY=0;updateTransform();localStorage.setItem("fitMode",mode)}
 function loadPage(index){if(index<0||index>=config.pages.length)return;config.currentPage=index;pageImage.src=`${config.imgBase}/${config.pages[index]}`;$("current-page").textContent=String(index+1-config.pageOffset);imageContainer.scrollTop=0;imageContainer.scrollLeft=0;config.zoom=1;config.translateX=0;config.translateY=0;updateTransform();clearInk();updateActiveTOC();updateUrl()}
 function updateUrl(){const visiblePage=config.currentPage+1-config.pageOffset;const url=new URL(window.location.href);url.hash=`page=${visiblePage}`;history.replaceState(null,"",url.toString())}
@@ -378,7 +379,7 @@ function panImage(dx,dy){
  if(dx||dy){config.translateX+=dx;config.translateY+=dy;updateTransform()}
 }
 function setZoomAround(z,x,y){
- z=clamp(z,.25,4);
+ z=clamp(z,.25,8);
  if(z===config.zoom)return;
  const r=pageImage.getBoundingClientRect(),cx=r.left+r.width/2-config.translateX,cy=r.top+r.height/2-config.translateY;
  const ratio=z/config.zoom;
@@ -646,6 +647,6 @@ function init(){initCalculatorPanel();buildRulerTicks();initFromHash();initPageC
 init();
 })();
 </script>
-<script src="../whiteboard.js?v=20261104-top-side"></script>
+<script src="../whiteboard.js?v=20261104-direct-layout"></script>
 </body>
 </html>
