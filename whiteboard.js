@@ -34,7 +34,7 @@ const board=document.createElement("canvas");board.id="gallery-whiteboard";conta
 const work=panel.querySelector("canvas"),all=[board,work],data=new Map(all.map(c=>[c,{strokes:[],active:null,mode:"draw",zoom:1,offsetX:0,offsetY:0,pointers:new Map(),gesture:null}]));let current="book",erase=false,stacked=false,sideRatio=.58,topRatio=.42;
 function resize(c){const d=Math.max(1,devicePixelRatio||1),r=c.getBoundingClientRect();if(r.width<1||r.height<1)return;c.width=Math.round(r.width*d);c.height=Math.round(r.height*d);paint(c)}
 function paint(c){const v=data.get(c),g=c.getContext("2d"),d=c.width/Math.max(1,c.clientWidth);g.clearRect(0,0,c.width,c.height);g.setTransform(d,0,0,d,0,0);g.lineCap="round";g.lineJoin="round";g.save();g.translate(v.offsetX,v.offsetY);g.scale(v.zoom,v.zoom);
-for(const s of v.strokes){if(!s.points.length)continue;g.strokeStyle=s.colour;g.fillStyle=s.colour;g.lineWidth=s.width;g.beginPath();s.points.forEach((p,i)=>i?g.lineTo(p.x,p.y):g.moveTo(p.x,p.y));if(s.points.length===1){g.arc(s.points[0].x,s.points[0].y,Math.max(1,s.width/2),0,Math.PI*2);g.fill()}else g.stroke()}g.restore()}
+for(const s of v.strokes){if(!s.points.length)continue;g.strokeStyle=s.colour;g.fillStyle=s.colour;g.lineWidth=s.width;g.beginPath();s.points.forEach((p,i)=>i?g.lineTo(p.x,p.y):g.moveTo(p.x,p.y));if(s.points.length===1){g.arc(s.points[0].x,s.points[0].y,Math.max(1,s.width/2),0,Math.PI*2);g.fill()}else g.stroke()}g.restore();window.gallerySeamInk?.redraw?.()}
 function position(c,e){const r=c.getBoundingClientRect(),v=data.get(c);return{x:(e.clientX-r.left-v.offsetX)/v.zoom,y:(e.clientY-r.top-v.offsetY)/v.zoom}}
 function removeAt(c,p){const v=data.get(c),radius=14/v.zoom;v.strokes=v.strokes.filter(s=>!s.points.some(q=>Math.hypot(q.x-p.x,q.y-p.y)<radius));paint(c)}
 function down(c,e){const v=data.get(c);if(e.pointerType==="touch"){v.pointers.set(e.pointerId,{x:e.clientX,y:e.clientY});if(v.pointers.size===2){const p=[...v.pointers.values()],dist=Math.hypot(p[0].x-p[1].x,p[0].y-p[1].y);v.gesture={dist,zoom:v.zoom,offX:v.offsetX,offY:v.offsetY,cx:(p[0].x+p[1].x)/2,cy:(p[0].y+p[1].y)/2}}c.setPointerCapture(e.pointerId);return}
@@ -58,6 +58,7 @@ function updateView(){
  layoutWorkspace();
  if(current==="white")requestAnimationFrame(()=>resize(board));
  if(on)requestAnimationFrame(()=>resize(work));
+ requestAnimationFrame(()=>window.gallerySeamInk?.redraw?.());
 }
 function layoutWorkspace(){
  const on=current==="workspace",nav=$("smart-nav");
@@ -84,6 +85,7 @@ function layoutWorkspace(){
   if(nav){nav.style.top=top+"px";nav.style.bottom="0";nav.style.right=pct}
  }
  requestAnimationFrame(()=>resize(work));
+ requestAnimationFrame(()=>window.gallerySeamInk?.redraw?.());
 }
 function startLayout(top){
  const already=current==="workspace"&&stacked===top;
@@ -129,6 +131,120 @@ new ResizeObserver(()=>{if(current==="workspace")resize(work);if(current==="whit
 new ResizeObserver(()=>{if(current==="workspace")resize(work)}).observe(panel);
 new ResizeObserver(()=>{if(current==="workspace")layoutWorkspace()}).observe(document.querySelector(".controls"));
 window.addEventListener("resize",()=>{if(current==="workspace")layoutWorkspace()});
+
+/* Seamless Surface Pen path across the book and whiteboard. The whole stroke is
+   captured once at document capture phase and rendered above both panes.
+   Positions in the textbook use image coordinates; positions on the whiteboard
+   use whiteboard world coordinates, so zoom/pan can re-project annotations. */
+const seamCanvas=document.createElement("canvas");
+seamCanvas.id="gallery-seam-ink";seamCanvas.setAttribute("aria-hidden","true");
+viewer.append(seamCanvas);
+function adjustSeamTop(){const h=toolbar?.offsetHeight||42;seamCanvas.style.top=h+"px";seamCanvas.style.height="calc(100% - "+h+"px)"}
+adjustSeamTop();
+if(window.ResizeObserver)new ResizeObserver(adjustSeamTop).observe(toolbar);
+const seamContext=seamCanvas.getContext("2d");
+const seamStrokes=[];let seamActive=null;
+const pageImage=$("page-image"),toolbar=document.querySelector(".controls"),pageNumber=$("current-page");
+const pageId=()=>pageNumber?.textContent?.trim()||"1";
+function seamResize(){
+ const rect=seamCanvas.getBoundingClientRect(),d=Math.min(2,window.devicePixelRatio||1);
+ const w=Math.max(1,Math.round(rect.width*d)),h=Math.max(1,Math.round(rect.height*d));
+ if(seamCanvas.width!==w||seamCanvas.height!==h){seamCanvas.width=w;seamCanvas.height=h}
+ seamPaint();
+}
+function seamKind(x,y){
+ const b=container.getBoundingClientRect(),w=work.getBoundingClientRect();
+ if(x>=b.left&&x<=b.right&&y>=b.top&&y<=b.bottom)return "book";
+ if(x>=w.left&&x<=w.right&&y>=w.top&&y<=w.bottom)return "work";
+ return "gap";
+}
+function seamPoint(e){
+ const k=seamKind(e.clientX,e.clientY),r=seamCanvas.getBoundingClientRect();
+ if(k==="book"){
+  const b=pageImage.getBoundingClientRect();
+  return {k,x:(e.clientX-b.left)/Math.max(1,b.width),y:(e.clientY-b.top)/Math.max(1,b.height)};
+ }
+ if(k==="work"){
+  const b=work.getBoundingClientRect(),v=data.get(work);
+  return {k,x:(e.clientX-b.left-v.offsetX)/v.zoom,y:(e.clientY-b.top-v.offsetY)/v.zoom};
+ }
+ return {k,x:e.clientX-r.left,y:e.clientY-r.top};
+}
+function screenPoint(p){
+ const r=seamCanvas.getBoundingClientRect();
+ if(p.k==="book"){
+  const b=pageImage.getBoundingClientRect();return {x:b.left-r.left+p.x*b.width,y:b.top-r.top+p.y*b.height};
+ }
+ if(p.k==="work"){
+  const b=work.getBoundingClientRect(),v=data.get(work);
+  return {x:b.left-r.left+v.offsetX+p.x*v.zoom,y:b.top-r.top+v.offsetY+p.y*v.zoom};
+ }
+ return {x:p.x,y:p.y};
+}
+function seamPaint(){
+ const d=seamCanvas.width/Math.max(1,seamCanvas.clientWidth);
+ seamContext.setTransform(1,0,0,1,0,0);
+ seamContext.clearRect(0,0,seamCanvas.width,seamCanvas.height);
+ seamContext.setTransform(d,0,0,d,0,0);
+ seamContext.lineCap="round";seamContext.lineJoin="round";
+ const currentPage=pageId();
+ for(const s of seamStrokes){
+  const visible=s.points.filter(p=>p.k!=="book"||s.page===currentPage);
+  if(!visible.length)continue;
+  seamContext.strokeStyle=s.colour;seamContext.fillStyle=s.colour;
+  seamContext.lineWidth=s.width;seamContext.beginPath();
+  for(const [i,p] of visible.entries()){
+   const q=screenPoint(p);if(i===0)seamContext.moveTo(q.x,q.y);else seamContext.lineTo(q.x,q.y);
+  }
+  if(visible.length===1){const q=screenPoint(visible[0]);seamContext.arc(q.x,q.y,s.width/2,0,Math.PI*2);seamContext.fill()}
+  else seamContext.stroke();
+ }
+}
+function seamErase(e){
+ const p={x:e.clientX-seamCanvas.getBoundingClientRect().left,y:e.clientY-seamCanvas.getBoundingClientRect().top};
+ for(let i=seamStrokes.length-1;i>=0;i--){
+  if(seamStrokes[i].points.some(q=>{if(q.k==="book"&&seamStrokes[i].page!==pageId())return false;
+   const t=screenPoint(q);return Math.hypot(t.x-p.x,t.y-p.y)<22;}))seamStrokes.splice(i,1);
+ }
+ seamPaint();
+}
+function seamEraser(e){
+ return erase||e.pointerType==="pen"&&(e.button===5||(e.buttons&32)!==0);
+}
+document.addEventListener("pointerdown",e=>{
+ if(current!=="workspace"||e.pointerType==="touch"||!(e.pointerType==="pen"||(e.pointerType==="mouse"&&pen.classList.contains("active"))))return;
+ if(e.target.closest("button,input,select,.controls,.gallery-workspace-title,.gallery-workspace-drag,.calculator-panel,.lb-handle"))return;
+ const k=seamKind(e.clientX,e.clientY);
+ if(k!=="book"&&k!=="work")return;
+ e.preventDefault();e.stopImmediatePropagation();
+ const erasing=seamEraser(e);
+ seamActive={id:e.pointerId,erase:erasing};
+ if(erasing)seamErase(e);
+ else {
+  const s={page:pageId(),colour:window.galleryPenColour||"#1a1a1a",width:3,points:[seamPoint(e)]};
+  seamStrokes.push(s);seamActive.stroke=s;seamPaint();
+ }
+ try{viewer.setPointerCapture(e.pointerId)}catch(_){}
+},true);
+document.addEventListener("pointermove",e=>{
+ if(!seamActive||seamActive.id!==e.pointerId)return;
+ e.preventDefault();e.stopImmediatePropagation();
+ if(seamActive.erase)seamErase(e);
+ else{seamActive.stroke.points.push(seamPoint(e));seamPaint()}
+},true);
+function seamEnd(e){
+ if(seamActive?.id===e.pointerId){seamActive=null;try{if(viewer.hasPointerCapture(e.pointerId))viewer.releasePointerCapture(e.pointerId)}catch(_){}}
+}
+document.addEventListener("pointerup",seamEnd,true);
+document.addEventListener("pointercancel",seamEnd,true);
+window.gallerySeamInk={clearAll(){seamStrokes.length=0;seamActive=null;seamPaint()},redraw:seamPaint};
+if(window.ResizeObserver)new ResizeObserver(seamResize).observe(seamCanvas);
+if(pageImage&&window.MutationObserver)new MutationObserver(seamPaint).observe(pageImage,{attributes:true,attributeFilter:["style","src"]});
+if(pageNumber&&window.MutationObserver)new MutationObserver(seamPaint).observe(pageNumber,{subtree:true,childList:true,characterData:true});
+container.addEventListener("scroll",seamPaint,{passive:true});
+window.addEventListener("resize",seamResize);
+seamResize();
+
 pen.addEventListener("click",()=>queueMicrotask(()=>{if(current==="workspace"||current==="white"){work.style.pointerEvents="auto";board.style.pointerEvents="auto"}}));
 updateView();
 })();
