@@ -11,13 +11,22 @@ for(const [name,c] of [["Black","#1a1a1a"],["Blue","#205da9"],["Red","#e63329"],
 }
 pen.after(colours);
 const button=(id,label,title)=>{const b=document.createElement("button");b.id=id;b.type="button";b.className="toolbar-btn gallery-tool-short";b.textContent=label;b.title=title;return b};
-const workspaceButton=button("gallery-workspace-toggle","Workspace","Open writing surface beside textbook");
-const layoutButton=button("gallery-workspace-layout","Top / Side","Switch between textbook above writing and side-by-side");layoutButton.hidden=true;layoutButton.setAttribute("aria-pressed","false");
+const workspaceButton=button("gallery-book-left","Book Left","Textbook on the left; working on the right");
+const layoutButton=button("gallery-book-top","Book Top","Textbook above; whiteboard below");layoutButton.setAttribute("aria-pressed","false");
 const whiteButton=button("gallery-white-toggle","Whiteboard","Replace page with blank writing surface");
 const eraseButton=button("gallery-erase-toggle","Eraser","Toggle pen-tip eraser");
 const clearButton=button("gallery-workspace-clear","Clear work","Clear writing surface");
 const tools=document.querySelector(".controls-right")||pen.parentElement;
 tools.prepend(workspaceButton,layoutButton,whiteButton,eraseButton,clearButton);
+const bookZoomControl=document.createElement("label");bookZoomControl.className="gallery-book-zoom";
+bookZoomControl.innerHTML='<span>Book</span><input type="range" min="50" max="800" step="25" value="100" aria-label="Book zoom"><output>100%</output>';
+tools.append(bookZoomControl);
+const bookZoomSlider=bookZoomControl.querySelector("input");
+bookZoomSlider.addEventListener("input",()=>{
+ const z=Number(bookZoomSlider.value)/100;
+ window.gallerySetBookZoom?.(z);
+ bookZoomControl.querySelector("output").textContent=Math.round(z*100)+"%";
+});
 const panel=document.createElement("section");panel.className="gallery-workspace";panel.setAttribute("aria-label","Teaching writing surface");
 panel.innerHTML='<div class="gallery-workspace-drag" title="Drag to resize writing area"></div><div class="gallery-workspace-title"><strong>Writing surface</strong><div class="gallery-zoom-controls"><label for="gallery-zoom">Zoom</label><input id="gallery-zoom" type="range" min="25" max="400" value="100" step="5"><span id="gallery-zoom-value">100%</span></div></div><canvas id="gallery-workspace-canvas" aria-label="Whiteboard"></canvas>';
 viewer.append(panel);
@@ -42,7 +51,9 @@ function updateView(){
  const on=current==="workspace";
  document.body.classList.toggle("gallery-workspace-on",on);
  document.body.classList.toggle("gallery-whiteboard-on",current==="white");
- workspaceButton.classList.toggle("active",on);
+ workspaceButton.classList.toggle("active",on&&!stacked);bookZoomControl.hidden=!on;
+ layoutButton.classList.toggle("active",on&&stacked);
+ workspaceButton.setAttribute("aria-pressed",String(on&&!stacked));
  whiteButton.classList.toggle("active",current==="white");
  layoutWorkspace();
  if(current==="white")requestAnimationFrame(()=>resize(board));
@@ -50,7 +61,6 @@ function updateView(){
 }
 function layoutWorkspace(){
  const on=current==="workspace",nav=$("smart-nav");
- layoutButton.hidden=!on;layoutButton.classList.toggle("active",on&&stacked);
  layoutButton.setAttribute("aria-pressed",String(on&&stacked));
  document.body.classList.toggle("gallery-workspace-stacked",on&&stacked);
  if(!on){
@@ -75,11 +85,27 @@ function layoutWorkspace(){
  }
  requestAnimationFrame(()=>resize(work));
 }
-workspaceButton.onclick=()=>{current=current==="workspace"?"book":"workspace";updateView()};
-layoutButton.onclick=()=>{stacked=!stacked;layoutWorkspace()};
+function startLayout(top){
+ const already=current==="workspace"&&stacked===top;
+ current=already?"book":"workspace";stacked=top;
+ updateView();
+ if(!already&&top){
+  // In a shallow top pane, fit *width*, not height. Preserve relative scroll position.
+  const scrollFraction=(container.scrollTop+container.clientHeight/2)/Math.max(1,container.scrollHeight);
+  $("fit-width")?.click();
+  requestAnimationFrame(()=>{container.scrollTop=Math.max(0,scrollFraction*container.scrollHeight-container.clientHeight/2);});
+ }
+}
+workspaceButton.onclick=()=>startLayout(false);
+layoutButton.onclick=()=>startLayout(true);
 whiteButton.onclick=()=>{current=current==="white"?"book":"white";updateView()};
 eraseButton.onclick=()=>{erase=!erase;eraseButton.classList.toggle("active",erase);eraseButton.setAttribute("aria-pressed",String(erase))};
-clearButton.onclick=()=>{if(current==="book"){window.galleryClearBookInk?.();$("tool-clear-ink")?.click();return}const c=activeCanvas();data.get(c).strokes=[];paint(c)};
+clearButton.onclick=()=>{
+ // Always reset both sides, independently of the current layout.
+ for(const c of all){data.get(c).strokes=[];data.get(c).active=null;paint(c)}
+ window.galleryClearBookInk?.();window.gallerySeamInk?.clearAll?.();
+ $("tool-clear-ink")?.click();
+};
 function syncZoom(c){if(c===work){$("gallery-zoom").value=String(Math.round(data.get(c).zoom*100));$("gallery-zoom-value").textContent=Math.round(data.get(c).zoom*100)+"%"}}
 $("gallery-zoom").addEventListener("input",e=>{const v=data.get(work),z=Number(e.target.value)/100,cx=work.clientWidth/2,cy=work.clientHeight/2;v.offsetX=cx-(cx-v.offsetX)*z/v.zoom;v.offsetY=cy-(cy-v.offsetY)*z/v.zoom;v.zoom=z;syncZoom(work);paint(work)});
 const drag=panel.querySelector(".gallery-workspace-drag");let dragOrigin=null;
