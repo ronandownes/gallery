@@ -89,43 +89,40 @@ body.gallery-whiteboard-on .gallery-workspace{display:none!important}
 .gallery-silent-btn.active{background:#3c4756!important;color:#fff!important;border-color:#3c4756!important}
 .controls .gallery-record-btn{padding:0 7px}
 
-/* Single-row, compact teaching toolbar with secondary controls under More. */
-.controls{position:relative;display:flex!important;align-items:center!important;height:42px!important;min-height:42px!important;flex-wrap:nowrap!important;gap:3px!important;padding:3px 5px!important;overflow:visible!important}
-.controls-left,.controls-right{display:flex!important;align-items:center!important;flex-wrap:nowrap!important;gap:3px!important;min-width:0!important}
+/* All teaching controls visible on a single row; no overflow menu. */
+.controls{display:flex!important;align-items:center!important;flex-wrap:nowrap!important;
+  height:42px!important;min-height:42px!important;gap:5px!important;
+  padding:4px 7px!important;position:relative;z-index:4000!important}
+.controls-left,.controls-right{display:flex!important;align-items:center!important;flex-wrap:nowrap!important;gap:4px!important;min-width:0!important}
 .controls-right{margin-left:auto}
-.controls .toolbar-btn{padding:0 5px!important;height:28px!important;min-width:25px!important;font-size:12px!important;flex-shrink:0}
+.controls .toolbar-btn{height:29px!important;min-width:27px!important;padding:0 6px!important;font-size:12px!important;flex-shrink:0}
 .controls .sep{display:none}
-.controls .page-info{white-space:nowrap;flex-shrink:0;font-size:11px}
-.controls .gallery-pen-palette{gap:3px}
-.controls .gallery-pen-swatch{width:19px;height:19px;flex:none}
-.controls .gallery-record-btn{font-weight:700}
+.controls .page-info{white-space:nowrap;flex-shrink:0;font-size:12px}
+.controls .gallery-pen-palette{gap:4px}
+.controls .gallery-pen-swatch{height:20px;width:20px;flex-shrink:0}
+.controls .gallery-record-btn,.controls .gallery-silent-btn{font-weight:700!important;white-space:nowrap;padding:0 7px!important}
 #pointer-btn,#tool-clear-ink{display:none!important}
-#gallery-more-toggle{font-size:20px!important;font-weight:700;padding:0 5px!important;line-height:1}
-.gallery-more-panel{
- position:absolute;z-index:3500;right:4px;top:calc(100% + 3px);
- width:min(340px,calc(100vw - 16px));padding:10px;
- border:1px solid #cbd5e1;border-radius:9px;background:#fff;
- box-shadow:0 8px 26px #20212430;
- display:flex;flex-wrap:wrap;align-items:center;gap:7px;
+.gallery-record-btn.gallery-recording{background:#E63329!important;border-color:#E63329!important;color:#fff!important}
+.gallery-silent-btn{color:inherit}
+.gallery-silent-btn.gallery-recording{background:#2D7DD2!important;border-color:#2D7DD2!important;color:#fff!important}
+.gallery-silent-btn.active:not(.gallery-recording){background:#fff!important;border-color:#cbd5e1!important;color:#27384d!important}
+.gallery-record-timer{font-size:12px;color:#435268;font-weight:700;font-variant-numeric:tabular-nums;min-width:37px}
+.gallery-mic-meter{height:12px;width:50px;border:1px solid #e7a39f;border-radius:4px;background:#fce9e8;overflow:hidden;display:inline-flex;flex-shrink:0}
+.gallery-mic-meter[hidden]{display:none!important}
+.gallery-mic-meter span{height:100%;width:0%;background:#E63329;transition:width 80ms linear}
+.gallery-book-zoom{gap:4px;padding:0 4px;white-space:nowrap}
+.gallery-book-zoom input{width:72px;max-width:11vw}
+@media(max-width:1400px){
+ .controls{gap:3px!important;padding:3px 5px!important}
+ .controls-left,.controls-right{gap:3px!important}
+ .controls .toolbar-btn{padding:0 4px!important;min-width:24px!important}
+ .controls .gallery-pen-swatch{height:18px;width:18px}
+ .gallery-book-zoom input{width:58px}
 }
-.gallery-more-panel[hidden]{display:none!important}
-.gallery-more-panel .gallery-book-zoom{max-width:100%;flex:1 0 100%;font-size:12px}
-.gallery-more-panel .gallery-book-zoom input{width:155px;max-width:48vw}
-.gallery-more-panel .toolbar-btn{min-width:35px!important}
-@media(max-width:850px){
- .controls{gap:2px!important;padding:2px 3px!important}
- .controls .toolbar-btn{padding:0 3px!important;font-size:11px!important;min-width:22px!important}
- .controls .gallery-pen-swatch{width:17px;height:17px}
- .controls .gallery-record-timer{font-size:10px;min-width:30px}
+@media(max-width:1050px){
+ .controls{overflow-x:auto!important;overflow-y:hidden!important;scrollbar-width:thin}
+ .controls-left,.controls-right{flex:0 0 auto}
+ .controls-right{margin-left:0}
 }
-@media(max-width:690px){
- .controls #toc-btn{padding:0 2px!important}
- .controls #gallery-record-silent{font-size:12px!important}
- .controls .toolbar-btn{font-size:10.5px!important}
-}
-
-/* Keep the More menu above the textbook, pen overlay and page arrows. */
-.controls{z-index:4000!important}
-
 /* Retire the old ruler overlay, including accidental keyboard activation. */
 .reading-ruler,.reading-ruler.active{display:none!important}
