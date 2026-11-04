@@ -37,62 +37,13 @@ bookZoomSlider.addEventListener("input",()=>{
  window.gallerySetBookZoom?.(z);
  bookZoomControl.querySelector("output").textContent=Math.round(z*100)+"%";
 });
-// Move secondary controls into a compact accessible overflow menu.
-const moreButton=button("gallery-more-toggle","⋯","More teaching controls");
-const morePanel=document.createElement("div");
-morePanel.id="gallery-more-panel";morePanel.className="gallery-more-panel";morePanel.hidden=true;
-const toolbarRoot=tools.closest(".controls");
-toolbarRoot.append(morePanel);
-tools.append(moreButton);
+// Essential actions are always visible on the single toolbar.
 for(const id of ["fit-height","fit-width","tool-undo","copy-link","print-range-btn","fullscreen"]){
- const el=$(id);if(el)morePanel.append(el);
+ const el=$(id);
+ if(el){el.hidden=false;el.style.display="";el.setAttribute("aria-label",el.title||id)}
 }
-morePanel.append(bookZoomControl);
-moreButton.setAttribute("aria-expanded","false");
-moreButton.onclick=()=>{
- const open=morePanel.hidden;
- morePanel.hidden=!open;moreButton.setAttribute("aria-expanded",String(open));
- moreButton.classList.toggle("active",open);
-};
-document.addEventListener("pointerdown",e=>{
- if(!morePanel.hidden&&!morePanel.contains(e.target)&&e.target!==moreButton){
-  morePanel.hidden=true;moreButton.setAttribute("aria-expanded","false");moreButton.classList.remove("active");
- }
-});
-document.addEventListener("keydown",e=>{
- if(e.key==="Escape"){morePanel.hidden=true;moreButton.setAttribute("aria-expanded","false");moreButton.classList.remove("active")}
-});
-// On narrow Surface windows, move optional actions into More instead of
-// allowing the primary controls to overflow the right edge.
-const compactIds=["toc-btn","calculator-toggle","zoom-out","zoom-in"];
-const compactMarkers=compactIds.map(id=>{
- const el=$(id);if(!el)return null;
- const marker=document.createComment("Original position of "+id);
- el.parentNode.insertBefore(marker,el);
- return {el,marker};
-}).filter(Boolean);
-function fitTeachingToolbar(){
- for(const {el,marker} of compactMarkers){
-  if(marker.parentNode)marker.parentNode.insertBefore(el,marker.nextSibling);
- }
- const left=toolbarRoot.querySelector(".controls-left"),right=toolbarRoot.querySelector(".controls-right");
- for(const {el} of compactMarkers){
-  if(!left||!right||left.scrollWidth+right.scrollWidth+8<=toolbarRoot.clientWidth)break;
-  morePanel.prepend(el);
- }
-}
-window.addEventListener("resize",()=>requestAnimationFrame(fitTeachingToolbar));
-if(window.ResizeObserver)new ResizeObserver(fitTeachingToolbar).observe(toolbarRoot);
-requestAnimationFrame(fitTeachingToolbar);
-morePanel.addEventListener("click",e=>{
- if(e.target.closest("button")){
-  morePanel.hidden=true;moreButton.setAttribute("aria-expanded","false");moreButton.classList.remove("active");
- }
-});
-// Favicon for every textbook viewer that loads the shared Gallery tools.
-if(!document.querySelector('link[rel="icon"]')){
- const ico=document.createElement("link");ico.rel="icon";ico.type="image/svg+xml";ico.href="../favicon.svg?v=4dots";document.head.append(ico);
-}
+const ico=document.querySelector('link[rel="icon"]');
+if(!ico){const link=document.createElement("link");link.rel="icon";link.type="image/svg+xml";link.href="../favicon.svg?v=4dots";document.head.append(link)}
 const panel=document.createElement("section");panel.className="gallery-workspace";panel.setAttribute("aria-label","Teaching writing surface");
 panel.innerHTML='<div class="gallery-workspace-drag" title="Drag to resize writing area"></div><div class="gallery-workspace-title"><strong>Writing surface</strong><div class="gallery-zoom-controls"><label for="gallery-zoom">Zoom</label><input id="gallery-zoom" type="range" min="25" max="400" value="100" step="5"><span id="gallery-zoom-value">100%</span></div></div><canvas id="gallery-workspace-canvas" aria-label="Whiteboard"></canvas>';
 viewer.append(panel);
