@@ -53,6 +53,33 @@ document.addEventListener("pointerdown",e=>{
 document.addEventListener("keydown",e=>{
  if(e.key==="Escape"){morePanel.hidden=true;moreButton.setAttribute("aria-expanded","false");moreButton.classList.remove("active")}
 });
+// On narrow Surface windows, move optional actions into More instead of
+// allowing the primary controls to overflow the right edge.
+const compactIds=["toc-btn","calculator-toggle","zoom-out","zoom-in"];
+const compactMarkers=compactIds.map(id=>{
+ const el=$(id);if(!el)return null;
+ const marker=document.createComment("Original position of "+id);
+ el.parentNode.insertBefore(marker,el);
+ return {el,marker};
+}).filter(Boolean);
+function fitTeachingToolbar(){
+ for(const {el,marker} of compactMarkers){
+  if(marker.parentNode)marker.parentNode.insertBefore(el,marker.nextSibling);
+ }
+ const left=toolbarRoot.querySelector(".controls-left"),right=toolbarRoot.querySelector(".controls-right");
+ for(const {el} of compactMarkers){
+  if(!left||!right||left.scrollWidth+right.scrollWidth+8<=toolbarRoot.clientWidth)break;
+  morePanel.prepend(el);
+ }
+}
+window.addEventListener("resize",()=>requestAnimationFrame(fitTeachingToolbar));
+if(window.ResizeObserver)new ResizeObserver(fitTeachingToolbar).observe(toolbarRoot);
+requestAnimationFrame(fitTeachingToolbar);
+morePanel.addEventListener("click",e=>{
+ if(e.target.closest("button")){
+  morePanel.hidden=true;moreButton.setAttribute("aria-expanded","false");moreButton.classList.remove("active");
+ }
+});
 // Favicon for every textbook viewer that loads the shared Gallery tools.
 if(!document.querySelector('link[rel="icon"]')){
  const ico=document.createElement("link");ico.rel="icon";ico.type="image/svg+xml";ico.href="../favicon.svg?v=4dots";document.head.append(ico);
