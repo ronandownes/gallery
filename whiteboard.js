@@ -74,6 +74,7 @@ const pages=new Map();
 let pageKey=(document.getElementById("current-page")?.textContent||"1").trim();
 let active=null;
 const pageStrokes=()=>{if(!pages.has(pageKey))pages.set(pageKey,[]);return pages.get(pageKey)};
+window.galleryClearBookInk=()=>{pages.set(pageKey,[]);redraw()};
 const isBook=()=>!document.body.classList.contains("gallery-whiteboard-on")&&!document.body.classList.contains("gallery-workspace-on");
 const penEnabled=()=>pen.classList.contains("active")&&isBook();
 const imageRect=()=>image.getBoundingClientRect();
@@ -128,7 +129,7 @@ function eraseAt(p){
  }
  redraw();
 }
-function within(e){const r=bounds();return e.clientX>=r.left&&e.clientX<r.right&&e.clientY>=r.top&&e.clientY<r.bottom}
+function within(e){if(document.querySelector(".gallery-question-stage.open")?.contains(e.target))return false;const r=bounds();return e.clientX>=r.left&&e.clientX<r.right&&e.clientY>=r.top&&e.clientY<r.bottom}
 function usingEraser(e){
  const manual=document.getElementById("gallery-erase-toggle")?.getAttribute("aria-pressed")==="true";
  return manual||e.pointerType==="pen"&&(e.button===5||(e.buttons&32)!==0);
@@ -231,4 +232,116 @@ recBtn.onclick=async()=>{
   },500);
  }catch(e){cleanup();recorder=null;alert("Recording not started. "+e.message+"\nYou can still record Gallery with Snagit and Record Microphone enabled.")}
 };
+})();
+
+
+/* Question -> whiteboard: a clean working page with the chosen exact question.
+   Ink is independent of the book image; fingers scroll, pens write/erase. */
+(function(){
+"use strict";
+const viewer=document.querySelector(".viewer"),area=document.getElementById("image-container");
+const image=document.getElementById("page-image"),spotlight=document.getElementById("lightbox");
+const tools=document.querySelector(".controls-right"),pen=document.getElementById("tool-pen");
+if(!viewer||!area||!image||!spotlight||!tools||!pen)return;
+const focusBtn=document.createElement("button");
+focusBtn.className="toolbar-btn gallery-tool-short";focusBtn.type="button";
+focusBtn.textContent="Question ↑";focusBtn.title="Place the selected textbook question at the top of a clean white writing page";
+const clearBook=document.getElementById("gallery-workspace-clear");
+const clearNative=document.getElementById("tool-clear-ink");
+if(clearBook)clearBook.title="Clear writing on the current question or workspace";
+tools.prepend(focusBtn);
+const stage=document.createElement("section");
+stage.className="gallery-question-stage";stage.setAttribute("aria-label","Question and whiteboard");
+stage.innerHTML='<div class="gallery-question-bar"><strong id="gallery-question-title">Question and working</strong><button type="button" id="gallery-question-back">← Book</button><button type="button" id="gallery-question-clear">Clear writing</button><button type="button" id="gallery-question-next">New question</button></div><div class="gallery-question-scroll"><div class="gallery-question-sheet"><canvas class="gallery-question-clip" aria-label="Selected question"></canvas><canvas class="gallery-question-ink" aria-label="Write over the question and below"></canvas></div></div>';
+viewer.append(stage);
+const cropped=stage.querySelector(".gallery-question-clip");
+const sheet=stage.querySelector(".gallery-question-sheet");
+const ink=stage.querySelector(".gallery-question-ink"),g=ink.getContext("2d");
+const scroll=stage.querySelector(".gallery-question-scroll");
+const strokes=[];let active=null,eraserMode=false;
+const activeStage=()=>stage.classList.contains("open");
+const pos=e=>{const r=ink.getBoundingClientRect();return{x:(e.clientX-r.left)/Math.max(1,r.width),y:(e.clientY-r.top)/Math.max(1,r.height)}};
+const eraseMode=e=>eraserMode||document.getElementById("gallery-erase-toggle")?.getAttribute("aria-pressed")==="true"||(e.pointerType==="pen"&&(e.button===5||(e.buttons&32)!==0));
+function redraw(){
+ const r=ink.getBoundingClientRect(),d=ink.width/Math.max(1,r.width);
+ g.setTransform(1,0,0,1,0,0);g.clearRect(0,0,ink.width,ink.height);
+ g.setTransform(d,0,0,d,0,0);g.lineCap="round";g.lineJoin="round";
+ for(const s of strokes){
+  if(!s.points.length)continue;
+  g.strokeStyle=s.colour;g.fillStyle=s.colour;g.lineWidth=s.width;
+  g.beginPath();
+  s.points.forEach((p,i)=>{const x=p.x*r.width,y=p.y*r.height;i?g.lineTo(x,y):g.moveTo(x,y)});
+  if(s.points.length===1){const p=s.points[0];g.arc(p.x*r.width,p.y*r.height,s.width/2,0,Math.PI*2);g.fill()}
+  else g.stroke();
+ }
+}
+function resize(){
+ if(!activeStage())return;
+ const r=ink.getBoundingClientRect(),d=Math.min(window.devicePixelRatio||1,2);
+ const w=Math.max(1,Math.round(r.width*d)),h=Math.max(1,Math.round(r.height*d));
+ if(ink.width!==w||ink.height!==h){ink.width=w;ink.height=h}redraw();
+}
+function eraseAt(p){
+ const r=ink.getBoundingClientRect(),rx=18/Math.max(r.width,1),ry=18/Math.max(r.height,1);
+ for(let i=strokes.length-1;i>=0;i--){
+  if(strokes[i].points.some(q=>Math.hypot((q.x-p.x)/rx,(q.y-p.y)/ry)<1))strokes.splice(i,1);
+ }redraw();
+}
+ink.addEventListener("pointerdown",e=>{
+ if(e.pointerType==="touch")return;
+ e.preventDefault();e.stopPropagation();
+ if(!pen.classList.contains("active"))pen.click();
+ const erase=eraseMode(e),p=pos(e);
+ active={id:e.pointerId,erase};ink.setPointerCapture(e.pointerId);
+ if(erase)eraseAt(p);
+ else{
+  const r=ink.getBoundingClientRect();
+  const s={colour:window.galleryPenColour||"#1a1a1a",width:3,points:[p]};
+  strokes.push(s);active.stroke=s;redraw();
+ }
+});
+ink.addEventListener("pointermove",e=>{
+ if(!active||active.id!==e.pointerId)return;
+ e.preventDefault();e.stopPropagation();
+ const p=pos(e);if(active.erase)eraseAt(p);else{active.stroke.points.push(p);redraw()}
+});
+const stop=e=>{if(active&&active.id===e.pointerId)active=null};
+ink.addEventListener("pointerup",stop);ink.addEventListener("pointercancel",stop);
+function close(){stage.classList.remove("open");active=null;focusBtn.classList.remove("active")}
+function open(){
+ if(!image.complete||!image.naturalWidth){alert("The textbook page has not finished loading.");return}
+ if(!spotlight.classList.contains("active")){
+  document.getElementById("tool-lightbox")?.click();
+  alert("Move and resize the yellow spotlight around the question, then select Question ↑ again.");
+  return;
+ }
+ const a=spotlight.getBoundingClientRect(),b=image.getBoundingClientRect();
+ const x0=Math.max(a.left,b.left),y0=Math.max(a.top,b.top),x1=Math.min(a.right,b.right),y1=Math.min(a.bottom,b.bottom);
+ if(x1<=x0||y1<=y0){alert("Move the yellow spotlight over the textbook question.");return}
+ const fX=image.naturalWidth/Math.max(1,b.width),fY=image.naturalHeight/Math.max(1,b.height);
+ const sx=Math.max(0,Math.floor((x0-b.left)*fX)),sy=Math.max(0,Math.floor((y0-b.top)*fY));
+ const sw=Math.min(image.naturalWidth-sx,Math.max(1,Math.ceil((x1-x0)*fX)));
+ const sh=Math.min(image.naturalHeight-sy,Math.max(1,Math.ceil((y1-y0)*fY)));
+ cropped.width=sw;cropped.height=sh;cropped.getContext("2d").drawImage(image,sx,sy,sw,sh,0,0,sw,sh);
+ document.getElementById("gallery-question-title").textContent="Textbook question · page "+(document.getElementById("current-page")?.textContent||"");
+ strokes.length=0;stage.classList.add("open");focusBtn.classList.add("active");scroll.scrollTop=0;
+ const top=document.querySelector(".controls")?.offsetHeight||42;
+ stage.style.top=top+"px";
+ requestAnimationFrame(resize);
+}
+focusBtn.onclick=()=>activeStage()?close():open();
+document.getElementById("gallery-question-back").onclick=close;
+document.getElementById("gallery-question-clear").onclick=()=>{strokes.length=0;redraw()};
+document.getElementById("gallery-question-next").onclick=()=>{if(strokes.length&&!confirm("Start a new question? This clears the current whiteboard working."))return;strokes.length=0;close()};
+if(clearBook)clearBook.addEventListener("click",e=>{
+ if(activeStage()){e.preventDefault();e.stopImmediatePropagation();strokes.length=0;redraw();return}
+ if(!document.body.classList.contains("gallery-whiteboard-on")&&!document.body.classList.contains("gallery-workspace-on")){
+  e.preventDefault();e.stopImmediatePropagation();
+  window.galleryClearBookInk?.();
+  clearNative?.click();
+ }
+},true);
+if(clearNative)clearNative.addEventListener("click",()=>{if(activeStage()){strokes.length=0;redraw()}else window.galleryClearBookInk?.()},true);
+if(window.ResizeObserver)new ResizeObserver(()=>{if(activeStage())resize()}).observe(sheet);
+window.addEventListener("resize",()=>{if(activeStage()){stage.style.top=(document.querySelector(".controls")?.offsetHeight||42)+"px";resize()}});
 })();
