@@ -31,3 +31,17 @@ body.gallery-workspace-on #gallery-whiteboard{display:none!important}
 .gallery-workspace .gallery-zoom-controls{display:flex;align-items:center;gap:6px}
 .gallery-workspace .gallery-zoom-controls input{width:80px;max-width:20vw}
 @media(max-width:800px){.controls{height:auto;min-height:42px;flex-wrap:wrap}.controls-left,.controls-right{flex-wrap:wrap}.controls-right{margin-left:0}.gallery-workspace{top:75px}body.gallery-workspace-on .page-nav{top:75px}}
+
+/* Gallery teaching focus: stronger spotlight and audio recorder */
+
+/* Focus spotlight: strong dimming with ink visible above the shadow. */
+.lightbox.active {box-shadow:0 0 0 4000px rgba(0,0,0,.84)!important}
+#gallery-focus-ink {
+ position:absolute;left:0;right:0;bottom:0;top:42px;
+ width:100%;height:calc(100% - 42px);pointer-events:none;z-index:2010;
+ background:transparent;
+}
+.gallery-record-btn{white-space:nowrap;font-size:12px;font-weight:700}
+.gallery-record-btn.gallery-recording{background:#b42327!important;color:#fff!important;border-color:#b42327!important}
+.gallery-record-timer{font-size:12px;font-variant-numeric:tabular-nums;color:#ad1e23;font-weight:700;min-width:48px}
+@media(max-width:800px){#gallery-focus-ink{top:75px;height:calc(100% - 75px)}}
