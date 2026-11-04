@@ -362,6 +362,24 @@ function escapeHtml(s){return String(s).replaceAll("&","&amp;").replaceAll("<","
 function showZoomIndicator(){zoomIndicator.textContent=Math.round(config.zoom*100)+"%";zoomIndicator.style.display="block";clearTimeout(hideZoomTimer);hideZoomTimer=setTimeout(()=>zoomIndicator.style.display="none",900)}
 function updateTransform(){pageImage.style.transform=`translate(${config.translateX}px, ${config.translateY}px) scale(${config.zoom})`;inkCanvas.style.transform=`translate(${config.translateX}px, ${config.translateY}px) scale(${config.zoom})`;showZoomIndicator();ensureSmartNavVisible()}
 window.gallerySetBookZoom=(zoom)=>{const r=imageContainer.getBoundingClientRect();setZoomAround(zoom,r.left+r.width/2,r.top+r.height/2)};
+window.galleryGetBookZoom=()=>config.zoom;
+// Match the displayed book image's pixel size across Book/Top/Left without losing magnification.
+window.gallerySetBookPixelWidth=(pixels,preferWidth)=>{
+ if(preferWidth){
+  config.currentFitMode="width";
+  imageContainer.classList.remove("fit-height");imageContainer.classList.add("fit-width");
+  $("fit-height").classList.remove("active");$("fit-width").classList.add("active");
+ }
+ const baseWidth=pageImage.getBoundingClientRect().width/Math.max(.001,config.zoom);
+ config.zoom=clamp(pixels/Math.max(1,baseWidth),.25,8);
+ config.translateX=0;config.translateY=0;updateTransform();
+};
+window.galleryAlignBookPoint=(ax,ay,targetX,targetY)=>{
+ const rect=pageImage.getBoundingClientRect();
+ config.translateX+=targetX-(rect.left+ax*rect.width);
+ config.translateY+=targetY-(rect.top+ay*rect.height);
+ updateTransform();
+};
 function setFitMode(mode){config.currentFitMode=mode;imageContainer.classList.remove("fit-height","fit-width");imageContainer.classList.add(mode==="width"?"fit-width":"fit-height");$("fit-height").classList.toggle("active",mode==="height");$("fit-width").classList.toggle("active",mode==="width");config.zoom=1;config.translateX=0;config.translateY=0;updateTransform();localStorage.setItem("fitMode",mode)}
 function loadPage(index){if(index<0||index>=config.pages.length)return;config.currentPage=index;pageImage.src=`${config.imgBase}/${config.pages[index]}`;$("current-page").textContent=String(index+1-config.pageOffset);imageContainer.scrollTop=0;imageContainer.scrollLeft=0;config.zoom=1;config.translateX=0;config.translateY=0;updateTransform();clearInk();updateActiveTOC();updateUrl()}
 function updateUrl(){const visiblePage=config.currentPage+1-config.pageOffset;const url=new URL(window.location.href);url.hash=`page=${visiblePage}`;history.replaceState(null,"",url.toString())}
@@ -654,6 +672,6 @@ init();
 })();
 </script>
 <script src="../recorder.js?v=20261104-silent-favicon"></script>
-<script src="../whiteboard.js?v=20261104-four-modes-width"></script>
+<script src="../whiteboard.js?v=20261104-preserve-zoom-pen"></script>
 </body>
 </html>
