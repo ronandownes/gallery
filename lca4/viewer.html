@@ -156,13 +156,14 @@ body.toc-hidden .toc-sidebar { margin-left: -320px; }
   border: 2px solid rgba(255,220,100,.65);
   border-radius: 6px;
   box-shadow: 0 0 0 4000px rgba(0,0,0,.38);
+  touch-action: none; cursor: move;
 }
 .lightbox.active { display: block; }
 .lightbox.focused { border-color: rgba(255,220,100,.95); }
 .lb-handle {
-  position: absolute; width: 16px; height: 16px;
+  position: absolute; width: 22px; height: 22px;
   background: rgba(255,220,100,.82); border: 1px solid rgba(170,130,25,.9);
-  border-radius: 4px; z-index: 1001;
+  border-radius: 4px; z-index: 1001; touch-action: none;
 }
 .lb-handle.tl { top: -8px; left: -8px; cursor: nw-resize; }
 .lb-handle.tr { top: -8px; right: -8px; cursor: ne-resize; }
@@ -178,14 +179,14 @@ body.toc-hidden .toc-sidebar { margin-left: -320px; }
 .page-nav.hidden{display:none}
 .page-nav button{
  width:48px;height:64px;flex:none;
- border:1px solid rgba(255,255,255,.24);border-radius:10px;
- background:rgba(25,25,25,.72);color:white;
- box-shadow:0 3px 12px rgba(0,0,0,.24);
- font-size:34px;line-height:1;cursor:pointer;touch-action:manipulation;
- pointer-events:auto;
+ border:0;border-radius:0;
+ background:transparent;color:#909090;
+ box-shadow:none;text-shadow:0 0 2px rgba(255,255,255,.65);
+ font-size:44px;font-weight:400;line-height:1;
+ cursor:pointer;touch-action:manipulation;pointer-events:auto;
 }
-.page-nav button:hover,.page-nav button:focus-visible{background:rgba(55,55,55,.90)}
-.page-nav button:active{background:#7254d3}
+.page-nav button:hover,.page-nav button:focus-visible{background:transparent;color:#666}
+.page-nav button:active{background:transparent;color:#555}
 .page-nav button:disabled{opacity:.24;cursor:default}
 
 /* Print dialog */
@@ -227,7 +228,7 @@ body.toc-hidden .toc-sidebar { margin-left: -320px; }
   body.toc-hidden .toc-sidebar{margin-left:-270px}
   .toolbar-btn{min-width:28px;height:28px}
   .page-nav{padding:0 5px}
-  .page-nav button{width:42px;height:58px;font-size:30px}
+  .page-nav button{width:42px;height:58px;font-size:40px}
   .tiny-links{display:none}
 }
 </style>
@@ -435,32 +436,87 @@ lightboxEl.addEventListener("mousedown",e=>{e.preventDefault();e.stopPropagation
 $("nav-left").onclick=()=>loadPage(config.currentPage-1);
 $("nav-right").onclick=()=>loadPage(config.currentPage+1);
 imageContainer.addEventListener("wheel",e=>{if(e.ctrlKey){e.preventDefault();setZoomAround(config.zoom+(e.deltaY<0?.08:-.08),e.clientX,e.clientY)}},{passive:false});
+// Touch gestures: page pan/pinch, touch ruler, movable and pinch-resizable spotlight.
 const touches=new Map();
-let pinchDistance=0,pinchCentre=null;
+let pinchDistance=0,pinchCentre=null,spotlightPinch=null;
 function touchPair(){
  const p=Array.from(touches.values()).slice(0,2);
  if(p.length<2)return null;
- return {d:Math.hypot(p[0].x-p[1].x,p[0].y-p[1].y),x:(p[0].x+p[1].x)/2,y:(p[0].y+p[1].y)/2};
+ return {
+  d:Math.hypot(p[0].x-p[1].x,p[0].y-p[1].y),
+  x:(p[0].x+p[1].x)/2,
+  y:(p[0].y+p[1].y)/2,
+  bothSpotlight:p[0].origin==="spotlight"&&p[1].origin==="spotlight"
+ };
 }
 function touchEnd(e){
  if(!touches.has(e.pointerId))return;
  touches.delete(e.pointerId);
- const p=touchPair();pinchDistance=p?p.d:0;pinchCentre=p?{x:p.x,y:p.y}:null;
+ const p=touchPair();
+ pinchDistance=p?p.d:0;
+ pinchCentre=p?{x:p.x,y:p.y}:null;
+ if(!p)spotlightPinch=null;
+}
+function moveSpotlightByTouch(mode,dx,dy){
+ const minW=100,minH=80;
+ if(mode==="move"){lightbox.x+=dx;lightbox.y+=dy}
+ else if(mode==="tl"){
+  const shiftX=Math.min(dx,lightbox.w-minW),shiftY=Math.min(dy,lightbox.h-minH);
+  lightbox.x+=shiftX;lightbox.y+=shiftY;
+  lightbox.w-=shiftX;lightbox.h-=shiftY;
+ }else if(mode==="tr"){
+  lightbox.w=Math.max(minW,lightbox.w+dx);
+  const shiftY=Math.min(dy,lightbox.h-minH);
+  lightbox.y+=shiftY;lightbox.h-=shiftY;
+ }else if(mode==="bl"){
+  const shiftX=Math.min(dx,lightbox.w-minW);
+  lightbox.x+=shiftX;lightbox.w-=shiftX;
+  lightbox.h=Math.max(minH,lightbox.h+dy);
+ }else if(mode==="br"){
+  lightbox.w=Math.max(minW,lightbox.w+dx);
+  lightbox.h=Math.max(minH,lightbox.h+dy);
+ }
+ positionLightbox();
 }
 imageContainer.addEventListener("pointerdown",e=>{
- if(e.pointerType!=="touch"||penMode||!(e.target===pageImage||e.target===imageContainer))return;
- e.preventDefault();touches.set(e.pointerId,{x:e.clientX,y:e.clientY});
+ if(e.pointerType!=="touch"||penMode)return;
+ const inSpotlight=lightboxEl.classList.contains("active")&&
+   (e.target===lightboxEl||lightboxEl.contains(e.target));
+ const inPage=e.target===pageImage||e.target===imageContainer;
+ if(!inPage&&!inSpotlight)return;
+ e.preventDefault();
+ const handle=inSpotlight?e.target.closest(".lb-handle"):null;
+ const origin=inSpotlight?"spotlight":"page";
+ const mode=inSpotlight?(handle?handle.dataset.corner:"move"):
+   (rulerEl.classList.contains("active")?"ruler":"page");
+ touches.set(e.pointerId,{x:e.clientX,y:e.clientY,origin,mode});
  imageContainer.setPointerCapture(e.pointerId);
- const p=touchPair();if(p){pinchDistance=p.d;pinchCentre={x:p.x,y:p.y}}
+ if(inSpotlight)focusLightbox(true);
+ const p=touchPair();
+ if(p){
+  pinchDistance=p.d;pinchCentre={x:p.x,y:p.y};
+  spotlightPinch=p.bothSpotlight?
+   {d:Math.max(1,p.d),cx:p.x,cy:p.y,x:lightbox.x,y:lightbox.y,w:lightbox.w,h:lightbox.h}:null;
+ }
 });
 imageContainer.addEventListener("pointermove",e=>{
  if(!touches.has(e.pointerId))return;
  e.preventDefault();
  const previous=touches.get(e.pointerId);
- touches.set(e.pointerId,{x:e.clientX,y:e.clientY});
+ touches.set(e.pointerId,{...previous,x:e.clientX,y:e.clientY});
+ if(pointerOn)positionPointer(e.clientX,e.clientY);
  if(touches.size>=2){
   const p=touchPair();
-  if(p&&pinchCentre){
+  if(p&&spotlightPinch&&p.bothSpotlight){
+   const factor=p.d/spotlightPinch.d;
+   const maxW=Math.max(100,imageContainer.clientWidth*.98);
+   const maxH=Math.max(80,imageContainer.clientHeight*.96);
+   lightbox.w=clamp(spotlightPinch.w*factor,100,maxW);
+   lightbox.h=clamp(spotlightPinch.h*factor,80,maxH);
+   lightbox.x=spotlightPinch.x+(p.x-spotlightPinch.cx)-(lightbox.w-spotlightPinch.w)/2;
+   lightbox.y=spotlightPinch.y+(p.y-spotlightPinch.cy)-(lightbox.h-spotlightPinch.h)/2;
+   positionLightbox();
+  }else if(p&&pinchCentre){
    if(pinchDistance>1)setZoomAround(clamp(config.zoom*p.d/pinchDistance,1,4),pinchCentre.x,pinchCentre.y);
    panImage(p.x-pinchCentre.x,p.y-pinchCentre.y);
   }
@@ -468,8 +524,17 @@ imageContainer.addEventListener("pointermove",e=>{
   return;
  }
  const dx=e.clientX-previous.x,dy=e.clientY-previous.y;
- if(config.zoom>1.001)panImage(dx,dy);
- else{imageContainer.scrollLeft-=dx;imageContainer.scrollTop-=dy}
+ if(previous.origin==="spotlight"){
+  moveSpotlightByTouch(previous.mode,dx,dy);
+ }else if(previous.mode==="ruler"){
+  const r=imageContainer.getBoundingClientRect();
+  positionRuler(e.clientY-r.top+imageContainer.scrollTop);
+ }else if(config.zoom>1.001){
+  panImage(dx,dy);
+ }else{
+  imageContainer.scrollLeft-=dx;
+  imageContainer.scrollTop-=dy;
+ }
 });
 imageContainer.addEventListener("pointerup",touchEnd);
 imageContainer.addEventListener("pointercancel",touchEnd);
