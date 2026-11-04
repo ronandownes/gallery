@@ -95,23 +95,22 @@ let wantTop=false;
 function showMode(mode){
  if(mode===current&&!(mode==="workspace"&&stacked!==wantTop))return;
  const im=$("page-image").getBoundingClientRect(),cr=container.getBoundingClientRect();
- const ax=(cr.left+cr.width/2-im.left)/Math.max(1,im.width);
- const ay=(cr.top+cr.height/2-im.top)/Math.max(1,im.height);
- current=mode;
- if(mode==="workspace")stacked=wantTop;
- updateView();
- // A short top pane needs a full-width book page, not the old fit-height thumbnail.
- // The image-coordinate anchor below restores the same textbook question afterwards.
- if(mode==="workspace"&&wantTop){
-  $("fit-width")?.click();
-  bookZoomSlider.value="100";
-  bookZoomControl.querySelector("output").textContent="100%";
+ const isTop=mode==="workspace"&&wantTop;
+ // Preserve the zoom and select the lower-centre strip in the current book view.
+ const anchorX=cr.left+cr.width*.5,anchorY=cr.top+cr.height*(isTop?.82:.5);
+ const ax=(anchorX-im.left)/Math.max(1,im.width),ay=(anchorY-im.top)/Math.max(1,im.height);
+ const displayedWidth=im.width;
+ current=mode;if(mode==="workspace")stacked=wantTop;updateView();
+ if(mode!=="white"){
+  requestAnimationFrame(()=>requestAnimationFrame(()=>{
+   window.gallerySetBookPixelWidth?.(displayedWidth,isTop);
+   const a=container.getBoundingClientRect();
+   window.galleryAlignBookPoint?.(ax,ay,a.left+a.width*.5,a.top+a.height*(isTop?.76:.5));
+   const percent=Math.round((window.galleryGetBookZoom?.()||1)*100);
+   bookZoomSlider.value=String(Math.max(50,Math.min(800,Math.round(percent/25)*25)));
+   bookZoomControl.querySelector("output").textContent=percent+"%";
+  }));
  }
- if(mode!=="white")requestAnimationFrame(()=>requestAnimationFrame(()=>{
-  const b=$("page-image").getBoundingClientRect(),a=container.getBoundingClientRect();
-  container.scrollTop+=b.top+ay*b.height-(a.top+a.height/2);
-  container.scrollLeft+=b.left+ax*b.width-(a.left+a.width/2);
- }));
 }
 bookButton.onclick=()=>showMode("book");
 workspaceButton.onclick=()=>{wantTop=false;showMode("workspace")};
@@ -271,10 +270,10 @@ function seamEraser(e){
  return e.pointerType==="pen"&&(e.button===5||(e.buttons&32)!==0);
 }
 document.addEventListener("pointerdown",e=>{
- if(current!=="workspace"||e.pointerType==="touch"||!(e.pointerType==="pen"||(e.pointerType==="mouse"&&pen.classList.contains("active"))))return;
+ if(current==="white"||e.pointerType!=="pen")return; // Surface Pen always draws on Book, Top and Left.
  if(e.target.closest("button,input,select,.controls,.gallery-workspace-title,.gallery-workspace-drag,.calculator-panel,.lb-handle"))return;
  const k=seamKind(e.clientX,e.clientY);
- if(k!=="book"&&k!=="work")return;
+ if(k!=="book"&&(current!=="workspace"||k!=="work"))return;
  e.preventDefault();e.stopImmediatePropagation();
  const erasing=seamEraser(e);
  seamActive={id:e.pointerId,erase:erasing};
@@ -297,6 +296,7 @@ function seamEnd(e){
 document.addEventListener("pointerup",seamEnd,true);
 document.addEventListener("pointercancel",seamEnd,true);
 window.gallerySeamInk={clearAll(){seamStrokes.length=0;seamActive=null;seamPaint()},redraw:seamPaint};
+window.gallerySeamDebug=()=>({view:current,strokes:seamStrokes.length,active:!!seamActive,page:pageId()});
 if(window.ResizeObserver)new ResizeObserver(seamResize).observe(seamCanvas);
 if(pageImage&&window.MutationObserver)new MutationObserver(seamPaint).observe(pageImage,{attributes:true,attributeFilter:["style","src"]});
 if(pageNumber&&window.MutationObserver)new MutationObserver(seamPaint).observe(pageNumber,{subtree:true,childList:true,characterData:true});
@@ -394,7 +394,7 @@ function usingEraser(e){
  return e.pointerType==="pen"&&(e.button===5||(e.buttons&32)!==0);
 }
 document.addEventListener("pointerdown",e=>{
- if(e.pointerType==="touch"||!penEnabled(e)||!within(e))return;
+ if(e.pointerType!=="mouse"||!penEnabled(e)||!within(e))return; // Stylus uses the continuous ink overlay.
  if(e.target.closest(".calculator-panel,button,input,select"))return;
  e.preventDefault();e.stopImmediatePropagation();
  const p=coords(e.clientX,e.clientY),eraser=usingEraser(e);
