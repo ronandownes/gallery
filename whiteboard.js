@@ -75,8 +75,8 @@ let pageKey=(document.getElementById("current-page")?.textContent||"1").trim();
 let active=null;
 const pageStrokes=()=>{if(!pages.has(pageKey))pages.set(pageKey,[]);return pages.get(pageKey)};
 window.galleryClearBookInk=()=>{pages.set(pageKey,[]);redraw()};
-const isBook=()=>!document.body.classList.contains("gallery-whiteboard-on")&&!document.body.classList.contains("gallery-workspace-on");
-const penEnabled=()=>pen.classList.contains("active")&&isBook();
+const isBook=()=>!document.body.classList.contains("gallery-whiteboard-on"); // The textbook remains writable in Workspace mode.
+const penEnabled=e=>isBook()&&(pen.classList.contains("active")||e?.pointerType==="pen"); // Surface Pen writes on the book even before tapping Pen.
 const imageRect=()=>image.getBoundingClientRect();
 const bounds=()=>area.getBoundingClientRect();
 const inkColour=(x,y)=>{
@@ -135,7 +135,7 @@ function usingEraser(e){
  return manual||e.pointerType==="pen"&&(e.button===5||(e.buttons&32)!==0);
 }
 document.addEventListener("pointerdown",e=>{
- if(e.pointerType==="touch"||!penEnabled()||!within(e))return;
+ if(e.pointerType==="touch"||!penEnabled(e)||!within(e))return;
  if(e.target.closest(".calculator-panel,button,input,select"))return;
  e.preventDefault();e.stopImmediatePropagation();
  const p=coords(e.clientX,e.clientY),eraser=usingEraser(e);
