@@ -142,3 +142,13 @@ body.gallery-pan-on #gallery-workspace-canvas,body.gallery-pan-on #gallery-white
 .gallery-home svg{width:21px;height:21px;flex:none}
 .controls .gallery-record-btn:not(.gallery-recording){background:#fff5f5!important;color:#b42327!important;border-color:#d68e91!important}
 .controls .gallery-silent-btn:not(.gallery-recording){background:#f3f6f9!important;color:#334155!important;border-color:#94a3b8!important}
+
+/* Keep the Gallery identity and the two recording choices visible first. */
+.controls{overflow-x:auto!important;overflow-y:hidden!important;scrollbar-width:thin}
+.controls-left{flex:0 0 auto!important}
+#gallery-home{width:38px!important;min-width:38px!important;height:32px!important;padding:3px!important;border:0!important;background:transparent!important}
+#gallery-home svg{width:29px!important;height:29px!important}
+#gallery-home:hover{background:#eef3f8!important}
+#gallery-record-voice,#gallery-record-silent{display:inline-flex!important;align-items:center;justify-content:center;flex:0 0 auto!important;min-width:54px!important}
+#gallery-record-voice:not(.gallery-recording){color:#b42327!important;background:#fff1f1!important;border-color:#d68e91!important}
+#gallery-record-silent:not(.gallery-recording){color:#374151!important;background:#f3f4f6!important;border-color:#94a3b8!important}
