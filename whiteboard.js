@@ -20,6 +20,15 @@ window.galleryPanEnabled=false;
 panButton.setAttribute("aria-pressed","false");
 panButton.onclick=()=>{window.galleryPanEnabled=!window.galleryPanEnabled;panButton.classList.toggle("active",window.galleryPanEnabled);panButton.setAttribute("aria-pressed",String(window.galleryPanEnabled));document.body.classList.toggle("gallery-pan-on",window.galleryPanEnabled);panButton.title=window.galleryPanEnabled?"Pan ON — click to disable dragging":"Pan OFF — click to enable dragging";};
 const tools=document.querySelector(".controls-right")||pen.parentElement;
+const leftTools=document.querySelector(".controls-left");
+if(leftTools&&!document.getElementById("gallery-home")){
+ const home=document.createElement("a");
+ home.id="gallery-home";home.href="../index.html";home.title="Back to Gallery";home.setAttribute("aria-label","Home — Gallery");
+ home.className="toolbar-btn gallery-home";
+ home.innerHTML='<svg aria-hidden="true" viewBox="0 0 38 38" width="22" height="22"><circle cx="10" cy="10" r="7" fill="#E63329"/><circle cx="28" cy="10" r="7" fill="#3FAE49"/><circle cx="10" cy="28" r="7" fill="#205DA9"/><circle cx="28" cy="28" r="7" fill="#1A1A1A"/></svg><span>Home</span>';
+ leftTools.prepend(home);
+}
+
 tools.prepend(layoutButton,workspaceButton,whiteButton,panButton,clearButton);
 pen.classList.add("active");
 // Page arrows remain permanently visible, regardless of older saved settings.
@@ -578,7 +587,7 @@ const image=document.getElementById("page-image");
 const page=document.getElementById("current-page");
 if(!bar||!image||!page)return;
 const btn=document.createElement("button");
-btn.type="button";btn.className="toolbar-btn";btn.textContent="PDF + writing";
+btn.type="button";btn.className="toolbar-btn";btn.textContent="PDF + ink";
 btn.title="Export this original page with handwritten annotations; choose Save as PDF";
 btn.setAttribute("aria-label","Print current page with handwriting as PDF");
 bar.append(btn);
