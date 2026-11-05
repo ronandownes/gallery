@@ -1,5 +1,13 @@
-# LC Ordinary Level - Complex Numbers
+# Leaving Certificate Ordinary Level — Complex Numbers
 OFFSET | 0
 CHAPTER | 1 | Complex Numbers | start=1 | end=18
-SECTION | 1 | Pages 1-10 | start=1 | end=10
-SECTION | 11 | Pages 11-18 | start=11 | end=18
+SECTION | 1 | 2015 Q6 — Argand diagrams and complex arithmetic | start=1 | end=1
+SECTION | 2 | 2017 Q2 — Argand diagram and solving for z | start=2 | end=3
+SECTION | 3 | 2018 Q2 — Plotting, subtracting and interpreting complex numbers | start=4 | end=4
+SECTION | 4 | 2020 Q3 — Multiplication, division and Argand diagrams | start=5 | end=6
+SECTION | 5 | 2021 Q2 — Addition, division, conjugates and modulus | start=7 | end=8
+SECTION | 6 | 2022 Q1 — Argand diagrams and complex operations | start=9 | end=10
+SECTION | 7 | 2023 Q2 — Conjugates, modulus and Argand diagrams | start=11 | end=12
+SECTION | 8 | 2024 Q2 — Argand diagrams and complex operations | start=13 | end=14
+SECTION | 9 | 2025 Q2 — Complex arithmetic and quotient | start=15 | end=16
+SECTION | 10 | 2026 Q4 — Argand diagrams, conjugates and addition | start=17 | end=18
