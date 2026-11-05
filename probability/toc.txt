@@ -1,8 +1,25 @@
-# LC Ordinary Level - Probability
+# Leaving Certificate Ordinary Level — Probability and Counting
 OFFSET | 0
-CHAPTER | 1 | Probability | start=1 | end=49
-SECTION | 1 | Pages 1-10 | start=1 | end=10
-SECTION | 11 | Pages 11-20 | start=11 | end=20
-SECTION | 21 | Pages 21-30 | start=21 | end=30
-SECTION | 31 | Pages 31-40 | start=31 | end=40
-SECTION | 41 | Pages 41-49 | start=41 | end=49
+CHAPTER | 1 | Probability and Counting | start=1 | end=49
+SECTION | 1 | 2015 Q1 — Fundamental Principle of Counting: passwords | start=1 | end=1
+SECTION | 2 | 2016 Q1 — Venn diagrams and probability | start=2 | end=2
+SECTION | 3 | 2017 Q1 — Relative frequency and simple probability | start=3 | end=3
+SECTION | 4 | 2017 Q5 — Normal distribution and empirical rule | start=4 | end=4
+SECTION | 5 | 2018 Q1 — Two dice: sample space and probability | start=5 | end=5
+SECTION | 6 | 2018 Q3 — Permutations and spinner probability | start=6 | end=6
+SECTION | 7 | 2019 Q1 — Frequency data and selection probability | start=7 | end=8
+SECTION | 8 | 2019 Q3 — Independent events and repeated trials | start=9 | end=10
+SECTION | 9 | 2020 Q1 — Fundamental Principle of Counting; independent events | start=11 | end=12
+SECTION | 10 | 2021 Q1 — Two spinners: AND / OR probabilities | start=13 | end=14
+SECTION | 11 | 2021 Q2 — First success on the third attempt (mixed question) | start=15 | end=16
+SECTION | 12 | 2022 Q7 — Animal shelter: selection and arrangements (mixed question) | start=17 | end=20
+SECTION | 13 | 2022 Q10 — Survey, confidence intervals and expected value | start=21 | end=24
+SECTION | 14 | 2023 Q4 — Independent free throws (and mean) | start=25 | end=26
+SECTION | 15 | 2023 Q10 — Sample space, two spins and expected value | start=27 | end=31
+SECTION | 16 | 2024 Q2 — Cards: with and without replacement | start=32 | end=33
+SECTION | 17 | 2024 Q5 — Empirical rule and first success | start=34 | end=35
+SECTION | 18 | 2024 Q9 — Counting choices, Venn diagrams and expected value | start=36 | end=39
+SECTION | 19 | 2025 Q6 — Normal distribution (and averages) | start=40 | end=41
+SECTION | 20 | 2025 Q7 — Probability tree, independent events and expected goals | start=42 | end=45
+SECTION | 21 | 2026 Q2 — Outcomes, exclusive events and repeated games | start=46 | end=47
+SECTION | 22 | 2026 Q5 — Expected value of a spinner (and median) | start=48 | end=49
