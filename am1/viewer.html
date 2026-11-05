@@ -597,7 +597,7 @@ function moveSpotlightByTouch(mode,dx,dy){
  positionLightbox();
 }
 imageContainer.addEventListener("pointerdown",e=>{
- if(e.pointerType!=="touch"||(penMode&&!window.galleryPanEnabled))return;
+ if(e.pointerType!=="touch")return; // Finger pan and pinch always enabled; Surface Pen remains ink.
  const inSpotlight=lightboxEl.classList.contains("active")&&
    (e.target===lightboxEl||lightboxEl.contains(e.target));
  const inPage=e.target===pageImage||e.target===imageContainer;
