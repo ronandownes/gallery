@@ -131,3 +131,8 @@ body.gallery-whiteboard-on .gallery-workspace{display:none!important}
 .controls{justify-content:flex-start!important;column-gap:6px!important}
 .controls-right{margin-left:0!important}
 @media(max-width:1050px){.controls-right{margin-left:0!important}}
+
+/* Explicit Pan mode: off by default, independent of Surface Pen writing. */
+#gallery-pan-toggle.active{background:#205da9!important;border-color:#205da9!important;color:#fff!important}
+body.gallery-pan-on .image-container{cursor:grab}
+body.gallery-pan-on #gallery-workspace-canvas,body.gallery-pan-on #gallery-whiteboard{cursor:grab}
