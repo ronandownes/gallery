@@ -594,45 +594,88 @@ recBtn.onclick=async()=>{
 })();
 
 
-/* Print a clean original exam page with teaching annotations overlaid.
-   Chrome/Edge: choose Destination > Save as PDF in the print dialogue. */
+/* Export only pages with book handwriting, retaining the original examination pages.
+   If nothing has been written, export the current page. Browser Save as PDF. */
 (function(){
 "use strict";
 const bar=document.querySelector(".controls-right")||document.querySelector(".controls");
-const image=document.getElementById("page-image");
-const page=document.getElementById("current-page");
-if(!bar||!image||!page)return;
-const btn=document.createElement("button");
-btn.type="button";btn.className="toolbar-btn";btn.textContent="PDF + ink";
-btn.title="Export this original page with handwritten annotations; choose Save as PDF";
-btn.setAttribute("aria-label","Print current page with handwriting as PDF");
-bar.append(btn);
-function drawInk(ctx,strokes,w,h,seam=false){
+const pageImage=document.getElementById("page-image");
+const current=document.getElementById("current-page");
+const total=document.getElementById("total-pages");
+if(!bar||!pageImage||!current||!total)return;
+const button=document.createElement("button");
+button.type="button";button.className="toolbar-btn";button.textContent="PDF + ink";
+button.title="Save all pages with handwriting as a single PDF (or current page if none)";
+button.setAttribute("aria-label","Print pages containing handwriting as one PDF");
+bar.append(button);
+function inkOn(n){
+ const k=String(n);
+ return {focus:window.galleryGetFocusPageInk?.(k)||[],seam:window.galleryGetSeamPageInk?.(k)||[]};
+}
+function applyStrokes(ctx,strokes,w,h,seam,displayWidth){
  ctx.lineCap="round";ctx.lineJoin="round";
- for(const s of strokes){
-  if(!s.points?.length)continue;
-  ctx.beginPath();ctx.strokeStyle=s.colour||"#1a1a1a";ctx.fillStyle=s.colour||"#1a1a1a";
-  ctx.lineWidth=seam?Math.max(1,s.width*w/Math.max(1,image.getBoundingClientRect().width)):Math.max(1,s.width*w);
-  s.points.forEach((p,i)=>i?ctx.lineTo(p.x*w,p.y*h):ctx.moveTo(p.x*w,p.y*h));
-  if(s.points.length===1){const p=s.points[0];ctx.arc(p.x*w,p.y*h,ctx.lineWidth/2,0,Math.PI*2);ctx.fill()}
+ for(const stroke of strokes){
+  const points=stroke.points||[];if(!points.length)continue;
+  ctx.strokeStyle=stroke.colour||"#1a1a1a";ctx.fillStyle=ctx.strokeStyle;
+  ctx.lineWidth=seam?Math.max(1,(stroke.width||3)*w/Math.max(1,displayWidth)):Math.max(1,(stroke.width||.003)*w);
+  ctx.beginPath();
+  points.forEach((p,i)=>i?ctx.lineTo(p.x*w,p.y*h):ctx.moveTo(p.x*w,p.y*h));
+  if(points.length===1){ctx.arc(points[0].x*w,points[0].y*h,ctx.lineWidth/2,0,Math.PI*2);ctx.fill()}
   else ctx.stroke();
  }
 }
-btn.addEventListener("click",()=>{
- if(!image.complete||!image.naturalWidth){alert("The original page has not loaded.");return}
- const key=(page.textContent||"1").trim();
- const popup=window.open("","_blank");
- if(!popup){alert("Allow pop-ups for this gallery to print annotated pages.");return}
+const loadImage=url=>new Promise((resolve,reject)=>{
+ const img=new Image();img.onload=()=>resolve(img);img.onerror=()=>reject(Error("Could not load "+url));img.src=url;
+});
+button.addEventListener("click",async()=>{
+ if(button.disabled)return;
+ const totalPages=Number.parseInt(total.textContent||"0",10);
+ const currentPage=Number.parseInt(current.textContent||"1",10);
+ if(!Number.isInteger(totalPages)||totalPages<1)return alert("Page count is unavailable.");
+ const selected=[];
+ for(let n=1;n<=totalPages;n++){
+  const ink=inkOn(n);
+  if(ink.focus.length||ink.seam.length)selected.push({n,ink});
+ }
+ if(!selected.length)selected.push({n:currentPage,ink:inkOn(currentPage)});
+ // Create synchronously during a user click to avoid popup blockers.
+ const printWindow=window.open("","_blank");
+ if(!printWindow)return alert("Please allow pop-ups to save the annotated PDF.");
+ button.disabled=true;
+ printWindow.document.open();
+ printWindow.document.write('<!doctype html><html><head><title>Gallery annotated pages</title><style>@page{size:A4;margin:0}html,body{margin:0;padding:0;background:white}.sheet{width:210mm;height:297mm;display:flex;align-items:center;justify-content:center;break-after:page;page-break-after:always;overflow:hidden}.sheet:last-child{break-after:auto;page-break-after:auto}.sheet img{max-width:100%;max-height:100%;width:auto;height:auto;object-fit:contain;display:block}@media screen{.sheet{margin:0 auto;border-bottom:1px solid #ddd}}</style></head><body><p id="status" style="padding:1rem">Preparing '+selected.length+' annotated page(s)…</p><main id="sheets"></main></body></html>');
+ printWindow.document.close();
+ const objectUrls=[];
  try{
-  const c=document.createElement("canvas");c.width=image.naturalWidth;c.height=image.naturalHeight;
-  const ctx=c.getContext("2d");ctx.drawImage(image,0,0,c.width,c.height);
-  drawInk(ctx,window.galleryGetFocusPageInk?.(key)||[],c.width,c.height);
-  drawInk(ctx,window.galleryGetSeamPageInk?.(key)||[],c.width,c.height,true);
-  // Image-based PDF print preserves the original SEC page and all book-anchored ink.
-  const png=c.toDataURL("image/png");
-  popup.document.open();
-  popup.document.write('<!doctype html><html><head><title>Annotated Gallery page '+key+'</title><style>@page{size:auto;margin:0}html,body{margin:0;padding:0}img{display:block;width:100%;height:auto;max-height:100vh;object-fit:contain;page-break-after:avoid}@media print{img{width:100%;max-height:100vh}}</style></head><body><img id="printed" alt="Original exam page with handwriting"><script>const i=document.getElementById("printed");i.onload=()=>setTimeout(()=>window.print(),250);<\/script></body></html>');
-  popup.document.close();popup.document.getElementById("printed").src=png;
- }catch(e){popup.close();alert("Could not prepare annotated page: "+e.message)}
+  const base=new URL(pageImage.currentSrc||pageImage.src,location.href);
+  const currentFilename=(base.pathname.split("/").pop()||"001.webp");
+  const match=currentFilename.match(/^(\d+)(\.[^.]+)$/);
+  if(!match)throw Error("Unknown Gallery page naming convention.");
+  const widthDigits=match[1].length,extension=match[2];
+  const displayWidth=pageImage.getBoundingClientRect().width;
+  for(const {n,ink} of selected){
+   const url=new URL(base.href);
+   url.pathname=url.pathname.replace(/[^/]+$/,String(n).padStart(widthDigits,"0")+extension);
+   const img=await loadImage(url.href);
+   const canvas=document.createElement("canvas");canvas.width=img.naturalWidth;canvas.height=img.naturalHeight;
+   const ctx=canvas.getContext("2d");ctx.drawImage(img,0,0);
+   applyStrokes(ctx,ink.focus,canvas.width,canvas.height,false,displayWidth);
+   applyStrokes(ctx,ink.seam,canvas.width,canvas.height,true,displayWidth);
+   const blob=await new Promise(resolve=>canvas.toBlob(resolve,"image/png"));
+   if(!blob)throw Error("Image export failed for page "+n);
+   const objectUrl=URL.createObjectURL(blob);objectUrls.push(objectUrl);
+   const section=printWindow.document.createElement("section");section.className="sheet";
+   const out=printWindow.document.createElement("img");out.alt="Gallery page "+n;out.src=objectUrl;
+   section.append(out);printWindow.document.getElementById("sheets").append(section);
+   await new Promise((resolve,reject)=>{if(out.complete&&out.naturalWidth)return resolve();out.onload=resolve;out.onerror=reject;});
+  }
+  printWindow.document.getElementById("status").remove();
+  printWindow.focus();printWindow.print();
+  // Keep image assets valid through the browser print dialogue.
+  printWindow.addEventListener("afterprint",()=>objectUrls.forEach(URL.revokeObjectURL),{once:true});
+ }catch(error){
+  printWindow.document.getElementById("status").textContent="Export failed: "+error.message;
+  objectUrls.forEach(URL.revokeObjectURL);
+ }finally{button.disabled=false;}
 });
 })();
