@@ -1,11 +1,32 @@
-# LC Ordinary Level - Statistics
+# Leaving Certificate Ordinary Level — Statistics
 OFFSET | 0
 CHAPTER | 1 | Statistics | start=1 | end=75
-SECTION | 1 | Pages 1-10 | start=1 | end=10
-SECTION | 11 | Pages 11-20 | start=11 | end=20
-SECTION | 21 | Pages 21-30 | start=21 | end=30
-SECTION | 31 | Pages 31-40 | start=31 | end=40
-SECTION | 41 | Pages 41-50 | start=41 | end=50
-SECTION | 51 | Pages 51-60 | start=51 | end=60
-SECTION | 61 | Pages 61-70 | start=61 | end=70
-SECTION | 71 | Pages 71-75 | start=71 | end=75
+SECTION | 1 | 2015 Q6 — Scatterplots and correlation | start=1 | end=2
+SECTION | 2 | 2015 Q9 — Sampling, standard deviation and normal data | start=3 | end=9
+SECTION | 3 | 2016 Q5 — Stem-and-leaf, centre and spread | start=10 | end=10
+SECTION | 4 | 2016 Q7 — Applied data (mixed-topic extract) | start=11 | end=12
+SECTION | 5 | 2017 Q1 — Population proportions and probability | start=13 | end=13
+SECTION | 6 | 2017 Q5 — Normal distribution and empirical rule | start=14 | end=14
+SECTION | 7 | 2017 Q9 — Referendum data and statistical analysis | start=15 | end=19
+SECTION | 8 | 2018 Q7 — Rainfall and sunshine: mean and standard deviation | start=20 | end=21
+SECTION | 9 | 2019 Q7 — Price indices, median and standard deviation | start=22 | end=25
+SECTION | 10 | 2019 Q8 — Applied data (mixed-topic extract) | start=26 | end=27
+SECTION | 11 | 2020 Q3 — Sampling margin of error and normal distribution | start=28 | end=29
+SECTION | 12 | 2020 Q8 — Waste and energy data; tables and charts | start=30 | end=32
+SECTION | 13 | 2021 Q5 — Normal distribution and scatterplots | start=33 | end=34
+SECTION | 14 | 2021 Q7 — Histogram, grouped data and proportions | start=35 | end=37
+SECTION | 15 | 2022 Q3 — Mean, median and range (mixed question) | start=38 | end=39
+SECTION | 16 | 2022 Q4 — Frequency tables and normal distribution | start=40 | end=41
+SECTION | 17 | 2022 Q7 — Correlation and grouped data (mixed question) | start=42 | end=45
+SECTION | 18 | 2023 Q3 — Scatterplots and correlation (mixed question) | start=46 | end=47
+SECTION | 19 | 2023 Q4 — Mean from frequency tables (mixed question) | start=48 | end=49
+SECTION | 20 | 2023 Q9 — Sampling, charts and confidence intervals | start=50 | end=52
+SECTION | 21 | 2024 Q1 — Summary statistics and range | start=53 | end=54
+SECTION | 22 | 2024 Q2 — Probability and outcomes (mixed-topic extract) | start=55 | end=56
+SECTION | 23 | 2024 Q7 — Correlation and sampling margin of error | start=57 | end=60
+SECTION | 24 | 2025 Q1 — Rainfall data: mean, median and range | start=61 | end=62
+SECTION | 25 | 2025 Q6 — Normal distribution and summary statistics | start=63 | end=64
+SECTION | 26 | 2025 Q8 — Charts, correlation and confidence intervals | start=65 | end=68
+SECTION | 27 | 2026 Q2 — Combinatorial probability (mixed-topic extract) | start=69 | end=70
+SECTION | 28 | 2026 Q5 — Mean, median, mode and expected value | start=71 | end=72
+SECTION | 29 | 2026 Q9 — Frequency tables and normal distribution | start=73 | end=75
