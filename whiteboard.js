@@ -11,13 +11,12 @@ for(const [name,c] of [["Black","#1a1a1a"],["Blue","#205da9"],["Red","#e63329"],
 }
 pen.after(colours);
 const button=(id,label,title)=>{const b=document.createElement("button");b.id=id;b.type="button";b.className="toolbar-btn gallery-tool-short";b.textContent=label;b.title=title;return b};
-const bookButton=button("gallery-book-only","Book","Show the textbook");
 const workspaceButton=button("gallery-book-left","Left","Book left, whiteboard right");
 const layoutButton=button("gallery-book-top","Top","Book top, whiteboard below");
 const whiteButton=button("gallery-white-toggle","Whiteboard","Replace page with blank writing surface");
 const clearButton=button("gallery-workspace-clear","Clear work","Clear writing surface");
 const tools=document.querySelector(".controls-right")||pen.parentElement;
-tools.prepend(bookButton,layoutButton,workspaceButton,whiteButton,clearButton);
+tools.prepend(layoutButton,workspaceButton,whiteButton,clearButton);
 pen.classList.add("active");
 // Page arrows remain permanently visible, regardless of older saved settings.
 const alwaysArrows=$("smart-nav");
@@ -67,10 +66,8 @@ function updateView(){
  const on=current==="workspace";
  document.body.classList.toggle("gallery-workspace-on",on);
  document.body.classList.toggle("gallery-whiteboard-on",current==="white");
- bookButton.classList.toggle("active",current==="book");
  workspaceButton.classList.toggle("active",on&&!stacked);bookZoomControl.hidden=!on;
  layoutButton.classList.toggle("active",on&&stacked);
- bookButton.setAttribute("aria-pressed",String(current==="book"));
  workspaceButton.setAttribute("aria-pressed",String(on&&!stacked));
  layoutButton.setAttribute("aria-pressed",String(on&&stacked));
  whiteButton.setAttribute("aria-pressed",String(current==="white"));
@@ -108,30 +105,82 @@ function layoutWorkspace(){
  requestAnimationFrame(()=>window.gallerySeamInk?.redraw?.());
 }
 let wantTop=false;
+let originalBookView=null;
+function captureBookView(){
+ const im=$("page-image").getBoundingClientRect(),rect=container.getBoundingClientRect();
+ return {
+  zoom:window.galleryGetBookZoom?.()||1,
+  fit:container.classList.contains("fit-width")?"width":"height",
+  scrollTop:container.scrollTop,scrollLeft:container.scrollLeft,
+  x:(rect.left+rect.width*.5-im.left)/Math.max(1,im.width),
+  y:(rect.top+rect.height*.5-im.top)/Math.max(1,im.height)
+ };
+}
 function showMode(mode){
  if(mode===current&&!(mode==="workspace"&&stacked!==wantTop))return;
+ if(current==="book"&&mode!=="book")originalBookView=captureBookView();
  const im=$("page-image").getBoundingClientRect(),cr=container.getBoundingClientRect();
  const isTop=mode==="workspace"&&wantTop;
- // Preserve the zoom and select the lower-centre strip in the current book view.
- const anchorX=cr.left+cr.width*.5,anchorY=cr.top+cr.height*(isTop?.82:.5);
- const ax=(anchorX-im.left)/Math.max(1,im.width),ay=(anchorY-im.top)/Math.max(1,im.height);
+ // Enter Top centred on the lower strip of the question. Do not reset its magnification.
+ const ax=(cr.left+cr.width*.5-im.left)/Math.max(1,im.width);
+ const ay=(cr.top+cr.height*(isTop?.82:.5)-im.top)/Math.max(1,im.height);
  const displayedWidth=im.width;
- current=mode;if(mode==="workspace")stacked=wantTop;updateView();
- if(mode!=="white"){
-  requestAnimationFrame(()=>requestAnimationFrame(()=>{
+ current=mode;
+ if(mode==="workspace")stacked=wantTop;
+ updateView();
+ if(mode==="white")return;
+ const returningToBook=mode==="book"&&originalBookView!==null;
+ const saved=returningToBook?{...originalBookView}:null;
+ requestAnimationFrame(()=>requestAnimationFrame(()=>{
+  if(returningToBook){
+   // Restore the original fit, zoom and focal point when Top or Left is switched off.
+   const fitButton=$(saved.fit==="width"?"fit-width":"fit-height");
+   fitButton?.click();
+   window.gallerySetBookZoom?.(saved.zoom);
+   container.scrollTop=saved.scrollTop;container.scrollLeft=saved.scrollLeft;
+   const newRect=container.getBoundingClientRect();
+   window.galleryAlignBookPoint?.(saved.x,saved.y,newRect.left+newRect.width*.5,newRect.top+newRect.height*.5);
+   originalBookView=null;
+  }else{
    window.gallerySetBookPixelWidth?.(displayedWidth,isTop);
-   const a=container.getBoundingClientRect();
-   window.galleryAlignBookPoint?.(ax,ay,a.left+a.width*.5,a.top+a.height*(isTop?.76:.5));
-   const percent=Math.round((window.galleryGetBookZoom?.()||1)*100);
-   bookZoomSlider.value=String(Math.max(50,Math.min(800,Math.round(percent/25)*25)));
-   bookZoomControl.querySelector("output").textContent=percent+"%";
-  }));
- }
+   const newRect=container.getBoundingClientRect();
+   window.galleryAlignBookPoint?.(ax,ay,newRect.left+newRect.width*.5,newRect.top+newRect.height*(isTop?.76:.5));
+  }
+  const percent=Math.round((window.galleryGetBookZoom?.()||1)*100);
+  bookZoomSlider.value=String(Math.max(50,Math.min(800,Math.round(percent/25)*25)));
+  bookZoomControl.querySelector("output").textContent=percent+"%";
+ }));
 }
-bookButton.onclick=()=>showMode("book");
-workspaceButton.onclick=()=>{wantTop=false;showMode("workspace")};
-layoutButton.onclick=()=>{wantTop=true;showMode("workspace")};
-whiteButton.onclick=()=>showMode("white");
+layoutButton.onclick=()=>{
+ const off=current==="workspace"&&stacked;
+ wantTop=true;showMode(off?"book":"workspace");
+};
+workspaceButton.onclick=()=>{
+ const off=current==="workspace"&&!stacked;
+ wantTop=false;showMode(off?"book":"workspace");
+};
+whiteButton.onclick=()=>showMode(current==="white"?"book":"white");
+
+// Mouse wheel over the book zooms around the pointer, while touch pinch remains intact.
+// Capturing prevents the previous Ctrl+wheel viewer handler from applying a second zoom.
+container.addEventListener("wheel",event=>{
+ if(current==="white")return;
+ if(event.altKey||event.shiftKey)return; // Keep an escape hatch for page scrolling.
+ const image=$("page-image"),before=image?.getBoundingClientRect();
+ if(!before||before.width<1||!window.gallerySetBookZoom)return;
+ event.preventDefault();event.stopImmediatePropagation();
+ const x=(event.clientX-before.left)/before.width;
+ const y=(event.clientY-before.top)/before.height;
+ const currentZoom=window.galleryGetBookZoom?.()||1;
+ const dy=event.deltaY*(event.deltaMode===1?16:event.deltaMode===2?container.clientHeight:1);
+ const factor=Math.exp(-Math.max(-240,Math.min(240,dy))*.002);
+ const next=Math.max(.25,Math.min(8,currentZoom*factor));
+ window.gallerySetBookZoom(next);
+ window.galleryAlignBookPoint?.(x,y,event.clientX,event.clientY);
+ const percent=Math.round((window.galleryGetBookZoom?.()||1)*100);
+ bookZoomSlider.value=String(Math.max(50,Math.min(800,Math.round(percent/25)*25)));
+ bookZoomControl.querySelector("output").textContent=percent+"%";
+},{capture:true,passive:false});
 // One clear action resets EVERY drawing store, regardless of Book Left / Book Top.
 let clearingAll=false;
 const nativeClearButton=$("tool-clear-ink");
