@@ -129,6 +129,11 @@ def build_viewer(book_dir, template_html):
     return True
 
 def build_gallery_index(gallery, books):
+    # Preserve the curated Gallery homepage rather than replacing its shared Maths design.
+    existing = gallery / "index.html"
+    if existing.is_file() and "GALLERY_CUSTOM_HOME" in existing.read_text(encoding="utf-8"):
+        print("Gallery homepage preserved (GALLERY_CUSTOM_HOME).")
+        return
     entries = []
     for book_dir in books:
         images = list_images(book_dir / IMAGE_DIR_NAME)
