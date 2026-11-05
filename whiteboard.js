@@ -25,8 +25,24 @@ if(leftTools&&!document.getElementById("gallery-home")){
  const home=document.createElement("a");
  home.id="gallery-home";home.href="../index.html";home.title="Back to Gallery";home.setAttribute("aria-label","Home — Gallery");
  home.className="toolbar-btn gallery-home";
- home.innerHTML='<svg aria-hidden="true" viewBox="0 0 38 38" width="22" height="22"><circle cx="10" cy="10" r="7" fill="#E63329"/><circle cx="28" cy="10" r="7" fill="#3FAE49"/><circle cx="10" cy="28" r="7" fill="#205DA9"/><circle cx="28" cy="28" r="7" fill="#1A1A1A"/></svg><span>Home</span>';
+ home.innerHTML='<svg aria-hidden="true" viewBox="0 0 38 38" width="22" height="22"><circle cx="10" cy="10" r="7" fill="#E63329"/><circle cx="28" cy="10" r="7" fill="#3FAE49"/><circle cx="10" cy="28" r="7" fill="#205DA9"/><circle cx="28" cy="28" r="7" fill="#1A1A1A"/></svg>';
  leftTools.prepend(home);
+}
+// Keep both recording controls alongside Home at the visible start of the toolbar.
+// Moving the existing elements preserves all event handlers in recorder.js.
+if(leftTools){
+ const home=document.getElementById("gallery-home");
+ const rec=document.getElementById("gallery-record-voice");
+ const silent=document.getElementById("gallery-record-silent");
+ const timer=document.getElementById("gallery-record-timer");
+ const mic=document.getElementById("gallery-mic-meter");
+ if(home){
+  let previous=home;
+  for(const el of [rec,silent,timer,mic]){
+   if(!el)continue;
+   previous.after(el);previous=el;
+  }
+ }
 }
 
 tools.prepend(layoutButton,workspaceButton,whiteButton,panButton,clearButton);
