@@ -136,3 +136,9 @@ body.gallery-whiteboard-on .gallery-workspace{display:none!important}
 #gallery-pan-toggle.active{background:#205da9!important;border-color:#205da9!important;color:#fff!important}
 body.gallery-pan-on .image-container{cursor:grab}
 body.gallery-pan-on #gallery-workspace-canvas,body.gallery-pan-on #gallery-whiteboard{cursor:grab}
+
+/* Shared Gallery Home / recording identity */
+.gallery-home{display:inline-flex!important;align-items:center;justify-content:center;gap:5px;text-decoration:none;white-space:nowrap;font-weight:700;font-size:12px;padding:2px 7px!important;line-height:1;color:inherit!important}
+.gallery-home svg{width:21px;height:21px;flex:none}
+.controls .gallery-record-btn:not(.gallery-recording){background:#fff5f5!important;color:#b42327!important;border-color:#d68e91!important}
+.controls .gallery-silent-btn:not(.gallery-recording){background:#f3f6f9!important;color:#334155!important;border-color:#94a3b8!important}
