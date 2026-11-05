@@ -16,8 +16,11 @@ const layoutButton=button("gallery-book-top","Top","Book top, whiteboard below")
 const whiteButton=button("gallery-white-toggle","Whiteboard","Replace page with blank writing surface");
 const clearButton=button("gallery-workspace-clear","Clear work","Clear writing surface");
 const panButton=button("gallery-pan-toggle","Pan","Enable one-finger and mouse dragging to move the book or whiteboard");
-window.galleryPanEnabled=false;
-panButton.setAttribute("aria-pressed","false");
+window.galleryPanEnabled=true;
+panButton.classList.add("active");
+panButton.setAttribute("aria-pressed","true");
+document.body.classList.add("gallery-pan-on");
+panButton.title="Pan ON — click to disable mouse dragging";
 panButton.onclick=()=>{window.galleryPanEnabled=!window.galleryPanEnabled;panButton.classList.toggle("active",window.galleryPanEnabled);panButton.setAttribute("aria-pressed",String(window.galleryPanEnabled));document.body.classList.toggle("gallery-pan-on",window.galleryPanEnabled);panButton.title=window.galleryPanEnabled?"Pan ON — click to disable dragging":"Pan OFF — click to enable dragging";};
 const tools=document.querySelector(".controls-right")||pen.parentElement;
 const leftTools=document.querySelector(".controls-left");
@@ -605,8 +608,8 @@ const total=document.getElementById("total-pages");
 if(!bar||!pageImage||!current||!total)return;
 const button=document.createElement("button");
 button.type="button";button.className="toolbar-btn";button.textContent="PDF + ink";
-button.title="Save all pages with handwriting as a single PDF (or current page if none)";
-button.setAttribute("aria-label","Print pages containing handwriting as one PDF");
+button.title="Save pages from first to last handwritten page, including untouched pages between (or current page if none)";
+button.setAttribute("aria-label","Print first through last handwritten page as one PDF");
 bar.append(button);
 function inkOn(n){
  const k=String(n);
@@ -632,12 +635,17 @@ button.addEventListener("click",async()=>{
  const totalPages=Number.parseInt(total.textContent||"0",10);
  const currentPage=Number.parseInt(current.textContent||"1",10);
  if(!Number.isInteger(totalPages)||totalPages<1)return alert("Page count is unavailable.");
- const selected=[];
+ const written=[];
  for(let n=1;n<=totalPages;n++){
   const ink=inkOn(n);
-  if(ink.focus.length||ink.seam.length)selected.push({n,ink});
+  if(ink.focus.length||ink.seam.length)written.push(n);
  }
- if(!selected.length)selected.push({n:currentPage,ink:inkOn(currentPage)});
+ // Preserve untouched pages between first and last annotated pages.
+ // Example: work on pages 3 and 7 exports pages 3, 4, 5, 6, 7.
+ const first=written.length?written[0]:currentPage;
+ const last=written.length?written[written.length-1]:currentPage;
+ const selected=[];
+ for(let n=first;n<=last;n++)selected.push({n,ink:inkOn(n)});
  // Create synchronously during a user click to avoid popup blockers.
  const printWindow=window.open("","_blank");
  if(!printWindow)return alert("Please allow pop-ups to save the annotated PDF.");
