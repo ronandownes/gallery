@@ -1,6 +1,14 @@
-# LC Ordinary Level - Calculus
+# Leaving Certificate Ordinary Level — Calculus
 OFFSET | 0
 CHAPTER | 1 | Calculus | start=1 | end=26
-SECTION | 1 | Pages 1-10 | start=1 | end=10
-SECTION | 11 | Pages 11-20 | start=11 | end=20
-SECTION | 21 | Pages 21-26 | start=21 | end=26
+SECTION | 1 | 2015 Q4 — Quadratic turning point and graph | start=1 | end=2
+SECTION | 2 | 2020 Q6 — Differentiation and tangent slope | start=3 | end=4
+SECTION | 3 | 2020 Q8 — Optimisation and rates in context (swimming) | start=5 | end=8
+SECTION | 4 | 2021 Q5 — Differentiation and local minimum | start=9 | end=10
+SECTION | 5 | 2022 Q4 — Derivatives, slopes and interpreting graphs | start=11 | end=12
+SECTION | 6 | 2023 Q4 — Functions and turning points from graphs | start=13 | end=14
+SECTION | 7 | 2023 Q7 — Functions, rates and modelling rainfall | start=15 | end=17
+SECTION | 8 | 2024 Q5 — Derivatives and rate of change | start=18 | end=19
+SECTION | 9 | 2024 Q7 — Differentiation and rates of change (bacteria) | start=20 | end=22
+SECTION | 10 | 2025 Q4 — Differentiation and cubic graphs | start=23 | end=24
+SECTION | 11 | 2026 Q6 — Derivative and local minimum; derivative graphs | start=25 | end=26
