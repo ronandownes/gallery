@@ -78,6 +78,75 @@ if(!ico){const link=document.createElement("link");link.rel="icon";link.type="im
 const panel=document.createElement("section");panel.className="gallery-workspace";panel.setAttribute("aria-label","Teaching writing surface");
 panel.innerHTML='<div class="gallery-workspace-drag" title="Drag to resize writing area"></div><div class="gallery-workspace-title"><strong>Writing surface</strong><div class="gallery-zoom-controls"><label for="gallery-zoom">Zoom</label><input id="gallery-zoom" type="range" min="25" max="400" value="100" step="5"><span id="gallery-zoom-value">100%</span></div></div><canvas id="gallery-workspace-canvas" aria-label="Whiteboard"></canvas>';
 viewer.append(panel);
+// Shared workspace can display either the digital writing canvas or a document camera.
+const cameraPanel=document.createElement("div");cameraPanel.id="gallery-camera-panel";
+cameraPanel.innerHTML='<video id="gallery-camera-video" autoplay playsinline muted aria-label="Live document camera"></video><div id="gallery-camera-status">Select Camera to start your document camera.</div>';
+panel.append(cameraPanel);
+const cameraSelect=document.createElement("select");cameraSelect.id="gallery-workspace-source";cameraSelect.setAttribute("aria-label","Workspace source");
+cameraSelect.innerHTML='<option value="whiteboard">Whiteboard</option><option value="camera">Camera</option>';
+const cameraDevices=document.createElement("select");cameraDevices.id="gallery-camera-device";cameraDevices.setAttribute("aria-label","Choose camera");cameraDevices.hidden=true;
+const cameraSnapshot=button("gallery-camera-snapshot","Photo","Save a still photograph of the document camera as PNG");cameraSnapshot.hidden=true;
+const cameraStatus=cameraPanel.querySelector("#gallery-camera-status");
+const cameraVideo=cameraPanel.querySelector("video");
+const titleBar=panel.querySelector(".gallery-workspace-title");
+const zoomGroup=titleBar.querySelector(".gallery-zoom-controls");
+titleBar.insertBefore(cameraSelect,zoomGroup);
+titleBar.insertBefore(cameraDevices,zoomGroup);
+titleBar.insertBefore(cameraSnapshot,zoomGroup);
+const workspaceTitle=titleBar.querySelector("strong");
+let cameraStream=null,cameraRequest=0,workspaceSource="whiteboard";
+async function stopCamera(){
+ ++cameraRequest;
+ if(cameraStream){for(const t of cameraStream.getTracks())t.stop();cameraStream=null}
+ cameraVideo.srcObject=null;
+}
+async function listCameraDevices(){
+ if(!navigator.mediaDevices?.enumerateDevices)return;
+ try{
+  const devices=(await navigator.mediaDevices.enumerateDevices()).filter(d=>d.kind==="videoinput");
+  const prior=cameraDevices.value;
+  cameraDevices.replaceChildren();
+  for(let i=0;i<devices.length;i++){const o=document.createElement("option");o.value=devices[i].deviceId;o.textContent=devices[i].label||"Camera "+(i+1);cameraDevices.append(o)}
+  if([...cameraDevices.options].some(o=>o.value===prior))cameraDevices.value=prior;
+  cameraDevices.hidden=devices.length<2;
+ }catch(e){cameraDevices.hidden=true}
+}
+async function startCamera(){
+ const serial=++cameraRequest;
+ if(!navigator.mediaDevices?.getUserMedia){cameraStatus.textContent="Camera access needs Chrome on HTTPS (or localhost).";return}
+ cameraStatus.textContent="Starting camera…";cameraStatus.hidden=false;
+ try{
+  const constraint=cameraDevices.value?{deviceId:{ideal:cameraDevices.value}}:true;
+  const stream=await navigator.mediaDevices.getUserMedia({video:constraint,audio:false});
+  if(serial!==cameraRequest||workspaceSource!=="camera"){stream.getTracks().forEach(t=>t.stop());return}
+  if(cameraStream)cameraStream.getTracks().forEach(t=>t.stop());
+  cameraStream=stream;cameraVideo.srcObject=stream;
+  await cameraVideo.play();
+  cameraStatus.hidden=true;
+  await listCameraDevices();
+  const track=stream.getVideoTracks()[0];
+  track?.addEventListener("ended",()=>{if(cameraStream===stream){cameraStatus.textContent="Camera disconnected. Choose Camera again to restart.";cameraStatus.hidden=false}}, {once:true});
+ }catch(e){if(serial===cameraRequest){cameraStatus.hidden=false;cameraStatus.textContent="Camera unavailable: "+(e.message||e.name)}}
+}
+async function selectWorkspaceSource(source){
+ workspaceSource=source==="camera"?"camera":"whiteboard";
+ cameraSelect.value=workspaceSource;
+ const isCam=workspaceSource==="camera";
+ panel.classList.toggle("gallery-camera-mode",isCam);
+ cameraSnapshot.hidden=!isCam;zoomGroup.hidden=isCam;
+ workspaceTitle.textContent=isCam?"Document camera":"Writing surface";
+ if(isCam){await startCamera()}else{await stopCamera();requestAnimationFrame(()=>resize(work))}
+}
+cameraSelect.onchange=()=>{selectWorkspaceSource(cameraSelect.value)};
+cameraDevices.onchange=()=>{if(workspaceSource==="camera")startCamera()};
+cameraSnapshot.onclick=()=>{
+ if(!cameraStream||!cameraVideo.videoWidth){alert("Start the document camera before taking a photo.");return}
+ const cv=document.createElement("canvas");cv.width=cameraVideo.videoWidth;cv.height=cameraVideo.videoHeight;
+ cv.getContext("2d").drawImage(cameraVideo,0,0);
+ cv.toBlob(blob=>{if(!blob)return;const url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download="Gallery-Camera-"+new Date().toISOString().replace(/[:.]/g,"-")+".png";document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),30000)},"image/png");
+};
+document.addEventListener("visibilitychange",()=>{if(document.hidden&&cameraStream&&workspaceSource!=="camera")stopCamera()});
+window.addEventListener("pagehide",()=>stopCamera());
 const board=document.createElement("canvas");board.id="gallery-whiteboard";viewer.append(board);
 const work=panel.querySelector("canvas"),all=[board,work],data=new Map(all.map(c=>[c,{strokes:[],active:null,mode:"draw",zoom:1,offsetX:0,offsetY:0,pointers:new Map(),gesture:null}]));let current="book",stacked=false,sideRatio=.58,topRatio=.42;
 function resize(c){const d=Math.max(1,devicePixelRatio||1),r=c.getBoundingClientRect();if(r.width<1||r.height<1)return;c.width=Math.round(r.width*d);c.height=Math.round(r.height*d);paint(c)}
@@ -149,6 +218,7 @@ function captureBookView(){
  };
 }
 function showMode(mode){
+ if(mode!=="workspace"&&workspaceSource==="camera"){selectWorkspaceSource("whiteboard");cameraTool.classList.remove("active");cameraTool.setAttribute("aria-pressed","false")}
  if(mode===current&&!(mode==="workspace"&&stacked!==wantTop))return;
  if(current==="book"&&mode!=="book")originalBookView=captureBookView();
  const im=$("page-image").getBoundingClientRect(),cr=container.getBoundingClientRect();
@@ -192,6 +262,15 @@ workspaceButton.onclick=()=>{
  wantTop=false;showMode(off?"book":"workspace");
 };
 whiteButton.onclick=()=>showMode(current==="white"?"book":"white");
+const cameraTool=button("gallery-camera-toggle","Camera","Show document camera beside or below the textbook");
+whiteButton.after(cameraTool);
+cameraTool.onclick=async()=>{
+ if(current!=="workspace"){wantTop=false;showMode("workspace")}
+ await selectWorkspaceSource(workspaceSource==="camera"?"whiteboard":"camera");
+ cameraTool.classList.toggle("active",workspaceSource==="camera");
+ cameraTool.setAttribute("aria-pressed",String(workspaceSource==="camera"));
+};
+
 
 // Mouse wheel over the book zooms around the pointer, while touch pinch remains intact.
 // Capturing prevents the previous Ctrl+wheel viewer handler from applying a second zoom.
