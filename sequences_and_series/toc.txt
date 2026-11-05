@@ -1,6 +1,15 @@
-# LC Ordinary Level - Sequences and Series
+# Leaving Certificate Ordinary Level — Sequences and Series
 OFFSET | 0
 CHAPTER | 1 | Sequences and Series | start=1 | end=29
-SECTION | 1 | Pages 1-10 | start=1 | end=10
-SECTION | 11 | Pages 11-20 | start=11 | end=20
-SECTION | 21 | Pages 21-29 | start=21 | end=29
+SECTION | 1 | 2015 Q7 — Pattern rules and quadratic sequences | start=1 | end=2
+SECTION | 2 | 2017 Q7 — Tile patterns, nth term and sum | start=3 | end=4
+SECTION | 3 | 2020 Q1 — Earnings and taxation (mixed-topic extract) | start=5 | end=6
+SECTION | 4 | 2020 Q9 — Matchstick patterns, nth term and sum | start=7 | end=9
+SECTION | 5 | 2020 Q9 — Extra working pages | start=10 | end=12
+SECTION | 6 | 2021 Q6 — Arithmetic sequences and sums | start=13 | end=14
+SECTION | 7 | 2021 Q9 — Dot patterns, quadratic sequences and sums | start=15 | end=17
+SECTION | 8 | 2022 Q3 — Taxation (mixed-topic extract) | start=18 | end=19
+SECTION | 9 | 2022 Q6 — Arithmetic nth term and sum | start=20 | end=21
+SECTION | 10 | 2025 Q9 — Compound interest and pattern sequences | start=22 | end=24
+SECTION | 11 | 2026 Q5 — Arithmetic nth term and negative sums | start=25 | end=26
+SECTION | 12 | 2026 Q8 — Optimisation and modelling (mixed-topic extract) | start=27 | end=29
