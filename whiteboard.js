@@ -86,6 +86,14 @@ const cameraSelect=document.createElement("select");cameraSelect.id="gallery-wor
 cameraSelect.innerHTML='<option value="whiteboard">Whiteboard</option><option value="camera">Camera</option>';
 const cameraDevices=document.createElement("select");cameraDevices.id="gallery-camera-device";cameraDevices.setAttribute("aria-label","Choose camera");cameraDevices.hidden=true;
 const cameraSnapshot=button("gallery-camera-snapshot","Photo","Save a still photograph of the document camera as PNG");cameraSnapshot.hidden=true;
+const cameraFit=button("gallery-camera-fit","Fit","Fit whole camera image without cropping");cameraFit.hidden=true;
+cameraFit.setAttribute("aria-pressed","false");
+cameraFit.onclick=()=>{
+ const fit=cameraVideo.classList.toggle("gallery-camera-contain");
+ cameraFit.textContent=fit?"Fill":"Fit";
+ cameraFit.title=fit?"Fill the available space (edges may be cropped)":"Fit whole camera image without cropping";
+ cameraFit.setAttribute("aria-pressed",String(fit));
+};
 const cameraStatus=cameraPanel.querySelector("#gallery-camera-status");
 const cameraVideo=cameraPanel.querySelector("video");
 const titleBar=panel.querySelector(".gallery-workspace-title");
@@ -93,6 +101,7 @@ const zoomGroup=titleBar.querySelector(".gallery-zoom-controls");
 titleBar.insertBefore(cameraSelect,zoomGroup);
 titleBar.insertBefore(cameraDevices,zoomGroup);
 titleBar.insertBefore(cameraSnapshot,zoomGroup);
+titleBar.insertBefore(cameraFit,zoomGroup);
 const workspaceTitle=titleBar.querySelector("strong");
 let cameraStream=null,cameraRequest=0,workspaceSource="whiteboard";
 async function stopCamera(){
@@ -133,11 +142,14 @@ async function selectWorkspaceSource(source){
  cameraSelect.value=workspaceSource;
  const isCam=workspaceSource==="camera";
  panel.classList.toggle("gallery-camera-mode",isCam);
- cameraSnapshot.hidden=!isCam;zoomGroup.hidden=isCam;
+ cameraSnapshot.hidden=!isCam;cameraFit.hidden=!isCam;zoomGroup.hidden=isCam;
  workspaceTitle.textContent=isCam?"Document camera":"Writing surface";
  if(isCam){await startCamera()}else{await stopCamera();requestAnimationFrame(()=>resize(work))}
 }
-cameraSelect.onchange=()=>{selectWorkspaceSource(cameraSelect.value)};
+cameraSelect.onchange=async()=>{
+ if(cameraSelect.value==="whiteboard"&&current==="camera"){showMode("white");await selectWorkspaceSource("whiteboard");}
+ else {await selectWorkspaceSource(cameraSelect.value);cameraTool.classList.toggle("active",workspaceSource==="camera");}
+};
 cameraDevices.onchange=()=>{if(workspaceSource==="camera")startCamera()};
 cameraSnapshot.onclick=()=>{
  if(!cameraStream||!cameraVideo.videoWidth){alert("Start the document camera before taking a photo.");return}
@@ -164,22 +176,30 @@ function up(c,e){const v=data.get(c);if(e.pointerType==="touch"){v.pointers.dele
 for(const c of all){c.addEventListener("pointerdown",e=>down(c,e));c.addEventListener("pointermove",e=>move(c,e));c.addEventListener("pointerup",e=>up(c,e));c.addEventListener("pointercancel",e=>up(c,e));}
 function activeCanvas(){return current==="workspace"?work:board}
 function updateView(){
- const on=current==="workspace";
+ const on=current==="workspace"||current==="camera";
+ document.body.classList.toggle("gallery-camera-full",current==="camera");
  document.body.classList.toggle("gallery-workspace-on",on);
  document.body.classList.toggle("gallery-whiteboard-on",current==="white");
- workspaceButton.classList.toggle("active",on&&!stacked);bookZoomControl.hidden=!on;
- layoutButton.classList.toggle("active",on&&stacked);
- workspaceButton.setAttribute("aria-pressed",String(on&&!stacked));
- layoutButton.setAttribute("aria-pressed",String(on&&stacked));
+ workspaceButton.classList.toggle("active",current==="workspace"&&!stacked);bookZoomControl.hidden=current!=="workspace";
+ layoutButton.classList.toggle("active",current==="workspace"&&stacked);
+ workspaceButton.setAttribute("aria-pressed",String(current==="workspace"&&!stacked));
+ layoutButton.setAttribute("aria-pressed",String(current==="workspace"&&stacked));
  whiteButton.setAttribute("aria-pressed",String(current==="white"));
  whiteButton.classList.toggle("active",current==="white");
  layoutWorkspace();
  if(current==="white")requestAnimationFrame(()=>resize(board));
- if(on)requestAnimationFrame(()=>resize(work));
+ if(current==="workspace")requestAnimationFrame(()=>resize(work));
  requestAnimationFrame(()=>window.gallerySeamInk?.redraw?.());
 }
 function layoutWorkspace(){
- const on=current==="workspace",nav=$("smart-nav");
+ const on=current==="workspace"||current==="camera",nav=$("smart-nav");
+ if(current==="camera"){
+  const top=document.querySelector(".controls")?.offsetHeight||42;
+  container.style.marginRight="";container.style.height="";container.style.flex="";
+  panel.style.left="0";panel.style.right="0";panel.style.width="100%";panel.style.top=top+"px";panel.style.bottom="0";
+  if(nav){nav.style.right="";nav.style.bottom="";nav.style.top=top+"px"}
+  document.body.classList.remove("gallery-workspace-stacked");return;
+ }
  layoutButton.setAttribute("aria-pressed",String(on&&stacked));
  document.body.classList.toggle("gallery-workspace-stacked",on&&stacked);
  if(!on){
@@ -218,7 +238,7 @@ function captureBookView(){
  };
 }
 function showMode(mode){
- if(mode!=="workspace"&&workspaceSource==="camera"){selectWorkspaceSource("whiteboard");cameraTool.classList.remove("active");cameraTool.setAttribute("aria-pressed","false")}
+ if(mode!=="workspace"&&mode!=="camera"&&workspaceSource==="camera"){selectWorkspaceSource("whiteboard");cameraTool.classList.remove("active");cameraTool.setAttribute("aria-pressed","false")}
  if(mode===current&&!(mode==="workspace"&&stacked!==wantTop))return;
  if(current==="book"&&mode!=="book")originalBookView=captureBookView();
  const im=$("page-image").getBoundingClientRect(),cr=container.getBoundingClientRect();
@@ -230,7 +250,7 @@ function showMode(mode){
  current=mode;
  if(mode==="workspace")stacked=wantTop;
  updateView();
- if(mode==="white")return;
+ if(mode==="white"||mode==="camera")return;
  const returningToBook=mode==="book"&&originalBookView!==null;
  const saved=returningToBook?{...originalBookView}:null;
  requestAnimationFrame(()=>requestAnimationFrame(()=>{
@@ -255,20 +275,22 @@ function showMode(mode){
 }
 layoutButton.onclick=()=>{
  const off=current==="workspace"&&stacked;
- wantTop=true;showMode(off?"book":"workspace");
+ wantTop=true;showMode(off?(workspaceSource==="camera"?"camera":"book"):"workspace");
 };
 workspaceButton.onclick=()=>{
  const off=current==="workspace"&&!stacked;
- wantTop=false;showMode(off?"book":"workspace");
+ wantTop=false;showMode(off?(workspaceSource==="camera"?"camera":"book"):"workspace");
 };
 whiteButton.onclick=()=>showMode(current==="white"?"book":"white");
-const cameraTool=button("gallery-camera-toggle","Camera","Show document camera beside or below the textbook");
+const cameraTool=button("gallery-camera-toggle","Camera","Camera full-page; use Left or Top to show the textbook alongside it");
 whiteButton.after(cameraTool);
 cameraTool.onclick=async()=>{
- if(current!=="workspace"){wantTop=false;showMode("workspace")}
- await selectWorkspaceSource(workspaceSource==="camera"?"whiteboard":"camera");
- cameraTool.classList.toggle("active",workspaceSource==="camera");
- cameraTool.setAttribute("aria-pressed",String(workspaceSource==="camera"));
+ if(current==="camera"){showMode("book");return}
+ if(workspaceSource==="camera"&&current==="workspace"){showMode("camera");return}
+ showMode("camera");
+ await selectWorkspaceSource("camera");
+ cameraTool.classList.add("active");
+ cameraTool.setAttribute("aria-pressed","true");
 };
 
 
