@@ -452,8 +452,8 @@ function initFromHash(){const m=(window.location.hash||"").match(/page=(\d+)/);i
 function initPageCount(){$("total-pages").textContent=String(Math.max(0,config.pages.length-config.pageOffset))}
 function restoreUiState(){toggleTOC(true);setFitMode(config.currentFitMode);setSmartNavVisible(true)}
 function tryStartPan(clientX,clientY,target){
- if(!window.galleryPanEnabled||penMode||!(target===pageImage||target===imageContainer))return false;
- if(config.zoom>1.001||imageContainer.scrollHeight>imageContainer.clientHeight+2){
+ if(!window.galleryPanEnabled||!(target===pageImage||target===imageContainer))return false;
+ if(window.galleryPanEnabled||config.zoom>1.001||imageContainer.scrollHeight>imageContainer.clientHeight+2){
   config.isPanning=true;config.startX=clientX;config.startY=clientY;
   config.lastX=clientX;config.lastY=clientY;
   config.scrollX=imageContainer.scrollLeft;config.scrollY=imageContainer.scrollTop;
@@ -599,7 +599,7 @@ function moveSpotlightByTouch(mode,dx,dy){
  positionLightbox();
 }
 imageContainer.addEventListener("pointerdown",e=>{
- if(e.pointerType!=="touch"||penMode)return;
+ if(e.pointerType!=="touch"||(penMode&&!window.galleryPanEnabled))return;
  const inSpotlight=lightboxEl.classList.contains("active")&&
    (e.target===lightboxEl||lightboxEl.contains(e.target));
  const inPage=e.target===pageImage||e.target===imageContainer;
@@ -675,6 +675,6 @@ init();
 })();
 </script>
 <script src="../recorder.js?v=20261105-home-rec-fix2"></script>
-<script src="../whiteboard.js?v=20261105-home-rec-fix2"></script>
+<script src="../whiteboard.js?v=pan-fix-20261105-v4"></script>
 </body>
 </html>
