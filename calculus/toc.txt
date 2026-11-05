@@ -1,0 +1,6 @@
+# LC Ordinary Level - Calculus
+OFFSET | 0
+CHAPTER | 1 | Calculus | start=1 | end=26
+SECTION | 1 | Pages 1-10 | start=1 | end=10
+SECTION | 11 | Pages 11-20 | start=11 | end=20
+SECTION | 21 | Pages 21-26 | start=21 | end=26

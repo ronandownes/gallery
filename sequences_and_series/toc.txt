@@ -1,0 +1,6 @@
+# LC Ordinary Level - Sequences and Series
+OFFSET | 0
+CHAPTER | 1 | Sequences and Series | start=1 | end=29
+SECTION | 1 | Pages 1-10 | start=1 | end=10
+SECTION | 11 | Pages 11-20 | start=11 | end=20
+SECTION | 21 | Pages 21-29 | start=21 | end=29
