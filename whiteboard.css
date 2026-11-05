@@ -126,3 +126,8 @@ body.gallery-whiteboard-on .gallery-workspace{display:none!important}
 }
 /* Retire the old ruler overlay, including accidental keyboard activation. */
 .reading-ruler,.reading-ruler.active{display:none!important}
+
+/* Primary Gallery actions stay together; no large empty central toolbar gap. */
+.controls{justify-content:flex-start!important;column-gap:6px!important}
+.controls-right{margin-left:0!important}
+@media(max-width:1050px){.controls-right{margin-left:0!important}}
