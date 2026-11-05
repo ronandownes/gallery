@@ -256,7 +256,7 @@ body.toc-hidden .toc-sidebar { margin-left: -320px; }
   .calculator-launch{font-size:12px;padding:0 6px}
 }
 </style>
-<link rel="stylesheet" href="../whiteboard.css?v=20261105-view-toggles">
+<link rel="stylesheet" href="../whiteboard.css?v=20261105-pan-toggle">
 </head>
 <body class="toc-hidden">
 <div class="toc-sidebar">
@@ -450,7 +450,7 @@ function initFromHash(){const m=(window.location.hash||"").match(/page=(\d+)/);i
 function initPageCount(){$("total-pages").textContent=String(Math.max(0,config.pages.length-config.pageOffset))}
 function restoreUiState(){toggleTOC(true);setFitMode(config.currentFitMode);setSmartNavVisible(true)}
 function tryStartPan(clientX,clientY,target){
- if(penMode||!(target===pageImage||target===imageContainer))return false;
+ if(!window.galleryPanEnabled||penMode||!(target===pageImage||target===imageContainer))return false;
  if(config.zoom>1.001||imageContainer.scrollHeight>imageContainer.clientHeight+2){
   config.isPanning=true;config.startX=clientX;config.startY=clientY;
   config.lastX=clientX;config.lastY=clientY;
@@ -647,6 +647,8 @@ imageContainer.addEventListener("pointermove",e=>{
  }else if(previous.mode==="ruler"){
   const r=imageContainer.getBoundingClientRect();
   positionRuler(e.clientY-r.top+imageContainer.scrollTop);
+ }else if(!window.galleryPanEnabled){
+  // Pan off: keep the page stationary; two-finger pinch still zooms.
  }else if(config.zoom>1.001){
   panImage(dx,dy);
  }else{
@@ -671,6 +673,6 @@ init();
 })();
 </script>
 <script src="../recorder.js?v=20261104-two-recorders"></script>
-<script src="../whiteboard.js?v=20261105-view-toggles"></script>
+<script src="../whiteboard.js?v=20261105-pan-toggle"></script>
 </body>
 </html>
