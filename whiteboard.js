@@ -15,8 +15,12 @@ const workspaceButton=button("gallery-book-left","Left","Book left, whiteboard r
 const layoutButton=button("gallery-book-top","Top","Book top, whiteboard below");
 const whiteButton=button("gallery-white-toggle","Whiteboard","Replace page with blank writing surface");
 const clearButton=button("gallery-workspace-clear","Clear work","Clear writing surface");
+const panButton=button("gallery-pan-toggle","Pan","Enable one-finger and mouse dragging to move the book or whiteboard");
+window.galleryPanEnabled=false;
+panButton.setAttribute("aria-pressed","false");
+panButton.onclick=()=>{window.galleryPanEnabled=!window.galleryPanEnabled;panButton.classList.toggle("active",window.galleryPanEnabled);panButton.setAttribute("aria-pressed",String(window.galleryPanEnabled));document.body.classList.toggle("gallery-pan-on",window.galleryPanEnabled);panButton.title=window.galleryPanEnabled?"Pan ON — click to disable dragging":"Pan OFF — click to enable dragging";};
 const tools=document.querySelector(".controls-right")||pen.parentElement;
-tools.prepend(layoutButton,workspaceButton,whiteButton,clearButton);
+tools.prepend(layoutButton,workspaceButton,whiteButton,panButton,clearButton);
 pen.classList.add("active");
 // Page arrows remain permanently visible, regardless of older saved settings.
 const alwaysArrows=$("smart-nav");
@@ -57,7 +61,7 @@ function down(c,e){const v=data.get(c);if(e.pointerType==="touch"){v.pointers.se
 e.preventDefault();const p=position(c,e),isErase=e.pointerType==="pen"&&(e.button===5||(e.buttons&32)!==0);
 v.active={id:e.pointerId,erase:isErase};c.setPointerCapture(e.pointerId);
 if(isErase)removeAt(c,p);else{const s={colour:window.galleryPenColour,width:3,points:[p]};v.strokes.push(s);v.active.stroke=s;paint(c)}}
-function move(c,e){const v=data.get(c);if(e.pointerType==="touch"&&v.pointers.has(e.pointerId)){const old=v.pointers.get(e.pointerId);v.pointers.set(e.pointerId,{x:e.clientX,y:e.clientY});if(v.pointers.size===2&&v.gesture){const ps=[...v.pointers.values()],dist=Math.hypot(ps[0].x-ps[1].x,ps[0].y-ps[1].y),z=Math.min(4,Math.max(.25,v.gesture.zoom*dist/Math.max(1,v.gesture.dist)));const r=c.getBoundingClientRect(),cx=(ps[0].x+ps[1].x)/2-r.left,cy=(ps[0].y+ps[1].y)/2-r.top,ox=v.gesture.cx-r.left,oy=v.gesture.cy-r.top;v.offsetX=cx-(ox-v.gesture.offX)*z/v.gesture.zoom;v.offsetY=cy-(oy-v.gesture.offY)*z/v.gesture.zoom;v.zoom=z;syncZoom(c);paint(c)}else if(v.pointers.size===1){v.offsetX+=e.clientX-old.x;v.offsetY+=e.clientY-old.y;paint(c)}return}
+function move(c,e){const v=data.get(c);if(e.pointerType==="touch"&&v.pointers.has(e.pointerId)){const old=v.pointers.get(e.pointerId);v.pointers.set(e.pointerId,{x:e.clientX,y:e.clientY});if(v.pointers.size===2&&v.gesture){const ps=[...v.pointers.values()],dist=Math.hypot(ps[0].x-ps[1].x,ps[0].y-ps[1].y),z=Math.min(4,Math.max(.25,v.gesture.zoom*dist/Math.max(1,v.gesture.dist)));const r=c.getBoundingClientRect(),cx=(ps[0].x+ps[1].x)/2-r.left,cy=(ps[0].y+ps[1].y)/2-r.top,ox=v.gesture.cx-r.left,oy=v.gesture.cy-r.top;v.offsetX=cx-(ox-v.gesture.offX)*z/v.gesture.zoom;v.offsetY=cy-(oy-v.gesture.offY)*z/v.gesture.zoom;v.zoom=z;syncZoom(c);paint(c)}else if(v.pointers.size===1&&window.galleryPanEnabled){v.offsetX+=e.clientX-old.x;v.offsetY+=e.clientY-old.y;paint(c)}return}
 if(!v.active||v.active.id!==e.pointerId)return;e.preventDefault();const p=position(c,e);if(v.active.erase)removeAt(c,p);else{v.active.stroke.points.push(p);paint(c)}}
 function up(c,e){const v=data.get(c);if(e.pointerType==="touch"){v.pointers.delete(e.pointerId);v.gesture=null}else if(v.active&&v.active.id===e.pointerId)v.active=null}
 for(const c of all){c.addEventListener("pointerdown",e=>down(c,e));c.addEventListener("pointermove",e=>move(c,e));c.addEventListener("pointerup",e=>up(c,e));c.addEventListener("pointercancel",e=>up(c,e));}
