@@ -255,7 +255,7 @@ body.toc-hidden .toc-sidebar { margin-left: -320px; }
   .calculator-launch{font-size:12px;padding:0 6px}
 }
 </style>
-<link rel="stylesheet" href="../whiteboard.css">
+<link rel="stylesheet" href="../whiteboard.css?v=20261105-home-rec">
 </head>
 <body class="toc-hidden">
 <div class="toc-sidebar">
@@ -276,6 +276,10 @@ body.toc-hidden .toc-sidebar { margin-left: -320px; }
       <span class="sep"></span>
       <span class="page-info"><span id="current-page" title="Go to page">1</span><span>/</span><span id="total-pages">0</span></span>
       <button class="toolbar-btn calculator-launch" type="button" id="calculator-toggle" title="Open your calculator inside the gallery" aria-controls="calculator-panel" aria-expanded="false">Calc</button>
+      <button class="toolbar-btn gallery-record-btn" id="gallery-record-voice" type="button" title="Record screen with microphone narration">● REC</button>
+      <button class="toolbar-btn gallery-silent-btn" id="gallery-record-silent" type="button" aria-label="Record without microphone" title="Record screen silently, without microphone">🔇 REC</button>
+      <span class="gallery-record-timer" id="gallery-record-timer" role="timer" hidden>00:00</span>
+      <span class="gallery-mic-meter" id="gallery-mic-meter" role="meter" aria-label="Live microphone level" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" title="Microphone level" hidden><span id="gallery-mic-fill"></span></span>
     </div>
     <div class="controls-right">
       <button class="toolbar-btn" id="pointer-btn" title="Pointer">➤</button>
@@ -646,6 +650,7 @@ function init(){initCalculatorPanel();buildRulerTicks();initFromHash();initPageC
 init();
 })();
 </script>
-<script src="../whiteboard.js"></script>
+<script src="../recorder.js?v=20261105-rec"></script>
+<script src="../whiteboard.js?v=20261105-pdf-home"></script>
 </body>
 </html>
