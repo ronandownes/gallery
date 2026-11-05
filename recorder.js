@@ -7,7 +7,7 @@ const meter=document.getElementById("gallery-mic-meter"),meterFill=document.getE
 if(!voiceButton||!silentButton||!timer)return;
 let phase="ready",mode=null,display=null,mic=null,recorder=null,chunks=[],clock=null,started=0;
 let audioCtx=null,analyser=null,samples=null,levelFrame=null,finishing=false;
-const title={voice:"● Record",silent:"● Silent Record"};
+const title={voice:"● REC",silent:"🔇 REC"};
 function ui(){
  const active=phase==="recording";
  for(const [button,kind] of [[voiceButton,"voice"],[silentButton,"silent"]]){
@@ -16,7 +16,7 @@ function ui(){
   button.classList.toggle("gallery-recording",active&&itsTurn);
   button.classList.toggle("gallery-record-pending",phase==="pending"&&itsTurn);
   button.setAttribute("aria-pressed",String(active&&itsTurn));
-  button.textContent=phase==="recording"&&itsTurn?"■ Stop & Save":
+  button.textContent=phase==="recording"&&itsTurn?"■ Stop":
                      phase==="saving"&&itsTurn?"Saving…":
                      phase==="pending"&&itsTurn?"Choose screen…":title[kind];
  }
