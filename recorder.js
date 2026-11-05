@@ -21,7 +21,7 @@ function ui(){
                      phase==="pending"&&itsTurn?"Choose screen…":title[kind];
  }
  timer.hidden=!active;
- if(meter)meter.hidden=!(active&&mode==="voice"&&analyser);
+ if(meter)meter.hidden=!(active&&analyser);
 }
 function closeAudio(){
  if(levelFrame!==null){cancelAnimationFrame(levelFrame);levelFrame=null}
@@ -47,7 +47,7 @@ async function startMeter(){
   source.connect(analyser);samples=new Uint8Array(analyser.fftSize);
   if(audioCtx.state==="suspended")await audioCtx.resume();
   const draw=()=>{
-   if(phase!=="recording"||mode!=="voice"||!analyser)return;
+   if(phase!=="recording"||!analyser)return;
    analyser.getByteTimeDomainData(samples);
    let sum=0;for(const a of samples){const x=(a-128)/128;sum+=x*x}
    const level=Math.min(100,Math.round(Math.sqrt(sum/samples.length)*650));
@@ -89,6 +89,10 @@ async function start(kind){
   if(kind==="voice"){
    if(!navigator.mediaDevices?.getUserMedia)throw Error("Microphone capture is unsupported.");
    mic=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true,noiseSuppression:true,autoGainControl:true},video:false});
+  }else if(navigator.mediaDevices?.getUserMedia){
+   // Meter only: silent recordings NEVER contain a microphone audio track.
+   // Permission rejection simply hides the meter; recording continues silently.
+   try{mic=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true,noiseSuppression:true},video:false});}catch(_){}
   }
   const audio=kind==="voice"?mic?.getAudioTracks()[0]:null;
   if(kind==="voice"&&(!audio||audio.readyState!=="live"))throw Error("Microphone is unavailable.");
@@ -101,7 +105,7 @@ async function start(kind){
   video.addEventListener("ended",()=>{if(phase==="recording")stop()},{once:true});
   recorder.start(500);started=Date.now();updateTime();clock=setInterval(updateTime,500);
   phase="recording";ui();
-  if(kind==="voice")startMeter();
+  if(mic)startMeter();
  }catch(e){
   cleanup();
   if(e?.name!=="NotAllowedError")alert("Recording could not start: "+(e?.message||String(e)));
