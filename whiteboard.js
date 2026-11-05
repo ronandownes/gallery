@@ -365,6 +365,7 @@ function seamEnd(e){
 document.addEventListener("pointerup",seamEnd,true);
 document.addEventListener("pointercancel",seamEnd,true);
 window.gallerySeamInk={clearAll(){seamStrokes.length=0;seamActive=null;seamPaint()},redraw:seamPaint};
+window.galleryGetSeamPageInk=key=>seamStrokes.filter(s=>s.page===String(key)).map(s=>({colour:s.colour,width:s.width,points:s.points.filter(p=>p.k==='book').map(p=>({x:p.x,y:p.y}))})).filter(s=>s.points.length);
 window.gallerySeamDebug=()=>({view:current,strokes:seamStrokes.length,active:!!seamActive,page:pageId()});
 if(window.ResizeObserver)new ResizeObserver(seamResize).observe(seamCanvas);
 if(pageImage&&window.MutationObserver)new MutationObserver(seamPaint).observe(pageImage,{attributes:true,attributeFilter:["style","src"]});
@@ -458,6 +459,7 @@ function eraseAt(p){
  redraw();
 }
 window.galleryEraseBookInkAtClient=(x,y)=>eraseAt(coords(x,y));
+window.galleryGetFocusPageInk=key=>(pages.get(String(key))||[]).map(s=>({colour:s.colour,width:s.width,points:s.points.map(p=>({x:p.x,y:p.y}))}));
 function within(e){if(document.querySelector(".gallery-question-stage.open")?.contains(e.target))return false;const r=bounds();return e.clientX>=r.left&&e.clientX<r.right&&e.clientY>=r.top&&e.clientY<r.bottom}
 function usingEraser(e){
  return e.pointerType==="pen"&&(e.button===5||(e.buttons&32)!==0);
@@ -566,3 +568,46 @@ recBtn.onclick=async()=>{
 }
 })();
 
+
+/* Print a clean original exam page with teaching annotations overlaid.
+   Chrome/Edge: choose Destination > Save as PDF in the print dialogue. */
+(function(){
+"use strict";
+const bar=document.querySelector(".controls-right")||document.querySelector(".controls");
+const image=document.getElementById("page-image");
+const page=document.getElementById("current-page");
+if(!bar||!image||!page)return;
+const btn=document.createElement("button");
+btn.type="button";btn.className="toolbar-btn";btn.textContent="PDF + writing";
+btn.title="Export this original page with handwritten annotations; choose Save as PDF";
+btn.setAttribute("aria-label","Print current page with handwriting as PDF");
+bar.append(btn);
+function drawInk(ctx,strokes,w,h,seam=false){
+ ctx.lineCap="round";ctx.lineJoin="round";
+ for(const s of strokes){
+  if(!s.points?.length)continue;
+  ctx.beginPath();ctx.strokeStyle=s.colour||"#1a1a1a";ctx.fillStyle=s.colour||"#1a1a1a";
+  ctx.lineWidth=seam?Math.max(1,s.width*w/Math.max(1,image.getBoundingClientRect().width)):Math.max(1,s.width*w);
+  s.points.forEach((p,i)=>i?ctx.lineTo(p.x*w,p.y*h):ctx.moveTo(p.x*w,p.y*h));
+  if(s.points.length===1){const p=s.points[0];ctx.arc(p.x*w,p.y*h,ctx.lineWidth/2,0,Math.PI*2);ctx.fill()}
+  else ctx.stroke();
+ }
+}
+btn.addEventListener("click",()=>{
+ if(!image.complete||!image.naturalWidth){alert("The original page has not loaded.");return}
+ const key=(page.textContent||"1").trim();
+ const popup=window.open("","_blank");
+ if(!popup){alert("Allow pop-ups for this gallery to print annotated pages.");return}
+ try{
+  const c=document.createElement("canvas");c.width=image.naturalWidth;c.height=image.naturalHeight;
+  const ctx=c.getContext("2d");ctx.drawImage(image,0,0,c.width,c.height);
+  drawInk(ctx,window.galleryGetFocusPageInk?.(key)||[],c.width,c.height);
+  drawInk(ctx,window.galleryGetSeamPageInk?.(key)||[],c.width,c.height,true);
+  // Image-based PDF print preserves the original SEC page and all book-anchored ink.
+  const png=c.toDataURL("image/png");
+  popup.document.open();
+  popup.document.write('<!doctype html><html><head><title>Annotated Gallery page '+key+'</title><style>@page{size:auto;margin:0}html,body{margin:0;padding:0}img{display:block;width:100%;height:auto;max-height:100vh;object-fit:contain;page-break-after:avoid}@media print{img{width:100%;max-height:100vh}}</style></head><body><img id="printed" alt="Original exam page with handwriting"><script>const i=document.getElementById("printed");i.onload=()=>setTimeout(()=>window.print(),250);<\/script></body></html>');
+  popup.document.close();popup.document.getElementById("printed").src=png;
+ }catch(e){popup.close();alert("Could not prepare annotated page: "+e.message)}
+});
+})();
