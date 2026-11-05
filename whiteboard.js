@@ -490,7 +490,7 @@ function usingEraser(e){
  return e.pointerType==="pen"&&(e.button===5||(e.buttons&32)!==0);
 }
 document.addEventListener("pointerdown",e=>{
- if(e.pointerType!=="mouse"||!penEnabled(e)||!within(e))return; // Stylus uses the continuous ink overlay.
+ if(e.pointerType!=="mouse"||window.galleryPanEnabled||!penEnabled(e)||!within(e))return; // Explicit Pan mode must not create mouse ink.
  if(e.target.closest(".calculator-panel,button,input,select"))return;
  e.preventDefault();e.stopImmediatePropagation();
  const p=coords(e.clientX,e.clientY),eraser=usingEraser(e);
