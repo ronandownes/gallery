@@ -107,9 +107,11 @@ const focusLock=button("gallery-camera-focus-lock","Lock focus","Lock focus at t
 const lightLock=button("gallery-camera-exposure-lock","Lock light","Lock exposure to stop brightness changes");
 const cameraBrightness=document.createElement("label");cameraBrightness.id="gallery-camera-brightness";
 cameraBrightness.title="Display-only brightness; does not lock camera hardware exposure";
-cameraBrightness.innerHTML='<span>Bright</span><input type="range" min="80" max="180" step="5" value="110" aria-label="Camera image display brightness"><output>110%</output>';
+cameraBrightness.innerHTML='<span>Bright</span><input type="range" min="80" max="180" step="5" value="120" aria-label="Camera image display brightness"><output>120%</output>';
 for(const el of [focusLock,lightLock,cameraBrightness]){el.hidden=true;titleBar.insertBefore(el,zoomGroup)}
 const brightSlider=cameraBrightness.querySelector("input");
+// The likely subject is white paper. Start slightly brighter, but keep hardware auto-exposure enabled.
+cameraVideo.style.filter="brightness(1.2)";
 brightSlider.oninput=()=>{cameraVideo.style.filter="brightness("+Number(brightSlider.value)/100+")";cameraBrightness.querySelector("output").textContent=brightSlider.value+"%";};
 
 let cameraStream=null,cameraRequest=0,workspaceSource="whiteboard";
@@ -213,7 +215,7 @@ cameraDevices.onchange=()=>{if(workspaceSource==="camera")startCamera()};
 cameraSnapshot.onclick=()=>{
  if(!cameraStream||!cameraVideo.videoWidth){alert("Start the document camera before taking a photo.");return}
  const cv=document.createElement("canvas");cv.width=cameraVideo.videoWidth;cv.height=cameraVideo.videoHeight;
- cv.getContext("2d").drawImage(cameraVideo,0,0);
+ const photoCtx=cv.getContext("2d");photoCtx.filter="brightness("+Number(brightSlider.value)/100+")";photoCtx.drawImage(cameraVideo,0,0);
  cv.toBlob(blob=>{if(!blob)return;const url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download="Gallery-Camera-"+new Date().toISOString().replace(/[:.]/g,"-")+".png";document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),30000)},"image/png");
 };
 document.addEventListener("visibilitychange",()=>{if(document.hidden&&cameraStream&&workspaceSource!=="camera")stopCamera()});
