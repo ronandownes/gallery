@@ -13,7 +13,7 @@ pen.after(colours);
 const button=(id,label,title)=>{const b=document.createElement("button");b.id=id;b.type="button";b.className="toolbar-btn gallery-tool-short";b.textContent=label;b.title=title;return b};
 const workspaceButton=button("gallery-book-left","Left","Book left, whiteboard right");
 const layoutButton=button("gallery-book-top","Top","Book top, whiteboard below");
-const whiteButton=button("gallery-white-toggle","Whiteboard","Replace page with blank writing surface");
+const whiteButton=button("gallery-white-toggle","Full screen","Show the selected Whiteboard or Camera across the entire teaching area");
 const clearButton=button("gallery-workspace-clear","Clear work","Clear writing surface");
 const panButton=button("gallery-pan-toggle","Pan","Enable one-finger and mouse dragging to move the book or whiteboard");
 window.galleryPanEnabled=true;
@@ -208,8 +208,10 @@ async function selectWorkspaceSource(source){
  if(isCam){await startCamera()}else{await stopCamera();requestAnimationFrame(()=>resize(work))}
 }
 cameraSelect.onchange=async()=>{
- if(cameraSelect.value==="whiteboard"&&current==="camera"){showMode("white");await selectWorkspaceSource("whiteboard");}
- else {await selectWorkspaceSource(cameraSelect.value);cameraTool.classList.toggle("active",workspaceSource==="camera");}
+ const next=cameraSelect.value;
+ if(current==="camera"||current==="white")showMode(next==="camera"?"camera":"white");
+ await selectWorkspaceSource(next);
+ syncSourceButton();
 };
 cameraDevices.onchange=()=>{if(workspaceSource==="camera")startCamera()};
 cameraSnapshot.onclick=()=>{
@@ -245,8 +247,8 @@ function updateView(){
  layoutButton.classList.toggle("active",current==="workspace"&&stacked);
  workspaceButton.setAttribute("aria-pressed",String(current==="workspace"&&!stacked));
  layoutButton.setAttribute("aria-pressed",String(current==="workspace"&&stacked));
- whiteButton.setAttribute("aria-pressed",String(current==="white"));
- whiteButton.classList.toggle("active",current==="white");
+ whiteButton.setAttribute("aria-pressed",String(current==="white"||current==="camera"));
+ whiteButton.classList.toggle("active",current==="white"||current==="camera");
  layoutWorkspace();
  if(current==="white")requestAnimationFrame(()=>resize(board));
  if(current==="workspace")requestAnimationFrame(()=>resize(work));
@@ -299,7 +301,7 @@ function captureBookView(){
  };
 }
 function showMode(mode){
- if(mode!=="workspace"&&mode!=="camera"&&workspaceSource==="camera"){selectWorkspaceSource("whiteboard");cameraTool.classList.remove("active");cameraTool.setAttribute("aria-pressed","false")}
+ // Layout changes do not change the selected Camera/Whiteboard source.
  if(mode===current&&!(mode==="workspace"&&stacked!==wantTop))return;
  if(current==="book"&&mode!=="book")originalBookView=captureBookView();
  const im=$("page-image").getBoundingClientRect(),cr=container.getBoundingClientRect();
@@ -334,25 +336,36 @@ function showMode(mode){
   bookZoomControl.querySelector("output").textContent=percent+"%";
  }));
 }
+// Layout (Top / Left / Full screen) and source (Camera / Whiteboard) are independent.
+function fullWorkspace(){showMode(workspaceSource==="camera"?"camera":"white")}
 layoutButton.onclick=()=>{
  const off=current==="workspace"&&stacked;
- wantTop=true;showMode(off?(workspaceSource==="camera"?"camera":"book"):"workspace");
+ wantTop=true;off?fullWorkspace():showMode("workspace");
 };
 workspaceButton.onclick=()=>{
  const off=current==="workspace"&&!stacked;
- wantTop=false;showMode(off?(workspaceSource==="camera"?"camera":"book"):"workspace");
+ wantTop=false;off?fullWorkspace():showMode("workspace");
 };
-whiteButton.onclick=()=>showMode(current==="white"?"book":"white");
-const cameraTool=button("gallery-camera-toggle","Camera","Camera full-page; use Left or Top to show the textbook alongside it");
+whiteButton.onclick=()=>fullWorkspace();
+const cameraTool=button("gallery-camera-toggle","Camera","Switch the current workspace between Camera and Whiteboard");
 whiteButton.after(cameraTool);
+function syncSourceButton(){
+ const cam=workspaceSource==="camera";
+ cameraTool.textContent=cam?"Whiteboard":"Camera";
+ cameraTool.title=cam?"Switch this workspace to the Whiteboard":"Switch this workspace to the Camera";
+ cameraTool.classList.toggle("active",cam);
+ cameraTool.setAttribute("aria-pressed",String(cam));
+}
 cameraTool.onclick=async()=>{
- if(current==="camera"){showMode("book");return}
- if(workspaceSource==="camera"&&current==="workspace"){showMode("camera");return}
- showMode("camera");
- await selectWorkspaceSource("camera");
- cameraTool.classList.add("active");
- cameraTool.setAttribute("aria-pressed","true");
+ const next=workspaceSource==="camera"?"whiteboard":"camera";
+ // Switch the source without changing the selected Top / Left / Full screen layout.
+ if(current!=="workspace"&&current!=="camera"&&current!=="white")showMode(next==="camera"?"camera":"white");
+ else if(current==="camera"||current==="white")showMode(next==="camera"?"camera":"white");
+ await selectWorkspaceSource(next);
+ syncSourceButton();
 };
+syncSourceButton();
+
 
 
 // Mouse wheel over the book zooms around the pointer, while touch pinch remains intact.
@@ -849,3 +862,6 @@ button.addEventListener("click",async()=>{
  }finally{button.disabled=false;}
 });
 })();
+
+// F2 opens/closes the embedded calculator without changing the lesson or recorder.
+window.addEventListener("keydown",e=>{if(e.key==="F2"&&!e.ctrlKey&&!e.altKey&&!e.metaKey){e.preventDefault();document.getElementById("calculator-toggle")?.click();}},true);
