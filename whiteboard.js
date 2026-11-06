@@ -103,7 +103,64 @@ titleBar.insertBefore(cameraDevices,zoomGroup);
 titleBar.insertBefore(cameraSnapshot,zoomGroup);
 titleBar.insertBefore(cameraFit,zoomGroup);
 const workspaceTitle=titleBar.querySelector("strong");
+const focusLock=button("gallery-camera-focus-lock","Lock focus","Lock focus at the current position");
+const lightLock=button("gallery-camera-exposure-lock","Lock light","Lock exposure to stop brightness changes");
+const cameraBrightness=document.createElement("label");cameraBrightness.id="gallery-camera-brightness";
+cameraBrightness.title="Display-only brightness; does not lock camera hardware exposure";
+cameraBrightness.innerHTML='<span>Bright</span><input type="range" min="80" max="180" step="5" value="110" aria-label="Camera image display brightness"><output>110%</output>';
+for(const el of [focusLock,lightLock,cameraBrightness]){el.hidden=true;titleBar.insertBefore(el,zoomGroup)}
+const brightSlider=cameraBrightness.querySelector("input");
+brightSlider.oninput=()=>{cameraVideo.style.filter="brightness("+Number(brightSlider.value)/100+")";cameraBrightness.querySelector("output").textContent=brightSlider.value+"%";};
+
 let cameraStream=null,cameraRequest=0,workspaceSource="whiteboard";
+let cameraLockBusy=false;
+function cameraCapabilities(){
+ const track=cameraStream?.getVideoTracks()[0];
+ const caps=track?.getCapabilities?.()||{};
+ return {track,caps};
+}
+function supportsMode(cap,name){return Array.isArray(cap)&&cap.includes(name)}
+function syncCameraControls(){
+ const {track,caps}=cameraCapabilities();
+ const settings=track?.getSettings?.()||{};
+ const focusOK=!!track&&supportsMode(caps.focusMode,"manual");
+ const lightOK=!!track&&supportsMode(caps.exposureMode,"manual");
+ focusLock.hidden=!focusOK||workspaceSource!=="camera";
+ lightLock.hidden=!lightOK||workspaceSource!=="camera";
+ cameraBrightness.hidden=workspaceSource!=="camera";
+ const focusLocked=settings.focusMode==="manual";
+ const lightLocked=settings.exposureMode==="manual";
+ for(const [b,on,label] of [[focusLock,focusLocked,"focus"],[lightLock,lightLocked,"light"]]){
+  b.classList.toggle("active",on);b.setAttribute("aria-pressed",String(on));
+  b.textContent=on?"Unlock "+label:"Lock "+label;
+  b.disabled=cameraLockBusy;
+ }
+}
+async function setCameraMode(kind){
+ const {track,caps}=cameraCapabilities();
+ if(!track||cameraLockBusy)return;
+ const focus=kind==="focus";const key=focus?"focusMode":"exposureMode";
+ const modes=caps[key];
+ if(!supportsMode(modes,"manual"))return;
+ const settings=track.getSettings?.()||{};
+ const manual=settings[key]==="manual";
+ const next=manual?(supportsMode(modes,"continuous")?"continuous":supportsMode(modes,"single-shot")?"single-shot":null):"manual";
+ if(!next){alert("This camera does not offer an automatic mode to restore.");return}
+ cameraLockBusy=true;syncCameraControls();
+ try{
+  // Keep the current focus distance or exposure level when switching to manual.
+  // Chromium support varies by camera: do not claim a lock until readback confirms it.
+  await track.applyConstraints({advanced:[{[key]:next}]});
+  const actual=track.getSettings?.()||{};
+  if(actual[key]!==next){
+   alert("Chrome did not confirm the "+(focus?"focus":"exposure")+" lock on this camera. You may need the camera's own controls.");
+  }
+ }catch(e){alert("Camera "+(focus?"focus":"exposure")+" control unavailable: "+e.message)}
+ finally{cameraLockBusy=false;syncCameraControls()}
+}
+focusLock.onclick=()=>setCameraMode("focus");
+lightLock.onclick=()=>setCameraMode("exposure");
+
 async function stopCamera(){
  ++cameraRequest;
  if(cameraStream){for(const t of cameraStream.getTracks())t.stop();cameraStream=null}
@@ -133,6 +190,7 @@ async function startCamera(){
   await cameraVideo.play();
   cameraStatus.hidden=true;
   await listCameraDevices();
+  syncCameraControls();
   const track=stream.getVideoTracks()[0];
   track?.addEventListener("ended",()=>{if(cameraStream===stream){cameraStatus.textContent="Camera disconnected. Choose Camera again to restart.";cameraStatus.hidden=false}}, {once:true});
  }catch(e){if(serial===cameraRequest){cameraStatus.hidden=false;cameraStatus.textContent="Camera unavailable: "+(e.message||e.name)}}
@@ -143,6 +201,7 @@ async function selectWorkspaceSource(source){
  const isCam=workspaceSource==="camera";
  panel.classList.toggle("gallery-camera-mode",isCam);
  cameraSnapshot.hidden=!isCam;cameraFit.hidden=!isCam;zoomGroup.hidden=isCam;
+  syncCameraControls();
  workspaceTitle.textContent=isCam?"Document camera":"Writing surface";
  if(isCam){await startCamera()}else{await stopCamera();requestAnimationFrame(()=>resize(work))}
 }
