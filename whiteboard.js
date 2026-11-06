@@ -863,5 +863,5 @@ button.addEventListener("click",async()=>{
 });
 })();
 
-// F2 opens/closes the embedded calculator without changing the lesson or recorder.
+// Keep calculator title compact and consistent with four-dot Maths identity.\nconst calculatorTitle=document.querySelector("#calculator-drag-bar span");if(calculatorTitle)calculatorTitle.textContent="Calculator";\n// F2 opens/closes the embedded calculator without changing the lesson or recorder.
 window.addEventListener("keydown",e=>{if(e.key==="F2"&&!e.ctrlKey&&!e.altKey&&!e.metaKey){e.preventDefault();document.getElementById("calculator-toggle")?.click();}},true);
