@@ -205,3 +205,11 @@ body.gallery-camera-full .gallery-workspace{display:flex!important;left:0!import
 body.gallery-camera-full .image-container,body.gallery-camera-full .page-nav,body.gallery-camera-full #gallery-whiteboard,body.gallery-camera-full #gallery-focus-ink,body.gallery-camera-full #gallery-seam-ink{display:none!important}
 body.gallery-camera-full .gallery-workspace-drag{display:none!important}
 body.gallery-camera-full .gallery-workspace-title{width:100%}
+
+/* Small camera-only focus/exposure controls. Unavailable hardware controls are hidden. */
+#gallery-camera-focus-lock,#gallery-camera-exposure-lock{font-size:12px;white-space:nowrap;padding:5px 9px}
+#gallery-camera-focus-lock[hidden],#gallery-camera-exposure-lock[hidden],#gallery-camera-brightness[hidden]{display:none!important}
+#gallery-camera-focus-lock.active,#gallery-camera-exposure-lock.active{background:#e8f3ec;border-color:#528769;color:#174b31;font-weight:700}
+#gallery-camera-brightness{display:inline-flex;align-items:center;gap:5px;font-size:12px;white-space:nowrap}
+#gallery-camera-brightness input{width:72px;accent-color:#205da9}
+#gallery-camera-brightness output{min-width:35px;font-variant-numeric:tabular-nums}
