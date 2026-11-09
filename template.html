@@ -347,17 +347,10 @@ body.toc-hidden .toc-sidebar { margin-left: -320px; }
 "use strict";
 let config;
 try{
-  config={pages:__PAGES__,imgBase:__IMG_BASE__,toc:__TOC__,pageOffset:__PAGE_OFFSET__,currentPage:0,zoom:1,translateX:0,translateY:0,isPanning:false,startX:0,startY:0,panStartX:0,panStartY:0,currentFitMode:"height",expandedChapters:{}};
+  config={pages:__PAGES__,imgBase:__IMG_BASE__,toc:__TOC__,pageOffset:__PAGE_OFFSET__,currentPage:0,zoom:1,translateX:0,translateY:0,isPanning:false,startX:0,startY:0,panStartX:0,panStartY:0,currentFitMode:localStorage.getItem("fitMode")||"height",expandedChapters:JSON.parse(localStorage.getItem("expandedChapters")||"{}")};
 }catch(e){
   config={pages:[],imgBase:"webp",toc:{chapters:[]},pageOffset:0,currentPage:0,zoom:1,translateX:0,translateY:0,isPanning:false,startX:0,startY:0,panStartX:0,panStartY:0,currentFitMode:"height",expandedChapters:{}};
 }
-// Saved preferences must never erase the book when storage is unavailable or malformed.
-try {
-  const savedFit=localStorage.getItem("fitMode");
-  if(savedFit==="height"||savedFit==="width") config.currentFitMode=savedFit;
-  const savedChapters=JSON.parse(localStorage.getItem("expandedChapters")||"{}");
-  if(savedChapters&&typeof savedChapters==="object"&&!Array.isArray(savedChapters)) config.expandedChapters=savedChapters;
-} catch(e) { config.expandedChapters={}; }
 const $=(id)=>document.getElementById(id);
 const body=document.body,imageContainer=$("image-container"),pageImage=$("page-image"),inkCanvas=$("ink-layer"),pointerEl=$("teacher-pointer"),rulerEl=$("reading-ruler"),rulerTicksEl=$("ruler-ticks"),lightboxEl=$("lightbox"),zoomIndicator=$("zoom-indicator"),smartNavEl=$("smart-nav");
 let activeOverlay=null,pointerOn=false,penMode=false,lightboxFocused=false,toolPosY=180,toolDragging=false,lbDrag=null,lbStart=null,pointerPos={x:100,y:100},hideZoomTimer=null;
@@ -449,8 +442,7 @@ function tryStartPan(clientX,clientY,target){
 function moveLightboxByKey(dx,dy){lightbox.x+=dx;lightbox.y+=dy;positionLightbox()}
 function openPrintDialog(){const max=Math.max(1,config.pages.length-config.pageOffset);$("print-from").value=String(config.currentPage+1-config.pageOffset);$("print-to").value=String(config.currentPage+1-config.pageOffset);$("print-from").max=String(max);$("print-to").max=String(max);$("print-range-dialog").classList.add("open")}
 function closePrintDialog(){$("print-range-dialog").classList.remove("open")}
-function printRange(){const from=parseInt($("print-from").value,10),to=parseInt($("print-to").value,10),max=Math.max(1,config.pages.length-config.pageOffset);if(Number.isNaN(from)||Number.isNaN(to)||from<1||to<1||from>max||to>max||from>to){alert("Enter a valid page range.");return}const bookName=decodeURIComponent(document.title.replace(" - Viewer",""));const startInternal=from-1+config.pageOffset,endInternal=to-1+config.pageOffset;let htmlPages="";for(let i=startInternal;i<=endInternal;i++){const src=new URL(`${config.imgBase}/${config.pages[i]}`,window.location.href).href;htmlPages+=`<img src="${src}" style="width:100%;page-break-after:always;display:block;">`}const w=window.open("","_blank");w.document.write(`<!DOCTYPE html><html><head><title>${bookName} pages ${from}-${to}</title><style>body{margin:0}img{width:100%;display:block}img:last-child{page-break-after:auto}</style></head><body>${htmlPages}
-</body></html>`);w.document.close();w.focus();setTimeout(()=>w.print(),300);closePrintDialog()}
+function printRange(){const from=parseInt($("print-from").value,10),to=parseInt($("print-to").value,10),max=Math.max(1,config.pages.length-config.pageOffset);if(Number.isNaN(from)||Number.isNaN(to)||from<1||to<1||from>max||to>max||from>to){alert("Enter a valid page range.");return}const bookName=decodeURIComponent(document.title.replace(" - Viewer",""));const startInternal=from-1+config.pageOffset,endInternal=to-1+config.pageOffset;let htmlPages="";for(let i=startInternal;i<=endInternal;i++){const src=`${config.imgBase}/${config.pages[i]}`;htmlPages+=`<img src="${src}" style="width:100%;page-break-after:always;display:block;">`}const w=window.open("","_blank");w.document.write(`<!DOCTYPE html><html><head><title>${bookName} pages ${from}-${to}</title><style>body{margin:0}img{width:100%;display:block}img:last-child{page-break-after:auto}</style></head><body>${htmlPages}</body></html>`);w.document.close();w.focus();setTimeout(()=>w.print(),300);closePrintDialog()}
 // Load the user's calculator within a compact panel; do not alter the standalone app.
 function initCalculatorPanel(){
  const panel=$("calculator-panel"),frame=$("calculator-frame"),launch=$("calculator-toggle");
@@ -658,7 +650,6 @@ function init(){initCalculatorPanel();buildRulerTicks();initFromHash();initPageC
 init();
 })();
 </script>
-<script src="../print-page.js?v=20261109"></script>
 <script src="../recorder.js?v=mic-meter-silent-20261105"></script>
 <script src="../whiteboard.js?v=mode-toggle-f2-20261106"></script>
 </body>
