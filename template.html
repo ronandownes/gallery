@@ -347,10 +347,17 @@ body.toc-hidden .toc-sidebar { margin-left: -320px; }
 "use strict";
 let config;
 try{
-  config={pages:__PAGES__,imgBase:__IMG_BASE__,toc:__TOC__,pageOffset:__PAGE_OFFSET__,currentPage:0,zoom:1,translateX:0,translateY:0,isPanning:false,startX:0,startY:0,panStartX:0,panStartY:0,currentFitMode:localStorage.getItem("fitMode")||"height",expandedChapters:JSON.parse(localStorage.getItem("expandedChapters")||"{}")};
+  config={pages:__PAGES__,imgBase:__IMG_BASE__,toc:__TOC__,pageOffset:__PAGE_OFFSET__,currentPage:0,zoom:1,translateX:0,translateY:0,isPanning:false,startX:0,startY:0,panStartX:0,panStartY:0,currentFitMode:"height",expandedChapters:{}};
 }catch(e){
   config={pages:[],imgBase:"webp",toc:{chapters:[]},pageOffset:0,currentPage:0,zoom:1,translateX:0,translateY:0,isPanning:false,startX:0,startY:0,panStartX:0,panStartY:0,currentFitMode:"height",expandedChapters:{}};
 }
+// Saved preferences must never erase the book when storage is unavailable or malformed.
+try {
+  const savedFit=localStorage.getItem("fitMode");
+  if(savedFit==="height"||savedFit==="width") config.currentFitMode=savedFit;
+  const savedChapters=JSON.parse(localStorage.getItem("expandedChapters")||"{}");
+  if(savedChapters&&typeof savedChapters==="object"&&!Array.isArray(savedChapters)) config.expandedChapters=savedChapters;
+} catch(e) { config.expandedChapters={}; }
 const $=(id)=>document.getElementById(id);
 const body=document.body,imageContainer=$("image-container"),pageImage=$("page-image"),inkCanvas=$("ink-layer"),pointerEl=$("teacher-pointer"),rulerEl=$("reading-ruler"),rulerTicksEl=$("ruler-ticks"),lightboxEl=$("lightbox"),zoomIndicator=$("zoom-indicator"),smartNavEl=$("smart-nav");
 let activeOverlay=null,pointerOn=false,penMode=false,lightboxFocused=false,toolPosY=180,toolDragging=false,lbDrag=null,lbStart=null,pointerPos={x:100,y:100},hideZoomTimer=null;
